@@ -9,12 +9,12 @@ const Calibration: FunctionComponent = () => {
   return (
     <div className={styles.calibration}>
       <Header />
-      
+
       <div className={styles.title}>
         <div className={styles.watchTheCamera}>Watch the camera</div>
         <div className={styles.pleasePronouceThese}>Please pronouce these vowels</div>
       </div>
-      
+
       <div className={styles.container}>
         <div className={styles.rectangleParent}>
           <CameraComponent />
@@ -34,7 +34,7 @@ const Calibration: FunctionComponent = () => {
           </div>
         </div>
       </div>
-      
+
       <Footer />
     </div>
   );

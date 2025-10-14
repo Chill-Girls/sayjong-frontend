@@ -60,7 +60,7 @@ const Header: FunctionComponent = () => {
       <img
         style={styles.accountCircleIcon}
         alt="Account Icon"
-        src="src\assets\account_circle.svg"  // 이 경로는 실제 아이콘 경로로 바꾸세요
+        src="src\assets\account_circle.svg" // 이 경로는 실제 아이콘 경로로 바꾸세요
       />
     </header>
   );
