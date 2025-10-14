@@ -1,168 +1,139 @@
-import { useRef, useEffect, useState } from 'react';
+import { button, useControls } from 'leva';
+import React, { useCallback, useEffect, useRef } from 'react';
+import type { FC } from 'react';
+import Webcam from 'react-webcam';
+import { css } from '@emotion/css';
+import { Camera } from '@mediapipe/camera_utils';
+import {
+	FaceMesh, FACEMESH_LEFT_EYE, FACEMESH_LIPS, FACEMESH_RIGHT_EYE, type Results
+} from '@mediapipe/face_mesh';
+import { draw } from '../utils/drawCanvas.tsx';
 
-interface CameraComponentProps {
-  onResults?: (results: any) => void;
+interface Props {
+	onLandmarksDetected?: (landmarks: any[] | null) => void;
+	anchoredPoints?: any[];
+	width?: number;
+	height?: number;
 }
 
-const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const App: FC<Props> = ({ onLandmarksDetected, anchoredPoints, width = 1280, height = 720 }) => {
+	const webcamRef = useRef<Webcam>(null)
+	const canvasRef = useRef<HTMLCanvasElement>(null)
+	const resultsRef = useRef<Results | undefined>(undefined)
 
-  useEffect(() => {
-    const initializeCamera = async () => {
-      try {
-        if (!videoRef.current || !canvasRef.current) return;
+	// コントローラーの追加
+	const datas = useControls({
+		bgImage: true,
+		landmark: {
+			min: 0,
+			max: 477,
+			step: 1,
+			value: 0
+		},
+		result: button(() => {
+			OutputData()
+		})
+	})
 
-        // 최신 MediaPipe API 사용
-        const vision = await import(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3' as any
-        );
-        const { FaceLandmarker, FilesetResolver } = vision;
+	/** 検出結果をconsoleに出力する */
+	const OutputData = () => {
+		const results = resultsRef.current!
+		console.log(results.multiFaceLandmarks[0])
+		console.log('FACEMESH_LEFT_EYE', FACEMESH_LEFT_EYE)
+		console.log('FACEMESH_RIGHT_EYE', FACEMESH_RIGHT_EYE)
+		console.log('FACEMESH_LIPS', FACEMESH_LIPS)
+	}
 
-        const filesetResolver = await FilesetResolver.forVisionTasks(
-          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm',
-        );
+	/** 検出結果（フレーム毎に呼び出される） */
+	const onResults = useCallback(
+		(results: Results) => {
+			// 検出結果の格納
+			resultsRef.current = results
+			// 描画処理
+			const ctx = canvasRef.current!.getContext('2d')!
+			draw(ctx, results, datas.bgImage, datas.landmark, anchoredPoints)
+			
+			// 랜드마크 데이터를 부모 컴포넌트로 전달
+			if (onLandmarksDetected && results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
+				onLandmarksDetected(results.multiFaceLandmarks[0]);
+			} else if (onLandmarksDetected) {
+				onLandmarksDetected(null);
+			}
+		},
+		[datas, onLandmarksDetected, anchoredPoints]
+	)
 
-        const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
-          baseOptions: {
-            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
-            delegate: 'GPU',
-          },
-          outputFaceBlendShapes: true,
-          runningMode: 'VIDEO',
-          numFaces: 1,
-        });
+	useEffect(() => {
+		const faceMesh = new FaceMesh({
+			locateFile: file => {
+				return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`
+			}
+		})
 
-        class Camera {
-          video: HTMLVideoElement;
-          options: any;
+		faceMesh.setOptions({
+			maxNumFaces: 1,
+			refineLandmarks: false, // landmarks 468개만 사용
+			minDetectionConfidence: 0.5,
+			minTrackingConfidence: 0.5
+		})
 
-          constructor(video: HTMLVideoElement, options: any) {
-            this.video = video;
-            this.options = options;
-          }
+		faceMesh.onResults(onResults)
 
-          async start() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-            this.video.srcObject = stream;
-            this.video.play();
+		if (webcamRef.current) {
+			const camera = new Camera(webcamRef.current.video!, {
+				onFrame: async () => {
+					await faceMesh.send({ image: webcamRef.current!.video! })
+				},
+				width,
+				height
+			})
+			camera.start()
+		}
 
-            const onFrame = () => {
-              if (this.options.onFrame) {
-                this.options.onFrame();
-              }
-              requestAnimationFrame(onFrame);
-            };
-            onFrame();
-          }
-        }
+		return () => {
+			faceMesh.close()
+		}
+	}, [onResults, width, height])
 
-        const camera = new Camera(videoRef.current, {
-          onFrame: async () => {
-            if (videoRef.current && canvasRef.current) {
-              const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
+	return (
+		<div className={styles.container}>
+			{/* capture */}
+			<Webcam
+				ref={webcamRef}
+				style={{ visibility: 'hidden' }}
+				audio={false}
+				width={width}
+				height={height}
+				mirrored
+				screenshotFormat="image/jpeg"
+				videoConstraints={{ width, height, facingMode: 'user' }}
+			/>
+			{/* draw */}
+			<canvas ref={canvasRef} className={styles.canvas} width={width} height={height} />
+		</div>
+	)
+}
 
-              if (canvasRef.current) {
-                const canvasCtx = canvasRef.current.getContext('2d');
-                if (canvasCtx) {
-                  canvasCtx.save();
-                  canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-                  canvasCtx.drawImage(
-                    videoRef.current,
-                    0,
-                    0,
-                    canvasRef.current.width,
-                    canvasRef.current.height,
-                  );
+// ==============================================
+// styles
 
-                  // 얼굴 랜드마크는 그리지 않음
-                  canvasCtx.restore();
-                }
-              }
-
-              if (onResults) {
-                onResults(results);
-              }
-            }
-          },
-          width: 563,
-          height: 357,
-        });
-
-        await camera.start();
-        setIsInitialized(true);
-        setError(null);
-      } catch (err) {
-        console.error('카메라 초기화 실패:', err);
-        setError('카메라에 접근할 수 없습니다. 카메라 권한을 확인해주세요.');
-      }
-    };
-
-    initializeCamera();
-  }, [onResults]);
-
-  return (
-    <div style={{ position: 'relative', width: '563px', height: '357px' }}>
-      <video
-        ref={videoRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-          objectFit: 'cover',
-          transform: 'scaleX(-1)',
-        }}
-        playsInline
-        muted
-      />
-      <canvas
-        ref={canvasRef}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          width: '100%',
-          height: '100%',
-        }}
-        width={563}
-        height={357}
-      />
-      {!isInitialized && !error && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: '#666',
-            fontSize: '16px',
-          }}
-        >
-          카메라 초기화 중...
-        </div>
-      )}
-      {error && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: '#ff4444',
-            fontSize: '14px',
-            textAlign: 'center',
-            padding: '20px',
-          }}
-        >
-          {error}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default CameraComponent;
+const styles = {
+	container: css`
+		position: relative;
+		width: 100%;
+		height: 100%;
+		overflow: hidden;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	`,
+	canvas: css`
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		background-color: #1e1e1e;
+		border: 1px solid #fff;
+		transform: scaleX(-1);
+		object-fit: contain;
+	`
+}

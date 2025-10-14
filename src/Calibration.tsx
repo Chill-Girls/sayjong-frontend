@@ -1,6 +1,6 @@
 import { type FunctionComponent } from 'react';
 import styles from './Calibration.module.css';
-import CameraComponent from './Components/CameraComponent';
+import { App as CameraComponent } from './Components/CameraComponent';
 import Header from './Components/Header';
 import Footer from './Components/Footer';
 import MicIcon from './assets/mic.svg';
@@ -17,7 +17,7 @@ const Calibration: FunctionComponent = () => {
 
       <div className={styles.container}>
         <div className={styles.rectangleParent}>
-          <CameraComponent />
+          <CameraComponent width={560} height={360} />
           <img className={styles.micIcon} src={MicIcon} alt="Microphone" />
         </div>
         <div className={styles.frameParent}>
