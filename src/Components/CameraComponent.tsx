@@ -30,7 +30,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
             modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
             delegate: 'GPU',
           },
-          outputFaceBlendShapes: true,
+          outputFaceBlendshapes: true,
           runningMode: 'VIDEO',
           numFaces: 1,
         });
@@ -62,28 +62,42 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
         const camera = new Camera(videoRef.current, {
           onFrame: async () => {
             if (videoRef.current && canvasRef.current) {
-              const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
-
-              if (canvasRef.current) {
-                const canvasCtx = canvasRef.current.getContext('2d');
-                if (canvasCtx) {
-                  canvasCtx.save();
-                  canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-                  canvasCtx.drawImage(
-                    videoRef.current,
-                    0,
-                    0,
-                    canvasRef.current.width,
-                    canvasRef.current.height,
-                  );
-
-                  // 얼굴 랜드마크는 그리지 않음
-                  canvasCtx.restore();
+              try {
+                // 비디오가 준비되었는지 확인
+                if (videoRef.current.readyState !== 4) {
+                  return; // 비디오가 아직 준비되지 않음
                 }
-              }
 
-              if (onResults) {
-                onResults(results);
+                const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
+
+                if (canvasRef.current) {
+                  const canvasCtx = canvasRef.current.getContext('2d');
+                  if (canvasCtx) {
+                    canvasCtx.save();
+                    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                    
+                    // 좌우 반전 보정
+                    canvasCtx.translate(canvasRef.current.width, 0);
+                    canvasCtx.scale(-1, 1);
+                    
+                    canvasCtx.drawImage(
+                      videoRef.current,
+                      0,
+                      0,
+                      canvasRef.current.width,
+                      canvasRef.current.height,
+                    );
+
+                    // 얼굴 랜드마크는 그리지 않음
+                    canvasCtx.restore();
+                  }
+                }
+
+                if (onResults) {
+                  onResults(results);
+                }
+              } catch (error) {
+                console.error('MediaPipe 처리 중 오류:', error);
               }
             }
           },
@@ -114,7 +128,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           width: '100%',
           height: '100%',
           objectFit: 'cover',
-          transform: 'scaleX(-1)',
+          transform: 'none !important',
         }}
         playsInline
         muted
