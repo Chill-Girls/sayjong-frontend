@@ -1,4 +1,4 @@
-import React, { useState, /* useRef, */ useEffect } from 'react';
+import React, { useState, /* useRef, */ useEffect, useCallback } from 'react';
 import { App as CameraApp } from './Components/CameraComponent';
 import { calculateRelativePosition, restoreFromRelativePosition, type Point3D } from './utils/FindPoint';
 
@@ -18,23 +18,6 @@ const TestCalibration: React.FC = () => {
   const [calibratedLips, setCalibratedLips] = useState<any[]>([]);
   const [showAnchoredPoints, setShowAnchoredPoints] = useState(false);
   const [currentAnchoredPoints, setCurrentAnchoredPoints] = useState<any[]>([]);
-
-  // 키보드 이벤트 추가
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      if (event.key === ' ' || event.key === 'Enter') {
-        event.preventDefault();
-        console.log('🎤 키보드로 캘리브레이션 시작!');
-        startCalibration();
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    
-    return () => {
-      window.removeEventListener('keydown', handleKeyPress);
-    };
-  }, []);
 
   // 두 점 사이의 거리 계산 함수
   const calculateDistance = (point1: Point3D, point2: Point3D): number => {
@@ -103,7 +86,7 @@ const TestCalibration: React.FC = () => {
   };
 
   // 캘리브레이션 시작
-  const startCalibration = () => {
+  const startCalibration = useCallback(() => {
     console.log('🎤 캘리브레이션 시작!');
     console.log('📊 현재 상태:', { 
       isCalibrating, 
@@ -130,7 +113,24 @@ const TestCalibration: React.FC = () => {
         return prev - 1;
       });
     }, 1000);
-  };
+  }, [isCalibrating, cameraReady, landmarks, calibratedLips]);
+
+  // 키보드 이벤트 추가
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      if (event.key === ' ' || event.key === 'Enter') {
+        event.preventDefault();
+        console.log('🎤 키보드로 캘리브레이션 시작!');
+        startCalibration();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [startCalibration]);
 
   // 얼굴 랜드마크 처리
   const handleLandmarksDetected = (detectedLandmarks: any[] | null) => {
