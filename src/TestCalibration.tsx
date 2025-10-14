@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, /* useRef, */ useEffect } from 'react';
 import { App as CameraApp } from './Components/CameraComponent';
 import { calculateRelativePosition, restoreFromRelativePosition, type Point3D } from './utils/FindPoint';
 
@@ -6,9 +6,9 @@ import { calculateRelativePosition, restoreFromRelativePosition, type Point3D } 
 console.log('🚀 TestCalibration.tsx 로드됨');
 
 // 전역 변수
-let globalRelativePositions: any = {};
-let globalDistanceFeatures: any = {};
-let isInitialCalculationDone = false;
+// let globalRelativePositions: any = {};
+// let globalDistanceFeatures: any = {};
+// let isInitialCalculationDone = false;
 
 const TestCalibration: React.FC = () => {
   const [isCalibrating, setIsCalibrating] = useState(false);
@@ -114,7 +114,7 @@ const TestCalibration: React.FC = () => {
     
     setIsCalibrating(true);
     setCalibrationCountdown(1);
-    isInitialCalculationDone = false; // 리셋
+    // isInitialCalculationDone = false; // 리셋
     setCalibratedLips([]); // 캘리브레이션 시작 시 기존 데이터 초기화
     
     // 1초 카운트다운
@@ -167,7 +167,7 @@ const TestCalibration: React.FC = () => {
 
     console.log('얼굴 감지됨! 캘리브레이션 진행 중...');
 
-    if (!isInitialCalculationDone) {
+    // if (!isInitialCalculationDone) {
       // 얼굴 랜드마크 개수 확인
       if (detectedLandmarks.length < 468) {
         return;
@@ -190,7 +190,7 @@ const TestCalibration: React.FC = () => {
           const relativePositions: any = {};
           
           // 입술 끝점만 캘리브레이션 (61, 291번)
-          const lipCornerIndices = [61, 291]; // 입술 끝점
+          // const lipCornerIndices = [61, 291]; // 입술 끝점
 
           // 61번은 코와 왼쪽 눈꼬리 기준
           const point61 = detectedLandmarks[61];
@@ -223,7 +223,7 @@ const TestCalibration: React.FC = () => {
           }
 
           // 전역 변수에 상대 좌표 저장
-          globalRelativePositions = relativePositions;
+          // globalRelativePositions = relativePositions;
 
           // 2. 거리 피처 계산 (입술 끝점 간 거리만)
           const distanceFeatures: any = {};
@@ -237,7 +237,7 @@ const TestCalibration: React.FC = () => {
           }
 
           // 전역 변수에 거리 피처 저장
-          globalDistanceFeatures = distanceFeatures;
+          // globalDistanceFeatures = distanceFeatures;
 
           // 콘솔로 거리 피처 출력
           console.log('🎯 입술 끝점 캘리브레이션 완료!');
@@ -252,13 +252,13 @@ const TestCalibration: React.FC = () => {
           setCalibratedLips(calibratedLipPoints);
           setShowAnchoredPoints(true); // 고정점 표시 활성화
 
-          isInitialCalculationDone = true;
+          // isInitialCalculationDone = true;
         } catch (error) {
           console.error('계산 오류:', error);
-          isInitialCalculationDone = false;
+          // isInitialCalculationDone = false;
         }
       }
-    }
+    // }
   };
 
   return (
