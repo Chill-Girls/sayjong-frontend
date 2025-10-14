@@ -1,7 +1,7 @@
 import { drawConnectors } from '@mediapipe/drawing_utils';
 import {
-	FACEMESH_FACE_OVAL, FACEMESH_LEFT_EYE, FACEMESH_LEFT_EYEBROW, FACEMESH_LEFT_IRIS, FACEMESH_LIPS,
-	FACEMESH_RIGHT_EYE, FACEMESH_RIGHT_EYEBROW, FACEMESH_RIGHT_IRIS, FACEMESH_TESSELATION,
+	FACEMESH_FACE_OVAL, /* FACEMESH_LEFT_EYE, FACEMESH_LEFT_EYEBROW, FACEMESH_LEFT_IRIS, */ FACEMESH_LIPS,
+	/* FACEMESH_RIGHT_EYE, FACEMESH_RIGHT_EYEBROW, FACEMESH_RIGHT_IRIS, */ FACEMESH_TESSELATION,
 	type NormalizedLandmark, type Results
 } from '@mediapipe/face_mesh';
 
@@ -33,8 +33,8 @@ export const draw = (
 	if (results.multiFaceLandmarks) {
 		const lineWidth = 1
 		const tesselation = { color: '#C0C0C070', lineWidth }
-		const right_eye = { color: '#FF3030', lineWidth }
-		const left_eye = { color: '#30FF30', lineWidth }
+		// const right_eye = { color: '#FF3030', lineWidth }
+		// const left_eye = { color: '#30FF30', lineWidth }
 		const face_oval = { color: '#E0E0E0', lineWidth }
 
 		for (const landmarks of results.multiFaceLandmarks) {
@@ -88,7 +88,7 @@ const drawPoint = (ctx: CanvasRenderingContext2D, point: NormalizedLandmark) => 
  * @param anchoredPoints
  */
 const drawAnchoredPoints = (ctx: CanvasRenderingContext2D, anchoredPoints: any[]) => {
-	anchoredPoints.forEach((point, index) => {
+	anchoredPoints.forEach((point, /* index */) => {
 		const x = ctx.canvas.width * point.x
 		const y = ctx.canvas.height * point.y
 		const r = 8
