@@ -1,11 +1,15 @@
 import { type FunctionComponent } from 'react';
 import styles from './Calibration.module.css';
-import { App as CameraComponent } from './Components/CameraComponent';
+import CameraComponent from './Components/CameraComponent';
 import Header from './Components/Header';
 import Footer from './Components/Footer';
 import MicIcon from './assets/mic.svg';
 
-const Calibration: FunctionComponent = () => {
+interface CalibrationProps {
+  modeButtons?: React.ReactNode;
+}
+
+const Calibration: FunctionComponent<CalibrationProps> = ({ modeButtons }) => {
   return (
     <div className={styles.calibration}>
       <Header />
@@ -17,19 +21,19 @@ const Calibration: FunctionComponent = () => {
 
       <div className={styles.container}>
         <div className={styles.rectangleParent}>
-          <CameraComponent width={560} height={360} />
-          <img className={styles.micIcon} src={MicIcon} alt="Microphone" />
+          <CameraComponent />
+          <div
+            style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}
+          >
+            <img className={styles.micIcon} src={MicIcon} alt="Microphone" />
+            {modeButtons}
+          </div>
         </div>
         <div className={styles.frameParent}>
-          <div className={styles.wordParent}>
-            <div className={styles.word}>
-              <img className={styles.frameIcon} alt="" />
-              <div className={styles.div}>아</div>
-              <img className={styles.frameIcon} alt="" />
-            </div>
-            <div className={styles.brandAwarenessParent}>
-              <img className={styles.brandAwarenessIcon} alt="" />
-              <div className={styles.home}>[a:]</div>
+          <div className={styles.landmarksContainer}>
+            <h3 className={styles.landmarksTitle}>Face Landmarks & Blendshapes</h3>
+            <div className={styles.landmarksDisplay} id="landmarks-display">
+              {/* Landmarks and blendshapes will be displayed here */}
             </div>
           </div>
         </div>

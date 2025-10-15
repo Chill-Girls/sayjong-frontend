@@ -1,148 +1,284 @@
-import { button, useControls } from 'leva';
-import { useCallback, useEffect, useRef } from 'react';
-import type { FC } from 'react';
-import Webcam from 'react-webcam';
-import { css } from '@emotion/css';
-import { Camera } from '@mediapipe/camera_utils';
-import {
-  FaceMesh,
-  FACEMESH_LEFT_EYE,
-  FACEMESH_LIPS,
-  FACEMESH_RIGHT_EYE,
-  type Results,
-} from '@mediapipe/face_mesh';
-import { draw } from '../utils/drawCanvas.tsx';
+/**
+ * CameraComponent - Real-time Mouth Tracking with Vowel Overlay
+ *
+ * Features:
+ * - 43 landmark tracking (3 face anchors + 40 mouth points)
+ * - 3D head pose tracking with full rotation support (pitch, yaw, roll)
+ * - Real-time blendshape analysis for pronunciation training
+ * - Target vowel overlay with calibration-based positioning (static shape)
+ * - Smooth motion tracking with EMA filtering
+ * - Full 40-point mouth detail (20 outer lip + 20 inner lip)
+ *
+ * Architecture:
+ * - Modular design with separate utilities for each concern
+ * - vowelShapeBuilder: Target vowel shape generation
+ * - targetLandmarksComputer: 3D coordinate transformation
+ * - blendshapeProcessor: Blendshape smoothing and display
+ * - landmarksDisplay: Landmark information display
+ * - canvasRenderer: Canvas rendering utilities
+ */
 
-interface Props {
-  onLandmarksDetected?: (landmarks: any[] | null) => void;
-  anchoredPoints?: any[];
-  width?: number;
-  height?: number;
+import { useRef, useEffect, useState } from 'react';
+import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
+import { BlendshapeSmoother } from '../utils/blendShapeprocessor';
+import { updateLandmarksDisplay } from '../utils/landmarksDisplay';
+import {
+  createCanvasCoordConverter,
+  drawLiveMouthContours,
+  drawLandmarkPoints,
+  drawTargetMouthContours,
+  drawVowelLabel,
+} from '../utils/canvasRenderer';
+
+interface CameraComponentProps {
+  onResults?: (results: {
+    landmarks?: LandmarkPoint[];
+    blendshapes?: Record<string, number>;
+  }) => void;
 }
 
-export const App: FC<Props> = ({
-  onLandmarksDetected,
-  anchoredPoints,
-  width = 1280,
-  height = 720,
-}) => {
-  const webcamRef = useRef<Webcam>(null);
+interface LandmarkPoint {
+  x: number;
+  y: number;
+  z: number;
+}
+
+const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const resultsRef = useRef<Results | undefined>(undefined);
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // コントローラーの追加
-  const datas = useControls({
-    bgImage: true,
-    landmark: {
-      min: 0,
-      max: 477,
-      step: 1,
-      value: 0,
-    },
-    result: button(() => {
-      OutputData();
-    }),
-  });
+  // Target vowel overlay configuration
+  const TARGET_VOWEL = 'ㅔ';
 
-  /** 検出結果をconsoleに出力する */
-  const OutputData = () => {
-    const results = resultsRef.current!;
-    console.log(results.multiFaceLandmarks[0]);
-    console.log('FACEMESH_LEFT_EYE', FACEMESH_LEFT_EYE);
-    console.log('FACEMESH_RIGHT_EYE', FACEMESH_RIGHT_EYE);
-    console.log('FACEMESH_LIPS', FACEMESH_LIPS);
-  };
-
-  /** 検出結果（フレーム毎に呼び出される） */
-  const onResults = useCallback(
-    (results: Results) => {
-      // 検出結果の格納
-      resultsRef.current = results;
-      // 描画処理
-      const ctx = canvasRef.current!.getContext('2d')!;
-      draw(ctx, results, datas.bgImage, datas.landmark, anchoredPoints);
-
-      // 랜드마크 데이터를 부모 컴포넌트로 전달
-      if (onLandmarksDetected && results.multiFaceLandmarks && results.multiFaceLandmarks[0]) {
-        onLandmarksDetected(results.multiFaceLandmarks[0]);
-      } else if (onLandmarksDetected) {
-        onLandmarksDetected(null);
-      }
-    },
-    [datas, onLandmarksDetected, anchoredPoints],
-  );
+  // Initialize processing utilities
+  const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
+  const blendshapeSmoother = useRef(new BlendshapeSmoother(0.7));
 
   useEffect(() => {
-    const faceMesh = new FaceMesh({
-      locateFile: file => {
-        return `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/${file}`;
-      },
-    });
+    const initializeCamera = async () => {
+      try {
+        if (!videoRef.current || !canvasRef.current) {
+          console.error('Video or canvas ref not available');
+          return;
+        }
 
-    faceMesh.setOptions({
-      maxNumFaces: 1,
-      refineLandmarks: false, // landmarks 468개만 사용
-      minDetectionConfidence: 0.5,
-      minTrackingConfidence: 0.5,
-    });
+        // Import MediaPipe
+        const vision = await import('@mediapipe/tasks-vision');
+        const { FaceLandmarker, FilesetResolver } = vision;
 
-    faceMesh.onResults(onResults);
+        const filesetResolver = await FilesetResolver.forVisionTasks(
+          'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm',
+        );
 
-    if (webcamRef.current) {
-      const camera = new Camera(webcamRef.current.video!, {
-        onFrame: async () => {
-          await faceMesh.send({ image: webcamRef.current!.video! });
-        },
-        width,
-        height,
-      });
-      camera.start();
-    }
+        // Create FaceLandmarker
+        const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
+          baseOptions: {
+            modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
+            delegate: 'GPU',
+          },
+          outputFaceBlendshapes: true,
+          runningMode: 'VIDEO',
+          numFaces: 1,
+          minFaceDetectionConfidence: 0.5,
+          minFacePresenceConfidence: 0.5,
+        });
 
-    return () => {
-      faceMesh.close();
+        // Camera class for managing video stream
+        class Camera {
+          video: HTMLVideoElement;
+          options: any;
+          isProcessing: boolean = false;
+
+          constructor(video: HTMLVideoElement, options: any) {
+            this.video = video;
+            this.options = options;
+          }
+
+          async start() {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            this.video.srcObject = stream;
+            this.video.play();
+
+            // Wait for video metadata
+            await new Promise(resolve => {
+              this.video.onloadedmetadata = () => resolve(void 0);
+            });
+
+            // Start frame processing
+            const onFrame = () => {
+              if (this.options.onFrame && !this.isProcessing) {
+                this.isProcessing = true;
+                this.options.onFrame().finally(() => {
+                  this.isProcessing = false;
+                });
+              }
+              requestAnimationFrame(onFrame);
+            };
+            onFrame();
+          }
+        }
+
+        // Initialize camera
+        const camera = new Camera(videoRef.current, {
+          onFrame: async () => {
+            if (videoRef.current && canvasRef.current) {
+              // Skip if video not ready
+              if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
+                return;
+              }
+
+              try {
+                const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
+
+                // Draw on canvas
+                if (canvasRef.current) {
+                  const canvasCtx = canvasRef.current.getContext('2d');
+                  if (canvasCtx) {
+                    canvasCtx.save();
+                    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                    canvasCtx.drawImage(
+                      videoRef.current,
+                      0,
+                      0,
+                      canvasRef.current.width,
+                      canvasRef.current.height,
+                    );
+
+                    // Draw tracked landmarks and mouth overlay
+                    if (results.faceLandmarks && results.faceLandmarks.length > 0) {
+                      const allLandmarks = results.faceLandmarks[0];
+
+                      const w = canvasRef.current!.width;
+                      const h = canvasRef.current!.height;
+
+                      const toCanvas = createCanvasCoordConverter(w, h);
+
+                      // Draw live mouth contours (pink/red)
+                      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
+
+                      // Draw landmarks
+                      drawLandmarkPoints(canvasCtx, allLandmarks, toCanvas);
+
+                      // Compute target overlay landmarks with proper transformation
+                      const targetLandmarks =
+                        targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
+
+                      // Draw target mouth contours (green)
+                      drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas);
+
+                      // Draw vowel label
+                      drawVowelLabel(canvasCtx, targetLandmarks, TARGET_VOWEL, toCanvas);
+                    }
+
+                    canvasCtx.restore();
+                  }
+                }
+
+                if (onResults) {
+                  const processedResults = {
+                    landmarks: results.faceLandmarks?.[0]?.map(lm => ({
+                      x: lm.x,
+                      y: lm.y,
+                      z: lm.z,
+                    })),
+                    blendshapes: results.faceBlendshapes?.[0]?.categories?.reduce(
+                      (acc, category) => {
+                        acc[category.categoryName] = category.score;
+                        return acc;
+                      },
+                      {} as Record<string, number>,
+                    ),
+                  };
+                  onResults(processedResults);
+                }
+
+                updateLandmarksDisplay(results, 'landmarks-display', blendshapeSmoother.current);
+              } catch (error) {
+                console.error('Error processing frame:', error);
+              }
+            }
+          },
+          width: 563,
+          height: 357,
+        });
+
+        await camera.start();
+        setIsInitialized(true);
+        setError(null);
+      } catch (err) {
+        console.error('Camera initialization failed:', err);
+        setError(
+          `Camera initialization failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
+        );
+      }
     };
-  }, [onResults, width, height]);
+
+    initializeCamera();
+  }, [onResults]);
 
   return (
-    <div className={styles.container}>
-      {/* capture */}
-      <Webcam
-        ref={webcamRef}
-        style={{ visibility: 'hidden' }}
-        audio={false}
-        width={width}
-        height={height}
-        mirrored
-        screenshotFormat="image/jpeg"
-        videoConstraints={{ width, height, facingMode: 'user' }}
+    <div style={{ position: 'relative', width: '563px', height: '357px' }}>
+      <video
+        ref={videoRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          transform: 'scaleX(-1)',
+        }}
+        playsInline
+        muted
       />
-      {/* draw */}
-      <canvas ref={canvasRef} className={styles.canvas} width={width} height={height} />
+      <canvas
+        ref={canvasRef}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          transform: 'scaleX(-1)',
+        }}
+        width={563}
+        height={357}
+      />
+      {!isInitialized && !error && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: '#666',
+            fontSize: '16px',
+          }}
+        >
+          Initializing camera...
+        </div>
+      )}
+      {error && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            color: '#ff4444',
+            fontSize: '14px',
+            textAlign: 'center',
+            padding: '20px',
+          }}
+        >
+          {error}
+        </div>
+      )}
     </div>
   );
 };
 
-// ==============================================
-// styles
-
-const styles = {
-  container: css`
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  `,
-  canvas: css`
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    background-color: #1e1e1e;
-    border: 1px solid #fff;
-    transform: scaleX(-1);
-    object-fit: contain;
-  `,
-};
+export default CameraComponent;

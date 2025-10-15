@@ -1,6 +1,6 @@
 /**
  * CalibrationCapture - Tool for capturing vowel calibration data
- * 
+ *
  * This component allows users to capture facial landmarks and blendshapes
  * for the four basis vowels (neutral, ㅏ, ㅜ, ㅣ) and saves them to
  * vowel_calibration.json
@@ -27,7 +27,7 @@ const CalibrationCapture: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
   const animationFrameRef = useRef<number | undefined>(undefined);
-  
+
   const [isInitialized, setIsInitialized] = useState(false);
   const [currentVowel, setCurrentVowel] = useState<'neutral' | 'a' | 'u' | 'i'>('neutral');
   const [calibrationData, setCalibrationData] = useState<CalibrationData>({});
@@ -35,7 +35,13 @@ const CalibrationCapture: React.FC = () => {
   const [countdown, setCountdown] = useState<number | null>(null);
 
   // Target blendshapes to track
-  const TARGET_BLENDSHAPES = ['jawOpen', 'mouthPucker', 'mouthSmileLeft', 'mouthSmileRight', 'mouthFunnel'];
+  const TARGET_BLENDSHAPES = [
+    'jawOpen',
+    'mouthPucker',
+    'mouthSmileLeft',
+    'mouthSmileRight',
+    'mouthFunnel',
+  ];
 
   useEffect(() => {
     initializeMediaPipe();
@@ -50,12 +56,13 @@ const CalibrationCapture: React.FC = () => {
   const initializeMediaPipe = async () => {
     try {
       const vision = await FilesetResolver.forVisionTasks(
-        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm'
+        'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm',
       );
 
       const faceLandmarker = await FaceLandmarker.createFromOptions(vision, {
         baseOptions: {
-          modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
+          modelAssetPath:
+            'https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task',
           delegate: 'GPU',
         },
         outputFaceBlendshapes: true,
@@ -106,7 +113,7 @@ const CalibrationCapture: React.FC = () => {
 
         if (results.faceLandmarks && results.faceLandmarks.length > 0) {
           const landmarks = results.faceLandmarks[0];
-          
+
           // Draw landmarks
           ctx.fillStyle = '#00FF00';
           ALL_TRACKED_LANDMARKS.forEach(index => {
@@ -130,7 +137,7 @@ const CalibrationCapture: React.FC = () => {
     if (!faceLandmarkerRef.current || !videoRef.current) return;
 
     setIsCapturing(true);
-    
+
     // Countdown
     for (let i = 3; i > 0; i--) {
       setCountdown(i);
@@ -196,38 +203,69 @@ const CalibrationCapture: React.FC = () => {
   };
 
   return (
-    <div style={{ 
-      padding: '20px', 
-      width: '100vw',
-      backgroundColor: '#ffffff',
-      minHeight: '100vh',
-      boxSizing: 'border-box'
-    }}>
-      <h1 style={{ textAlign: 'center', color: '#f04299', fontSize: '2.5rem', marginBottom: '2rem' }}>Vowel Calibration Tool</h1>
-      
-      <div style={{ display: 'flex', gap: '30px', marginTop: '20px', maxWidth: '1400px', margin: '20px auto 0' }}>
+    <div
+      style={{
+        padding: '20px',
+        width: '100vw',
+        backgroundColor: '#ffffff',
+        minHeight: '100vh',
+        boxSizing: 'border-box',
+      }}
+    >
+      <h1
+        style={{ textAlign: 'center', color: '#f04299', fontSize: '2.5rem', marginBottom: '2rem' }}
+      >
+        Vowel Calibration Tool
+      </h1>
+
+      <div
+        style={{
+          display: 'flex',
+          gap: '30px',
+          marginTop: '20px',
+          maxWidth: '1400px',
+          margin: '20px auto 0',
+        }}
+      >
         {/* Video/Canvas */}
         <div style={{ flex: '2', minWidth: '600px' }}>
-          <div style={{ position: 'relative', width: '100%', aspectRatio: '16/9', backgroundColor: '#000', borderRadius: '10px', overflow: 'hidden' }}>
+          <div
+            style={{
+              position: 'relative',
+              width: '100%',
+              aspectRatio: '16/9',
+              backgroundColor: '#000',
+              borderRadius: '10px',
+              overflow: 'hidden',
+            }}
+          >
             <video
               ref={videoRef}
-              style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover', display: 'none' }}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                display: 'none',
+              }}
             />
             <canvas
               ref={canvasRef}
               style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover' }}
             />
             {countdown !== null && (
-              <div style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                fontSize: '120px',
-                fontWeight: 'bold',
-                color: '#00FF00',
-                textShadow: '0 0 20px rgba(0,255,0,0.8)',
-              }}>
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  fontSize: '120px',
+                  fontWeight: 'bold',
+                  color: '#00FF00',
+                  textShadow: '0 0 20px rgba(0,255,0,0.8)',
+                }}
+              >
                 {countdown}
               </div>
             )}
@@ -236,17 +274,21 @@ const CalibrationCapture: React.FC = () => {
 
         {/* Controls */}
         <div style={{ width: '450px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div style={{ 
-            backgroundColor: '#f8f9fa', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            border: '1px solid #e9ecef'
-          }}>
-            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>Current Vowel</h3>
+          <div
+            style={{
+              backgroundColor: '#f8f9fa',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              border: '1px solid #e9ecef',
+            }}
+          >
+            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>
+              Current Vowel
+            </h3>
             <select
               value={currentVowel}
-              onChange={(e) => setCurrentVowel(e.target.value as any)}
+              onChange={e => setCurrentVowel(e.target.value as any)}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -261,14 +303,16 @@ const CalibrationCapture: React.FC = () => {
               <option value="u">ㅜ (oo)</option>
               <option value="i">ㅣ (ee)</option>
             </select>
-            <div style={{ 
-              padding: '15px', 
-              backgroundColor: '#ffffff', 
-              borderRadius: '8px', 
-              fontSize: '14px',
-              border: '1px solid #dee2e6',
-              color: '#495057'
-            }}>
+            <div
+              style={{
+                padding: '15px',
+                backgroundColor: '#ffffff',
+                borderRadius: '8px',
+                fontSize: '14px',
+                border: '1px solid #dee2e6',
+                color: '#495057',
+              }}
+            >
               {vowelInstructions[currentVowel]}
             </div>
           </div>
@@ -290,14 +334,18 @@ const CalibrationCapture: React.FC = () => {
             {isCapturing ? 'Capturing...' : `Capture ${currentVowel.toUpperCase()}`}
           </button>
 
-          <div style={{ 
-            backgroundColor: '#f8f9fa', 
-            padding: '20px', 
-            borderRadius: '12px', 
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-            border: '1px solid #e9ecef'
-          }}>
-            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>Captured Data</h3>
+          <div
+            style={{
+              backgroundColor: '#f8f9fa',
+              padding: '20px',
+              borderRadius: '12px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+              border: '1px solid #e9ecef',
+            }}
+          >
+            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>
+              Captured Data
+            </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {(['neutral', 'a', 'u', 'i'] as const).map(vowel => (
                 <div
@@ -339,7 +387,8 @@ const CalibrationCapture: React.FC = () => {
           </button>
 
           <div style={{ fontSize: '12px', color: '#6c757d', textAlign: 'center' }}>
-            Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks<br />
+            Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
+            <br />
             (3 face + 40 mouth)
           </div>
         </div>
@@ -349,4 +398,3 @@ const CalibrationCapture: React.FC = () => {
 };
 
 export default CalibrationCapture;
-
