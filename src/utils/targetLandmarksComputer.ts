@@ -3,7 +3,7 @@
  * 타겟 랜드마크 3D 좌표 변환 로직
  */
 
-import type { Point3D } from './FindPoint';
+// import type { Point3D } from './FindPoint';
 import {
   createPersonalCoordinateSystem,
   createDynamicCoordinateSystem,
@@ -12,7 +12,7 @@ import {
   validateCoordinateSystem,
   validateNormalization,
   findMouthCenterWithAnchor,
-  calculateMouthCenterRelativePosition,
+  // calculateMouthCenterRelativePosition,
   type PersonalCoordinateSystem,
 } from './Anchor';
 import { buildTargetVowelShape, getMouthCenterFromShape } from './vowelBuilder';
@@ -28,8 +28,8 @@ export interface LandmarkPoint {
  */
 export class TargetLandmarksComputer {
   private personalCoordinateSystem: PersonalCoordinateSystem | null = null;
-  private calibrationLandmarks: Point3D[] | null = null;
-  private mouthCenterRelativePosition: any = null;
+  // private calibrationLandmarks: Point3D[] | null = null;
+  // private mouthCenterRelativePosition: any = null;
   private targetVowel: string;
 
   constructor(targetVowel: string) {
@@ -48,8 +48,8 @@ export class TargetLandmarksComputer {
    */
   resetCalibration() {
     this.personalCoordinateSystem = null;
-    this.calibrationLandmarks = null;
-    this.mouthCenterRelativePosition = null;
+    // this.calibrationLandmarks = null;
+    // this.mouthCenterRelativePosition = null;
   }
 
   /**
@@ -62,17 +62,17 @@ export class TargetLandmarksComputer {
     // If not calibrated yet, create personal coordinate system from first frame
     if (!this.personalCoordinateSystem) {
       this.personalCoordinateSystem = createPersonalCoordinateSystem(currentLandmarks);
-      this.calibrationLandmarks = currentLandmarks;
+      // this.calibrationLandmarks = currentLandmarks;
 
       // Anchor.tsx 방식으로 입술 중앙점 상대 위치 저장
-      const nose = currentLandmarks[1]; // 코끝점
-      const leftEye = currentLandmarks[133]; // 왼쪽 눈
-      const mouthCenter = findMouthCenterWithAnchor(currentLandmarks);
-      this.mouthCenterRelativePosition = calculateMouthCenterRelativePosition(
-        mouthCenter,
-        nose,
-        leftEye,
-      );
+      // const nose = currentLandmarks[1]; // 코끝점
+      // const leftEye = currentLandmarks[133]; // 왼쪽 눈
+      // const mouthCenter = findMouthCenterWithAnchor(currentLandmarks);
+      // this.mouthCenterRelativePosition = calculateMouthCenterRelativePosition(
+      //   mouthCenter,
+      //   nose,
+      //   leftEye,
+      // );
 
       // 좌표계 검증
       const orthogonalityCheck = validateCoordinateSystem(this.personalCoordinateSystem);
