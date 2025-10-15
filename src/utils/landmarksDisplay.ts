@@ -8,7 +8,7 @@ import {
   extractBlendshapes,
   displayBlendshapesAsObjects,
   displayBlendshapesAsNumbers,
-} from './blendShapeprocessor';
+} from './blendshapeProcessor';
 
 export interface LandmarkPoint {
   x: number;

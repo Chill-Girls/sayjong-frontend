@@ -20,7 +20,7 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { BlendshapeSmoother } from '../utils/blendShapeprocessor';
+import { BlendshapeSmoother } from '../utils/blendshapeProcessor';
 import { updateLandmarksDisplay } from '../utils/landmarksDisplay';
 import {
   createCanvasCoordConverter,
