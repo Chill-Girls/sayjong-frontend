@@ -10,7 +10,7 @@ on:
 
 jobs:
   validate:
-    name: Run Linter and Formatter Check
+    name: Run Linter, Formatter, and Build Test
     runs-on: ubuntu-latest
 
     steps:
