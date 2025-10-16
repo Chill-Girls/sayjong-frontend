@@ -352,13 +352,13 @@ export function vowelTarget(vowel: string, basis: VowelBasis): FeatureVec {
  * Prints predicted features for all 12 Korean monophthongs
  *
  * @param basis - Vowel basis computed from calibration
- *
  * Output format:
  *   Vowel | open  | round | spread | A     | W     | P
  *   ------|-------|-------|--------|-------|-------|-------
  *   ㅏ    | 1.000 | 0.000 | 0.000  | 0.123 | 0.456 | 2.193
  *   ...
  */
+
 export function printMonoVowels(basis: VowelBasis): void {
   console.log('\n' + '='.repeat(80));
   console.log('Korean Monophthongs (단모음) - Predicted Features');

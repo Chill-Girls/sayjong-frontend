@@ -284,6 +284,24 @@ export function estimateDepthFromRotation(
   return totalDepth;
 }
 
+//눈사이 거리에 반비례하는 스케일링
+export function calculateDistanceScale(
+  personal: PersonalCoordinateSystem,
+  dynamic: DynamicCoordinateSystem,
+): number {
+  return dynamic.eyeDistance / personal.eyeDistance;
+}
+export function applyDistanceScale(
+  point: Point3D,
+  scale: number,
+): { x: number; y: number; z: number } {
+  return {
+    x: point.x * scale,
+    y: point.y * scale,
+    z: (point.z || 0) * scale,
+  };
+}
+
 // === 8. 좌표계 검증 함수 ===
 
 /**

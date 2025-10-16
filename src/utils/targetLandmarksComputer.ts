@@ -9,6 +9,8 @@ import {
   createDynamicCoordinateSystem,
   calculateHybridRotationAngles,
   estimateDepthFromRotation,
+  calculateDistanceScale,
+  applyDistanceScale,
   validateCoordinateSystem,
   validateNormalization,
   findMouthCenterWithAnchor,
@@ -111,6 +113,11 @@ export class TargetLandmarksComputer {
     // vowelBuilder.tsx 방식으로 현재 입술 중앙점 찾기
     const jsonMouthCenter = getMouthCenterFromShape(targetShape);
 
+    // Anchor.tsx 방식으로 거리 보정 스케일링 계산
+    const personalSystem = this.personalCoordinateSystem!;
+    const dynamicSystem = dynamicCoordinateSystem;
+    const distanceScale = calculateDistanceScale(personalSystem, dynamicSystem);
+
     // Anchor.tsx 방식으로 타겟 랜드마크 계산
     Object.entries(targetShape).forEach(([id, targetPoint]) => {
       // Calculate relative position from JSON mouth center (vowel_calibration.json)
@@ -120,23 +127,22 @@ export class TargetLandmarksComputer {
         z: (targetPoint.z || 0) - (jsonMouthCenter.z || 0),
       };
 
-      // Anchor.tsx 방식으로 타겟 랜드마크 계산
-      const personalSystem = this.personalCoordinateSystem!;
-      const dynamicSystem = dynamicCoordinateSystem;
+      // Anchor.tsx 방식으로 거리 보정 스케일링 적용
+      const scaledRelativePoint = applyDistanceScale(relativePoint, distanceScale);
 
       // Anchor.tsx 방식으로 타겟 랜드마크 계산
       const localX =
-        relativePoint.x * personalSystem.xAxis.x +
-        relativePoint.y * personalSystem.xAxis.y +
-        relativePoint.z * (personalSystem.xAxis.z || 0);
+        scaledRelativePoint.x * personalSystem.xAxis.x +
+        scaledRelativePoint.y * personalSystem.xAxis.y +
+        scaledRelativePoint.z * (personalSystem.xAxis.z || 0);
       const localY =
-        relativePoint.x * personalSystem.yAxis.x +
-        relativePoint.y * personalSystem.yAxis.y +
-        relativePoint.z * (personalSystem.yAxis.z || 0);
+        scaledRelativePoint.x * personalSystem.yAxis.x +
+        scaledRelativePoint.y * personalSystem.yAxis.y +
+        scaledRelativePoint.z * (personalSystem.yAxis.z || 0);
       const localZ =
-        relativePoint.x * personalSystem.zAxis.x +
-        relativePoint.y * personalSystem.zAxis.y +
-        relativePoint.z * (personalSystem.zAxis.z || 0);
+        scaledRelativePoint.x * personalSystem.zAxis.x +
+        scaledRelativePoint.y * personalSystem.zAxis.y +
+        scaledRelativePoint.z * (personalSystem.zAxis.z || 0);
 
       // Anchor.tsx 방식으로 타겟 랜드마크 계산
       const transformedX =
@@ -174,6 +180,9 @@ export class TargetLandmarksComputer {
         pitch: rotationAngles.pitch.toFixed(1),
         roll: rotationAngles.roll.toFixed(1),
         depthCorrection: depthCorrection.toFixed(3),
+        distanceScale: distanceScale.toFixed(3),
+        personalEyeDistance: personalSystem.eyeDistance.toFixed(3),
+        dynamicEyeDistance: dynamicSystem.eyeDistance.toFixed(3),
       });
     }
 
