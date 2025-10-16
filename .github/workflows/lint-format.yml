@@ -1,4 +1,4 @@
-name: Lint and Format Check
+name: CI Check
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  lint-and-format:
+  validate:
     name: Run Linter and Formatter Check
     runs-on: ubuntu-latest
 
@@ -31,3 +31,6 @@ jobs:
 
       - name: Check code formatting with Prettier
         run: npm run format:check
+
+      - name: Run build test
+        run: npm run build
