@@ -17,12 +17,14 @@ export function buildTargetVowelShape(vowel: string): Record<number, Point3D> {
   const allLipIds = [...OUTER_LIP_LANDMARKS, ...INNER_LIP_LANDMARKS];
 
   const targetShape: Record<number, Point3D> = {};
-  const isCalibratedVowel = vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ';
+  const isCalibratedVowel =
+    vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ' || vowel === 'ㅑ' || vowel === 'ㅠ';
 
   allLipIds.forEach(id => {
     if (isCalibratedVowel) {
       // Use calibrated data directly
-      const calibratedKey = vowel === 'ㅏ' ? 'a' : vowel === 'ㅜ' ? 'u' : 'i';
+      const calibratedKey =
+        vowel === 'ㅏ' || vowel === 'ㅑ' ? 'a' : vowel === 'ㅜ' || vowel === 'ㅠ' ? 'u' : 'i';
       const coords = (calibrationData[calibratedKey].landmarks as any)[id.toString()];
       targetShape[id] = { x: coords[0], y: coords[1], z: coords[2] };
     } else {
