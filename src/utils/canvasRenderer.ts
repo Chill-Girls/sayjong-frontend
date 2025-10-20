@@ -5,7 +5,12 @@
  * 나중에 Good, Excellent 이러한 노래방  로직도 활용가능 할것으로 보임
  */
 
-import { FACE_ANCHORS, MOUTH_LANDMARKS } from '../constants/landmarks';
+import {
+  FACE_ANCHORS,
+  MOUTH_LANDMARKS,
+  OUTER_LIP_LANDMARKS,
+  INNER_LIP_LANDMARKS,
+} from '../constants/landmarks';
 
 export interface LandmarkPoint {
   x: number;
@@ -29,15 +34,12 @@ export function drawLiveMouthContours(
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
   // Outer lip contour - smooth, natural shape
-  const outerLipPoints = [
-    61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
-  ];
   ctx.strokeStyle = '#f04299';
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
-  outerLipPoints.forEach((index, i) => {
+  OUTER_LIP_LANDMARKS.forEach((index, i) => {
     const point = toCanvas(landmarks[index]);
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
@@ -49,13 +51,10 @@ export function drawLiveMouthContours(
   ctx.stroke();
 
   // Inner lip contour - adds depth
-  const innerLipPoints = [
-    78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95,
-  ];
   ctx.strokeStyle = '#f04299';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  innerLipPoints.forEach((index, i) => {
+  INNER_LIP_LANDMARKS.forEach((index, i) => {
     const point = toCanvas(landmarks[index]);
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
@@ -102,21 +101,15 @@ export function drawTargetMouthContours(
   targetLandmarks: Record<number, LandmarkPoint>,
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
-  const targetOuterLipIds = [
-    61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
-  ];
-  const targetInnerLipIds = [
-    78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95,
-  ];
-
   ctx.strokeStyle = '#00FF00';
   ctx.lineWidth = 3;
   ctx.setLineDash([]);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
 
+  // Draw target outer lip contour
   ctx.beginPath();
-  targetOuterLipIds.forEach((index, i) => {
+  OUTER_LIP_LANDMARKS.forEach((index, i) => {
     const landmark = targetLandmarks[index];
     if (landmark) {
       const point = toCanvas(landmark);
@@ -134,7 +127,7 @@ export function drawTargetMouthContours(
   ctx.strokeStyle = '#00FF00';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  targetInnerLipIds.forEach((index, i) => {
+  INNER_LIP_LANDMARKS.forEach((index, i) => {
     const landmark = targetLandmarks[index];
     if (landmark) {
       const point = toCanvas(landmark);
