@@ -6,6 +6,7 @@
 import calibrationData from '../vowel_calibration.json';
 import { VOWEL_COEFFS_MONO } from './vowelModel_mono';
 import type { Point3D } from './FindPoint';
+import { OUTER_LIP_LANDMARKS, INNER_LIP_LANDMARKS } from '../constants/landmarks';
 
 /**
  * 모음에 해당하는 입술 형태를 생성
@@ -13,13 +14,7 @@ import type { Point3D } from './FindPoint';
  * @returns 각 랜드마크 ID별 3D 좌표 맵
  */
 export function buildTargetVowelShape(vowel: string): Record<number, Point3D> {
-  const outerLipIds = [
-    61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
-  ];
-  const innerLipIds = [
-    78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95,
-  ];
-  const allLipIds = [...outerLipIds, ...innerLipIds];
+  const allLipIds = [...OUTER_LIP_LANDMARKS, ...INNER_LIP_LANDMARKS];
 
   const targetShape: Record<number, Point3D> = {};
   const isCalibratedVowel = vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ';
