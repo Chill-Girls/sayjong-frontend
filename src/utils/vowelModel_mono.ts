@@ -37,24 +37,27 @@ export interface Coeffs {
 // ============================================================================
 
 /**
- * Empirically-derived coefficients for Korean monophthongs (단모음)
+ * Empirically-derived coefficients for Korean vowels
  *
  * Each vowel is represented as a linear combination of three basis movements:
  *   - open:   jaw opening (ㅏ direction)
  *   - round:  lip rounding (ㅜ direction)
  *   - spread: lip spreading (ㅣ direction)
  *
+ * Vowels using calibrated data directly (not interpolated):
+ *   ㅏ, ㅜ, ㅣ (basis vowels), ㅑ, ㅠ (y-glide endpoints)
+ *
  * Coefficients are derived from visual phonetics and articulatory studies.
  */
 export const VOWEL_COEFFS_MONO: Record<string, Coeffs> = {
-  // Pure monophthongs (excluding ㅏ, ㅜ, ㅣ - these use calibrated data)
-  ㅓ: { open: 0.55, spread: 0.0, round: 0.0 }, // [ʌ] Mid-low back unrounded
+  // Interpolated vowels
+  ㅓ: { open: 0.75, spread: 0.15, round: 0.5 }, // [ʌ] Mid-low back unrounded
   ㅔ: { open: 0.4, spread: 0.7, round: 0.0 }, // [e̞] Mid front unrounded
-  ㅐ: { open: 0.42, spread: 0.68, round: 0.0 }, // [ɛ] → [e̞] (merged with ㅔ for most speakers)
-  ㅗ: { open: 0.35, spread: -0.15, round: 0.85 }, // [o] Mid-high back rounded (raised)
-  ㅛ: { open: 0.25, spread: -0.1, round: 0.9 }, // [jo] Diphthong, but mid back rounded
-  ㅠ: { open: 0.12, spread: 0.15, round: 0.98 }, // [ju] Diphthong, but high rounded
-  ㅡ: { open: 0.2, spread: 0.0, round: 0.0 }, // [ɯ] High back unrounded (fronted to [ɯ̟])
+  ㅐ: { open: 0.4, spread: 0.7, round: 0.0 }, // [ɛ] → [e̞] (merged with ㅔ for most speakers)
+  ㅗ: { open: 0.35, spread: -0.15, round: 0.85 }, // [o] Mid-high back rounded
+  ㅛ: { open: 0.35, spread: -0.15, round: 0.85 }, // [jo] Static endpoint ≈ ㅗ
+  ㅡ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɯ] High back unrounded
+  ㅕ: { open: 0.75, spread: 0.15, round: 0.5 }, // [jʌ] Static endpoint ≈ more spread ㅓ
 };
 
 // ============================================================================

@@ -50,7 +50,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
   const [error, setError] = useState<string | null>(null);
 
   // Target vowel overlay configuration
-  const TARGET_VOWEL = 'ㅗ';
+  const TARGET_VOWEL = 'ㅓ'
 
   // Initialize processing utilities
   const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
