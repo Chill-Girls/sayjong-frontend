@@ -1,5 +1,9 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 
+/**
+ * Footer 컴포넌트
+ * 이전/다음 네비게이션 버튼이 있는 하단 고정 푸터
+ */
 const Footer: FunctionComponent = () => {
   const styles: { [key: string]: CSSProperties } = {
     footer: {
@@ -17,7 +21,7 @@ const Footer: FunctionComponent = () => {
       color: '#f04299',
       fontFamily: 'Pretendard',
       zIndex: 100,
-      backgroundColor: '#f8f6f7', // 배경색 추가해서 내용이 겹치지 않도록
+      backgroundColor: '#f8f6f7',
     },
     prev: {
       borderRadius: '12px',

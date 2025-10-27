@@ -1,17 +1,24 @@
 import type { Point3D } from './FindPoint';
 import { calculateRelativePosition, restoreFromRelativePosition } from './FindPoint';
+import { sub, dot, len, normalize, cross } from './vector3d';
 
-// x,y,z 축을 만들어 회전을 하더라도 자연스럽게 함.
-
+/**
+ * 개인화된 좌표계 인터페이스
+ * x, y, z 축을 만들어 회전에도 자연스럽게 대응
+ */
 export interface PersonalCoordinateSystem {
-  origin: Point3D; // 기준점 (코끝)
-  xAxis: Point3D; // 오른쪽 방향 (왼쪽 눈 → 오른쪽 눈)
-  yAxis: Point3D; // 위쪽 방향 (코 → 이마)
-  zAxis: Point3D; // 앞쪽 방향 (얼굴 전면)
+  origin: Point3D; // 원점 (입술 중앙)
+  xAxis: Point3D; // X축 방향 (왼쪽 눈 → 오른쪽 눈)
+  yAxis: Point3D; // Y축 방향 (아래 → 위)
+  zAxis: Point3D; // Z축 방향 (얼굴 전면)
   eyeDistance: number; // 기준 눈 사이 거리
-  noseToEyeDistance: number; // 기준 코-눈 거리
+  noseToEyeDistance: number; // 기준 입술-눈 거리
 }
 
+/**
+ * 동적 좌표계 인터페이스
+ * 실시간으로 업데이트되는 좌표계
+ */
 export interface DynamicCoordinateSystem {
   origin: Point3D;
   xAxis: Point3D;
@@ -21,17 +28,12 @@ export interface DynamicCoordinateSystem {
   noseToEyeDistance: number;
 }
 
-// 입술 중앙점 -> 상대좌표 복원으로 실시간으로 찾기, Anchor 기준점이 될것임.
-
 /**
- *
- * @param landmarks - 얼굴 랜드마크
- * @param nosePoint - 코끝점 (기준점 A)
- * @param eyePoint - 눈 위 점 (기준점 B)
- * @returns 입술 중앙점
+ * 앵커 기반 입술 중앙점 찾기
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @returns 입술 중앙점 좌표
  */
 export function findMouthCenterWithAnchor(landmarks: Point3D[]): Point3D {
-  // 입술 중앙점 계산 (상하 입술이 만나는 지점)
   const upperLipCenter = landmarks[13]; // 상입술 중앙
   const lowerLipCenter = landmarks[14]; // 하입술 중앙
   const mouthCenter = {
@@ -44,7 +46,7 @@ export function findMouthCenterWithAnchor(landmarks: Point3D[]): Point3D {
 }
 
 /**
- *
+ * 입술 중앙점의 상대 위치 계산
  * @param mouthCenter - 입술 중앙점
  * @param nosePoint - 코끝점 (기준점 A)
  * @param eyePoint - 눈 위 점 (기준점 B)
@@ -59,7 +61,7 @@ export function calculateMouthCenterRelativePosition(
 }
 
 /**
- *
+ * 상대 위치로부터 입술 중앙점 복원
  * @param relativePosition - 상대 위치 정보
  * @param nosePoint - 현재 코끝점 (기준점 A)
  * @param eyePoint - 현재 눈 위 점 (기준점 B)
@@ -74,10 +76,10 @@ export function restoreMouthCenterFromRelativePosition(
 }
 
 /**
- * 사용자의 정면 얼굴을 기준
- * Anchor.tsx 방식을 사용하여 입술 중앙점을 찾고, 이를 기준으로 좌표계(x,y,z 축) 생성
+ * 개인화된 좌표계 생성 (정면 얼굴 기준)
+ * 입술 중앙점을 원점으로 하는 직교 좌표계 생성
  * @param landmarks - 정면 얼굴 랜드마크
- * @returns
+ * @returns 개인화된 좌표계
  */
 export function createPersonalCoordinateSystem(landmarks: Point3D[]): PersonalCoordinateSystem {
   const nose = landmarks[1]; // 코끝점
@@ -85,19 +87,22 @@ export function createPersonalCoordinateSystem(landmarks: Point3D[]): PersonalCo
   const rightEye = landmarks[362]; // 오른쪽 눈
   const forehead = landmarks[10]; // 이마 중앙점
 
-  // Anchor.tsx 방식으로 입술 중앙점 찾기
+  // 입술 중앙점 찾기
   const mouthCenter = findMouthCenterWithAnchor(landmarks);
 
   // 원점 = 입술 중앙
   const origin = mouthCenter;
 
-  // 1단계: X축 정의 (오른쪽눈 - 왼쪽눈)  -> 각 축들은 수직이 되야 정확한 좌표계 만들기 가능
+  // X축 정의 (오른쪽 눈 - 왼쪽 눈) - 각 축은 서로 수직이어야 정확한 좌표계 생성 가능
   const xAxis = normalize(sub(rightEye, leftEye));
-  // 2단계: Z축 정의 (X축과 코→이마 벡터의 외적)
+
+  // Z축 정의 (X축과 코→이마 벡터의 외적) - X축에 수직
   const noseToForehead = sub(forehead, nose);
   const zAxis = normalize(cross(xAxis, noseToForehead));
-  // 3단계: Y축 정의 (Z축과 X축의 외적)
+
+  // Y축 정의 (Z축과 X축의 외적) - X축과 Z축에 모두 수직
   const yAxis = normalize(cross(zAxis, xAxis));
+
   // 기준 거리들 계산
   const eyeDistance = len(sub(rightEye, leftEye));
   const mouthToEyeDistance = len(sub(leftEye, mouthCenter));
@@ -113,8 +118,8 @@ export function createPersonalCoordinateSystem(landmarks: Point3D[]): PersonalCo
 }
 
 /**
- * 실시간 얼굴 랜드마크
- * Anchor.tsx 방식을 사용하여 입술 중앙점을 찾고, 이를 기준으로 좌표계를 생성
+ * 동적 좌표계 생성 (실시간 얼굴 랜드마크 기준)
+ * 현재 프레임의 얼굴 위치와 회전에 맞는 좌표계 생성
  * @param landmarks - 현재 얼굴 랜드마크
  * @returns 동적 좌표계
  */
@@ -124,20 +129,20 @@ export function createDynamicCoordinateSystem(landmarks: Point3D[]): DynamicCoor
   const rightEye = landmarks[362]; // 오른쪽 눈
   const forehead = landmarks[10]; // 이마 중앙점
 
-  // Anchor.tsx 방식으로 입술 중앙점 찾기
+  // 입술 중앙점 찾기
   const mouthCenter = findMouthCenterWithAnchor(landmarks);
 
   // 원점 = 입술 중앙
   const origin = mouthCenter;
 
-  // 1단계: X축 정의 (오른쪽눈 - 왼쪽눈) - 수직 보장의 기준
+  // X축 정의 (오른쪽 눈 - 왼쪽 눈)
   const xAxis = normalize(sub(rightEye, leftEye));
 
-  // 2단계: Z축 정의 (X축과 코→이마 벡터의 외적) - X축에 100% 수직 보장
+  // Z축 정의 (X축과 코→이마 벡터의 외적) - X축에 수직 보장
   const noseToForehead = sub(forehead, nose);
   const zAxis = normalize(cross(xAxis, noseToForehead));
 
-  // 3단계: Y축 정의 (Z축과 X축의 외적) - Z축과 X축에 100% 수직 보장
+  // Y축 정의 (Z축과 X축의 외적) - X축과 Z축에 수직 보장
   const yAxis = normalize(cross(zAxis, xAxis));
 
   // 현재 거리들 계산
@@ -154,17 +159,21 @@ export function createDynamicCoordinateSystem(landmarks: Point3D[]): DynamicCoor
   };
 }
 
+/**
+ * 회전 각도 인터페이스
+ */
 export interface RotationAngles {
-  yaw: number; // 좌우 회전 (Y축)
-  pitch: number; // 상하 회전 (X축)
-  roll: number; // 좌우 기울기 (Z축)
+  yaw: number; // 요 (좌우 회전, Y축 기준)
+  pitch: number; // 피치 (상하 회전, X축 기준)
+  roll: number; // 롤 (좌우 기울기, Z축 기준)
 }
 
 /**
- * 기준 좌표계와 동적 좌표계를 비교하여 회전 각도를 계산
+ * 회전 각도 계산 (벡터 기반)
+ * 기준 좌표계와 동적 좌표계의 축 벡터를 비교하여 회전 각도 계산
  * @param personal - 개인화된 기준 좌표계
  * @param dynamic - 동적 좌표계
- * @returns 회전 각도들
+ * @returns 회전 각도 (도 단위)
  */
 export function calculateRotationAngles(
   personal: PersonalCoordinateSystem,
@@ -187,7 +196,7 @@ export function calculateRotationAngles(
 }
 
 /**
- * 두 벡터 사이의 각도를 계산.
+ * 두 벡터 사이의 각도 계산
  * @param v1 - 첫 번째 벡터
  * @param v2 - 두 번째 벡터
  * @returns 각도 (도 단위)
@@ -202,7 +211,7 @@ function calculateAngleBetweenVectors(v1: Point3D, v2: Point3D): number {
   }
 
   const cosAngle = dotProduct / (magnitude1 * magnitude2);
-  const clampedCos = Math.max(-1, Math.min(1, cosAngle)); // -1 ~ 1 범위로 제한(정규화)
+  const clampedCos = Math.max(-1, Math.min(1, cosAngle)); // -1 ~ 1 범위로 제한
   const angleRad = Math.acos(clampedCos);
   const angleDeg = (angleRad * 180) / Math.PI;
 
@@ -210,7 +219,8 @@ function calculateAngleBetweenVectors(v1: Point3D, v2: Point3D): number {
 }
 
 /**
- * 눈 사이 거리와 코-눈 거리를 이용한 회전 각도 계산 -> 필요할 때만 씀 -> 그냥 벡터 기반 계산으로 대체
+ * 거리 기반 회전 각도 계산
+ * 눈 사이 거리와 입술-눈 거리의 변화를 이용한 각도 추정
  * @param personal - 개인화된 기준 좌표계
  * @param dynamic - 동적 좌표계
  * @returns 거리 기반 회전 각도
@@ -238,7 +248,8 @@ export function calculateRotationAnglesFromDistance(
 }
 
 /**
- * 벡터 기반과 거리 기반 방법을 결합
+ * 하이브리드 회전 각도 계산
+ * 벡터 기반과 거리 기반 방법을 가중 평균으로 결합
  * @param personal - 개인화된 기준 좌표계
  * @param dynamic - 동적 좌표계
  * @returns 하이브리드 회전 각도
@@ -247,13 +258,10 @@ export function calculateHybridRotationAngles(
   personal: PersonalCoordinateSystem,
   dynamic: DynamicCoordinateSystem,
 ): RotationAngles {
-  // 벡터 기반 각도
   const vectorAngles = calculateRotationAngles(personal, dynamic);
-
-  // 거리 기반 각도
   const distanceAngles = calculateRotationAnglesFromDistance(personal, dynamic);
 
-  // 하이브리드 계산 (가중 평균)
+  // 가중 평균 계산
   return {
     yaw: vectorAngles.yaw * 0.6 + distanceAngles.yaw * 0.4,
     pitch: vectorAngles.pitch * 0.6 + distanceAngles.pitch * 0.4,
@@ -262,10 +270,11 @@ export function calculateHybridRotationAngles(
 }
 
 /**
- * 회전 각도로부터 입술의 깊이를 추정
- * @param rotationAngles - 회전 각도들
- * @param baseDepth - 기본 깊이
- * @returns 추정
+ * 회전 각도로부터 깊이 추정
+ * 얼굴 회전에 따른 입술의 깊이 변화 계산
+ * @param rotationAngles - 회전 각도
+ * @param baseDepth - 기본 깊이 값
+ * @returns 추정된 깊이
  */
 export function estimateDepthFromRotation(
   rotationAngles: RotationAngles,
@@ -274,23 +283,35 @@ export function estimateDepthFromRotation(
   const yawRad = (rotationAngles.yaw * Math.PI) / 180;
   const pitchRad = (rotationAngles.pitch * Math.PI) / 180;
 
-  // Yaw와 Pitch를 고려한 깊이 추정
   const yawDepth = baseDepth * Math.sin(Math.abs(yawRad));
   const pitchDepth = baseDepth * Math.sin(Math.abs(pitchRad));
 
-  // 두 깊이의 합성
   const totalDepth = Math.sqrt(yawDepth * yawDepth + pitchDepth * pitchDepth);
 
   return totalDepth;
 }
 
-//눈사이 거리에 반비례하는 스케일링
+/**
+ * 거리 스케일 계산
+ * 눈 사이 거리 비율을 이용한 스케일링 계수
+ * @param personal - 개인화된 기준 좌표계
+ * @param dynamic - 동적 좌표계
+ * @returns 스케일 계수
+ */
 export function calculateDistanceScale(
   personal: PersonalCoordinateSystem,
   dynamic: DynamicCoordinateSystem,
 ): number {
   return dynamic.eyeDistance / personal.eyeDistance;
 }
+
+/**
+ * 거리 스케일 적용
+ * 점에 스케일 계수를 적용
+ * @param point - 원본 점
+ * @param scale - 스케일 계수
+ * @returns 스케일이 적용된 점
+ */
 export function applyDistanceScale(
   point: Point3D,
   scale: number,
@@ -302,10 +323,9 @@ export function applyDistanceScale(
   };
 }
 
-// === 8. 좌표계 검증 함수 ===
-
 /**
- * 좌표계의 수직성을 검증합니다.
+ * 좌표계 수직성 검증
+ * 각 축이 서로 수직인지 확인
  * @param coordinateSystem - 검증할 좌표계
  * @returns 수직성 검증 결과
  */
@@ -350,7 +370,8 @@ export function validateCoordinateSystem(
 }
 
 /**
- * 좌표계의 정규화를 검증합니다.
+ * 좌표계 정규화 검증
+ * 각 축의 길이가 1인지 확인 (단위 벡터 검증)
  * @param coordinateSystem - 검증할 좌표계
  * @returns 정규화 검증 결과
  */
@@ -393,38 +414,4 @@ export function validateNormalization(
   };
 }
 
-// === 9. 유틸리티 함수들 ===
-
-function sub(a: Point3D, b: Point3D): Point3D {
-  return {
-    x: a.x - b.x,
-    y: a.y - b.y,
-    z: (a.z || 0) - (b.z || 0),
-  };
-}
-
-function dot(a: Point3D, b: Point3D): number {
-  return a.x * b.x + a.y * b.y + (a.z || 0) * (b.z || 0);
-}
-
-function len(v: Point3D): number {
-  return Math.sqrt(v.x * v.x + v.y * v.y + (v.z || 0) * (v.z || 0));
-}
-
-function normalize(v: Point3D): Point3D {
-  const length = len(v);
-  if (length === 0) return { x: 0, y: 0, z: 0 };
-  return {
-    x: v.x / length,
-    y: v.y / length,
-    z: (v.z || 0) / length,
-  };
-}
-
-function cross(a: Point3D, b: Point3D): Point3D {
-  return {
-    x: (a.y || 0) * (b.z || 0) - (a.z || 0) * (b.y || 0),
-    y: (a.z || 0) * (b.x || 0) - (a.x || 0) * (b.z || 0),
-    z: (a.x || 0) * (b.y || 0) - (a.y || 0) * (b.x || 0),
-  };
-}
+// 벡터 연산 함수들은 ./vector3d.ts에서 import하여 사용

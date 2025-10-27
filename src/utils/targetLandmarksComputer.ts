@@ -1,9 +1,9 @@
 /**
  * targetLandmarksComputer.ts
- * 타겟 랜드마크 3D 좌표 변환 로직
+ * 목표 랜드마크 3D 좌표 변환 로직
+ * 실시간 얼굴 추적과 목표 모음 형태를 매칭하기 위한 좌표 변환 처리
  */
 
-// import type { Point3D } from './FindPoint';
 import {
   createPersonalCoordinateSystem,
   createDynamicCoordinateSystem,
@@ -14,7 +14,6 @@ import {
   validateCoordinateSystem,
   validateNormalization,
   findMouthCenterWithAnchor,
-  // calculateMouthCenterRelativePosition,
   type PersonalCoordinateSystem,
 } from './Anchor';
 import { buildTargetVowelShape, getMouthCenterFromShape } from './vowelBuilder';
@@ -26,12 +25,11 @@ export interface LandmarkPoint {
 }
 
 /**
- * 타겟 랜드마크 계산을 위한 상태 관리 클래스
+ * 목표 랜드마크 계산 클래스
+ * 실시간 얼굴 랜드마크와 목표 모음 형태를 매칭하기 위한 상태 관리 및 좌표 변환
  */
 export class TargetLandmarksComputer {
   private personalCoordinateSystem: PersonalCoordinateSystem | null = null;
-  // private calibrationLandmarks: Point3D[] | null = null;
-  // private mouthCenterRelativePosition: any = null;
   private targetVowel: string;
 
   constructor(targetVowel: string) {
@@ -39,98 +37,90 @@ export class TargetLandmarksComputer {
   }
 
   /**
-   * 타겟 모음을 변경합니다.
+   * 목표 모음 변경
+   * @param vowel - 새로운 목표 모음
    */
   setTargetVowel(vowel: string) {
     this.targetVowel = vowel;
   }
 
   /**
-   * 좌표계를 초기화합니다 (재보정용)
+   * 좌표계 초기화 (재보정용)
+   * 새로운 사용자나 카메라 위치 변경 시 호출
    */
   resetCalibration() {
     this.personalCoordinateSystem = null;
-    // this.calibrationLandmarks = null;
-    // this.mouthCenterRelativePosition = null;
   }
 
   /**
-   * 현재 얼굴 랜드마크를 기반으로 타겟 랜드마크를 계산 -> Anchor.tsx 방식
+   * 목표 랜드마크 계산
+   * 현재 얼굴 랜드마크를 기반으로 목표 모음 형태의 3D 좌표를 계산
+   * @param allLandmarks - 현재 프레임의 전체 얼굴 랜드마크
+   * @returns 목표 랜드마크 좌표 맵
    */
   computeTargetLandmarks(allLandmarks: LandmarkPoint[]): Record<number, LandmarkPoint> {
-    // Convert current landmarks to Point3D format
+    // 현재 랜드마크를 Point3D 형식으로 변환
     const currentLandmarks = allLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
 
-    // If not calibrated yet, create personal coordinate system from first frame
+    // 첫 프레임인 경우 개인화된 좌표계 생성 (보정)
     if (!this.personalCoordinateSystem) {
       this.personalCoordinateSystem = createPersonalCoordinateSystem(currentLandmarks);
-      // this.calibrationLandmarks = currentLandmarks;
-
-      // Anchor.tsx 방식으로 입술 중앙점 상대 위치 저장
-      // const nose = currentLandmarks[1]; // 코끝점
-      // const leftEye = currentLandmarks[133]; // 왼쪽 눈
-      // const mouthCenter = findMouthCenterWithAnchor(currentLandmarks);
-      // this.mouthCenterRelativePosition = calculateMouthCenterRelativePosition(
-      //   mouthCenter,
-      //   nose,
-      //   leftEye,
-      // );
 
       // 좌표계 검증
       const orthogonalityCheck = validateCoordinateSystem(this.personalCoordinateSystem);
       const normalizationCheck = validateNormalization(this.personalCoordinateSystem);
 
-      console.log('Personal coordinate system calibrated with Anchor.tsx mouth center');
-      console.log('Orthogonality check:', orthogonalityCheck);
-      console.log('Normalization check:', normalizationCheck);
+      console.log('개인화 좌표계 보정 완료 (입술 중앙 기준)');
+      console.log('직교성 검증:', orthogonalityCheck);
+      console.log('정규화 검증:', normalizationCheck);
 
       if (!orthogonalityCheck.isValid || !normalizationCheck.isValid) {
-        console.warn('Coordinate system validation failed!');
+        console.warn('좌표계 검증 실패!');
       }
     }
 
-    // Anchor.tsx 방식으로 동적 좌표계 생성
+    // 동적 좌표계 생성 (현재 프레임)
     const dynamicCoordinateSystem = createDynamicCoordinateSystem(currentLandmarks);
 
-    // Anchor.tsx 방식으로 회전 각도 계산
+    // 회전 각도 계산 (하이브리드 방식)
     const rotationAngles = calculateHybridRotationAngles(
       this.personalCoordinateSystem,
       dynamicCoordinateSystem,
     );
 
-    // vowelBuilder.tsx 방식으로 타겟 모음 입술 형태 생성
+    // 목표 모음 입술 형태 생성
     const targetShape = buildTargetVowelShape(this.targetVowel);
 
-    // Anchor.tsx 방식으로 타겟 랜드마크 계산
+    // 목표 랜드마크 좌표 맵 초기화
     const targetLandmarks: Record<number, LandmarkPoint> = {};
 
-    // Anchor.tsx 방식으로 깊이 추정
+    // 회전에 따른 깊이 보정 계산
     const depthCorrection = estimateDepthFromRotation(rotationAngles);
 
-    // Anchor.tsx 방식으로 현재 입술 중앙점 찾기
+    // 현재 입술 중앙점 계산
     const currentMouthCenter = findMouthCenterWithAnchor(currentLandmarks);
 
-    // vowelBuilder.tsx 방식으로 현재 입술 중앙점 찾기
+    // 목표 형태의 입술 중앙점 계산
     const jsonMouthCenter = getMouthCenterFromShape(targetShape);
 
-    // Anchor.tsx 방식으로 거리 보정 스케일링 계산
+    // 거리 스케일 계산 (눈 사이 거리 비율)
     const personalSystem = this.personalCoordinateSystem!;
     const dynamicSystem = dynamicCoordinateSystem;
     const distanceScale = calculateDistanceScale(personalSystem, dynamicSystem);
 
-    // Anchor.tsx 방식으로 타겟 랜드마크 계산
+    // 각 목표 랜드마크에 대해 좌표 변환 수행
     Object.entries(targetShape).forEach(([id, targetPoint]) => {
-      // Calculate relative position from JSON mouth center (vowel_calibration.json)
+      // 목표 형태 입술 중앙점으로부터의 상대 위치 계산
       const relativePoint = {
         x: targetPoint.x - jsonMouthCenter.x,
         y: targetPoint.y - jsonMouthCenter.y,
         z: (targetPoint.z || 0) - (jsonMouthCenter.z || 0),
       };
 
-      // Anchor.tsx 방식으로 거리 보정 스케일링 적용
+      // 거리 스케일 적용
       const scaledRelativePoint = applyDistanceScale(relativePoint, distanceScale);
 
-      // Anchor.tsx 방식으로 타겟 랜드마크 계산
+      // 개인화 좌표계 기준으로 로컬 좌표 계산
       const localX =
         scaledRelativePoint.x * personalSystem.xAxis.x +
         scaledRelativePoint.y * personalSystem.xAxis.y +
@@ -144,7 +134,7 @@ export class TargetLandmarksComputer {
         scaledRelativePoint.y * personalSystem.zAxis.y +
         scaledRelativePoint.z * (personalSystem.zAxis.z || 0);
 
-      // Anchor.tsx 방식으로 타겟 랜드마크 계산
+      // 동적 좌표계로 월드 좌표 변환
       const transformedX =
         currentMouthCenter.x +
         localX * dynamicSystem.xAxis.x +
@@ -168,9 +158,9 @@ export class TargetLandmarksComputer {
       };
     });
 
-    // 디버깅 로그
+    // 디버깅 로그 (1% 확률로 출력)
     if (Math.random() < 0.01) {
-      console.log('Rotate.tsx Mouth Center System:', {
+      console.log('입술 중앙 기준 좌표계:', {
         currentMouthCenter: {
           x: currentMouthCenter.x.toFixed(3),
           y: currentMouthCenter.y.toFixed(3),

@@ -1,42 +1,42 @@
 /**
- * MediaPipe Face Landmark Constants
+ * MediaPipe 얼굴 랜드마크 상수 정의
  *
- * This file contains all landmark indices used for face tracking and mouth overlay.
- * Based on MediaPipe's 478-point face mesh model.
+ * 이 파일은 얼굴 추적 및 입 오버레이에 사용되는 모든 랜드마크 인덱스를 포함합니다.
+ * MediaPipe의 478개 포인트 얼굴 메시 모델을 기반으로 합니다.
  */
 
 /**
- * Face anchor points for head pose estimation
- * - 1: Nose tip
- * - 133: Left eye inner corner
- * - 362: Right eye inner corner
+ * 머리 자세 추정을 위한 얼굴 앵커 포인트
+ * - 1: 코끝
+ * - 133: 왼쪽 눈 안쪽 모서리
+ * - 362: 오른쪽 눈 안쪽 모서리
  */
 export const FACE_ANCHORS = [1, 133, 362];
 
 /**
- * Outer lip contour landmarks (20 points)
- * Forms the outer boundary of the mouth
+ * 외부 입술 윤곽 랜드마크 (20개 포인트)
+ * 입의 외부 경계를 형성
  */
 export const OUTER_LIP_LANDMARKS = [
   61, 185, 40, 39, 37, 0, 267, 269, 270, 409, 291, 375, 321, 405, 314, 17, 84, 181, 91, 146,
 ];
 
 /**
- * Inner lip contour landmarks (20 points)
- * Forms the inner boundary of the mouth (teeth line)
+ * 내부 입술 윤곽 랜드마크 (20개 포인트)
+ * 입의 내부 경계 형성 (치아 라인)
  */
 export const INNER_LIP_LANDMARKS = [
   78, 191, 80, 81, 82, 13, 312, 311, 310, 415, 308, 324, 318, 402, 317, 14, 87, 178, 88, 95,
 ];
 
 /**
- * All mouth landmarks (40 points total)
- * Combines outer and inner lip landmarks
+ * 전체 입 랜드마크 (총 40개 포인트)
+ * 외부 및 내부 입술 랜드마크 결합
  */
 export const MOUTH_LANDMARKS = [...OUTER_LIP_LANDMARKS, ...INNER_LIP_LANDMARKS];
 
 /**
- * All tracked landmarks (43 points total)
- * Combines face anchors and mouth landmarks
+ * 전체 추적 랜드마크 (총 43개 포인트)
+ * 얼굴 앵커와 입 랜드마크 결합
  */
 export const ALL_TRACKED_LANDMARKS = [...FACE_ANCHORS, ...MOUTH_LANDMARKS];

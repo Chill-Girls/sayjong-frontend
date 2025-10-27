@@ -5,6 +5,10 @@ import Header from './Components/Header';
 import Footer from './Components/Footer';
 import MicIcon from './assets/mic.svg';
 
+/**
+ * Calibration 컴포넌트
+ * 발음 연습 메인 화면
+ */
 interface CalibrationProps {
   modeButtons?: React.ReactNode;
 }
@@ -33,7 +37,7 @@ const Calibration: FunctionComponent<CalibrationProps> = ({ modeButtons }) => {
           <div className={styles.landmarksContainer}>
             <h3 className={styles.landmarksTitle}>Face Landmarks & Blendshapes</h3>
             <div className={styles.landmarksDisplay} id="landmarks-display">
-              {/* Landmarks and blendshapes will be displayed here */}
+              {/* 랜드마크와 블렌드쉐이프가 여기에 표시됩니다 */}
             </div>
           </div>
         </div>

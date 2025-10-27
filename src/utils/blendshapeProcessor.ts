@@ -1,7 +1,7 @@
 /**
  * blendshapeProcessor.ts
- * Blendshape 데이터 처리 및 표시 로직
- * Blendshape -> 입술 어느정도 열리고 닫히는지 등의 정보
+ * 블렌드쉐이프 데이터 처리 및 표시 로직
+ * 블렌드쉐이프 -> 입술이 얼마나 열리고 닫히는지 등의 정보
  */
 
 export const BLENDSHAPE_NAMES = [
@@ -54,7 +54,7 @@ export const BLENDSHAPE_NAMES = [
   'noseSneerRight',
 ];
 
-// Target blendshapes for pronunciation training
+/** 발음 훈련을 위한 목표 블렌드쉐이프 */
 export const TARGET_BLENDSHAPES = [
   'jawOpen',
   'mouthPucker',
@@ -62,6 +62,8 @@ export const TARGET_BLENDSHAPES = [
   'mouthSmileRight',
   'mouthFunnel',
 ];
+
+/** 추가 발음 관련 블렌드쉐이프 */
 export const ADDITIONAL_BLENDSHAPES = [
   'mouthClose',
   'mouthStretchLeft',
@@ -70,7 +72,8 @@ export const ADDITIONAL_BLENDSHAPES = [
 ];
 
 /**
- * Blendshape 평활화를 위한 클래스
+ * 블렌드쉐이프 평활화를 위한 클래스
+ * EMA(지수 이동 평균) 필터링을 사용하여 블렌드쉐이프 데이터를 부드럽게 만듭니다
  */
 export class BlendshapeSmoother {
   private history: number[][] = [];
@@ -81,7 +84,9 @@ export class BlendshapeSmoother {
   }
 
   /**
-   * Blendshape 데이터를 평활화합니다.
+   * 블렌드쉐이프 데이터를 평활화합니다
+   * @param newBlendshapes - 새로운 블렌드쉐이프 데이터 배열
+   * @returns 평활화된 블렌드쉐이프 데이터 배열
    */
   smooth(newBlendshapes: number[]): number[] {
     if (this.history.length === 0) {
@@ -102,7 +107,7 @@ export class BlendshapeSmoother {
   }
 
   /**
-   * 히스토리를 초기화합니다.
+   * 히스토리를 초기화합니다
    */
   reset() {
     this.history = [];
@@ -110,7 +115,9 @@ export class BlendshapeSmoother {
 }
 
 /**
- * MediaPipe 결과에서 blendshape 데이터를 추출합니다.
+ * MediaPipe 결과에서 블렌드쉐이프 데이터를 추출합니다
+ * @param results - MediaPipe 감지 결과
+ * @returns 블렌드쉐이프 배열
  */
 export function extractBlendshapes(results: any): any[] {
   if (
@@ -135,7 +142,9 @@ export function extractBlendshapes(results: any): any[] {
 }
 
 /**
- * Blendshape를 객체 형태로 표시합니다.
+ * 블렌드쉐이프를 객체 형태로 표시합니다
+ * @param blendshapes - 블렌드쉐이프 객체 배열
+ * @returns HTML 문자열
  */
 export function displayBlendshapesAsObjects(blendshapes: any[]): string {
   let html = '<strong>Target Blendshapes:</strong><br/>';
@@ -173,7 +182,9 @@ export function displayBlendshapesAsObjects(blendshapes: any[]): string {
 }
 
 /**
- * Blendshape를 숫자 배열 형태로 표시합니다.
+ * 블렌드쉐이프를 숫자 배열 형태로 표시합니다
+ * @param blendshapes - 블렌드쉐이프 숫자 배열
+ * @returns HTML 문자열
  */
 export function displayBlendshapesAsNumbers(blendshapes: number[]): string {
   let html = '';

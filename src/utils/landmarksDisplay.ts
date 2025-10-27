@@ -16,11 +16,13 @@ export interface LandmarkPoint {
   z: number;
 }
 
-// All tracked landmarks (43 points: 3 face anchors + 40 mouth landmarks)
+/** 전체 추적 랜드마크 (43개 포인트: 얼굴 앵커 3개 + 입 랜드마크 40개) */
 const TRACKED_LANDMARKS = [...FACE_ANCHORS, ...MOUTH_LANDMARKS];
 
 /**
- * 추적 중인 랜드마크만 추출합니다.
+ * 추적 중인 랜드마크만 추출합니다
+ * @param landmarks - 전체 얼굴 랜드마크 배열
+ * @returns 추적 중인 랜드마크 배열
  */
 export function extractTrackedLandmarks(landmarks: LandmarkPoint[]) {
   return TRACKED_LANDMARKS.map(index => ({
@@ -30,7 +32,10 @@ export function extractTrackedLandmarks(landmarks: LandmarkPoint[]) {
 }
 
 /**
- * 랜드마크와 blendshape 정보를 화면에 표시합니다.
+ * 랜드마크와 블렌드쉐이프 정보를 화면에 표시합니다
+ * @param results - MediaPipe 감지 결과
+ * @param displayElementId - 표시할 HTML 엘리먼트 ID
+ * @param blendshapeSmoother - 블렌드쉐이프 평활화 객체 (선택적)
  */
 export function updateLandmarksDisplay(
   results: any,
