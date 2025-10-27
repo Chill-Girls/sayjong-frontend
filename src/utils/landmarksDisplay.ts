@@ -3,33 +3,12 @@
  * 랜드마크 정보 표시 로직
  */
 
-import { FACE_ANCHORS, MOUTH_LANDMARKS } from '../constants/landmarks';
+import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import {
   extractBlendshapes,
   displayBlendshapesAsObjects,
   displayBlendshapesAsNumbers,
 } from './blendshapeProcessor';
-
-export interface LandmarkPoint {
-  x: number;
-  y: number;
-  z: number;
-}
-
-/** 전체 추적 랜드마크 (43개 포인트: 얼굴 앵커 3개 + 입 랜드마크 40개) */
-const TRACKED_LANDMARKS = [...FACE_ANCHORS, ...MOUTH_LANDMARKS];
-
-/**
- * 추적 중인 랜드마크만 추출합니다
- * @param landmarks - 전체 얼굴 랜드마크 배열
- * @returns 추적 중인 랜드마크 배열
- */
-export function extractTrackedLandmarks(landmarks: LandmarkPoint[]) {
-  return TRACKED_LANDMARKS.map(index => ({
-    index,
-    ...landmarks[index],
-  }));
-}
 
 /**
  * 랜드마크와 블렌드쉐이프 정보를 화면에 표시합니다
@@ -55,7 +34,12 @@ export function updateLandmarksDisplay(
   }
 
   const allLandmarks = results.faceLandmarks[0];
-  const trackedLandmarks = extractTrackedLandmarks(allLandmarks);
+  const trackedLandmarks = ALL_TRACKED_LANDMARKS.map(idx => ({
+    index: idx,
+    x: allLandmarks[idx].x,
+    y: allLandmarks[idx].y,
+    z: allLandmarks[idx].z,
+  }));
   let blendshapes = extractBlendshapes(results);
 
   if (blendshapes.length > 0 && typeof blendshapes[0] === 'number' && blendshapeSmoother) {
@@ -83,7 +67,7 @@ export function updateLandmarksDisplay(
     displayHTML += `<span class="landmarkPoint">[${landmark.index}]:</span> (${landmark.x.toFixed(3)}, ${landmark.y.toFixed(3)}, ${landmark.z.toFixed(3)})<br/>`;
   });
 
-  displayHTML += `<br/><strong>Total Tracked:</strong> 43 points (3 face + 40 mouth) / 478<br/><br/>`;
+  displayHTML += `<br/><strong>Total Tracked:</strong> 44 points (4 face + 40 mouth) / 478<br/><br/>`;
 
   if (blendshapes.length > 0) {
     displayHTML += '<strong>Face Blend Shapes:</strong><br/>';

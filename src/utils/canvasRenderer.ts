@@ -10,13 +10,8 @@ import {
   MOUTH_LANDMARKS,
   OUTER_LIP_LANDMARKS,
   INNER_LIP_LANDMARKS,
+  type LandmarkPoint,
 } from '../constants/landmarks';
-
-export interface LandmarkPoint {
-  x: number;
-  y: number;
-  z: number;
-}
 
 /**
  * 캔버스 좌표로 변환하는 헬퍼 함수

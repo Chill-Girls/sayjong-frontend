@@ -9,6 +9,7 @@ import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
+import { precomputeAllTargetVowels, downloadPrecomputedTargets } from '../utils/precomputeTargets';
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -176,14 +177,39 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const downloadCalibration = () => {
-    const json = JSON.stringify(calibrationData, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'vowel_calibration.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    // 1. 원본 캘리브레이션 데이터 다운로드
+    const calibJson = JSON.stringify(calibrationData, null, 2);
+    const calibBlob = new Blob([calibJson], { type: 'application/json' });
+    const calibUrl = URL.createObjectURL(calibBlob);
+    const calibLink = document.createElement('a');
+    calibLink.href = calibUrl;
+    calibLink.download = 'vowel_calibration.json';
+    calibLink.click();
+    URL.revokeObjectURL(calibUrl);
+
+    console.log('캘리브레이션 데이터 다운로드 완료');
+
+    // 2. 모든 모음의 목표 좌표 미리 계산
+    try {
+      console.log('모든 모음의 목표 좌표 계산 중...');
+      const precomputedTargets = precomputeAllTargetVowels(calibrationData);
+
+      // 3. 미리 계산된 목표 좌표 다운로드
+      downloadPrecomputedTargets(precomputedTargets, 'target_vowels.json');
+
+      alert(
+        'Download Complete!\n\n' +
+          '1. vowel_calibration.json - Original calibration data\n' +
+          '2. target_vowels.json - Precomputed target coordinates for all vowels\n\n' +
+          'You can now upload these to your backend!',
+      );
+    } catch (error) {
+      console.error('목표 좌표 계산 실패:', error);
+      alert(
+        'Calibration data downloaded, but target precomputation failed.\n' +
+          'Please check the console for details.',
+      );
+    }
   };
 
   const vowelInstructions = {
@@ -380,7 +406,7 @@ const CalibrationCapture: React.FC = () => {
           <div style={{ fontSize: '12px', color: '#6c757d', textAlign: 'center' }}>
             Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
             <br />
-            (3 face + 40 mouth)
+            (4 face + 40 mouth)
           </div>
         </div>
       </div>
