@@ -1,14 +1,14 @@
 /**
- * CalibrationCapture - Tool for capturing vowel calibration data
+ * CalibrationCapture - 모음 보정 데이터 캡처 도구
  *
- * This component allows users to capture facial landmarks and blendshapes
- * for the four basis vowels (neutral, ㅏ, ㅜ, ㅣ) and saves them to
- * vowel_calibration.json
+ * 이 컴포넌트는 사용자가 네 가지 기본 모음(중립, ㅏ, ㅜ, ㅣ)의
+ * 얼굴 랜드마크와 블렌드쉐이프를 캡처하여 vowel_calibration.json에 저장할 수 있도록 합니다.
  */
 
 import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
+import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -33,15 +33,6 @@ const CalibrationCapture: React.FC = () => {
   const [calibrationData, setCalibrationData] = useState<CalibrationData>({});
   const [isCapturing, setIsCapturing] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
-
-  // Target blendshapes to track
-  const TARGET_BLENDSHAPES = [
-    'jawOpen',
-    'mouthPucker',
-    'mouthSmileLeft',
-    'mouthSmileRight',
-    'mouthFunnel',
-  ];
 
   useEffect(() => {
     initializeMediaPipe();
@@ -101,20 +92,20 @@ const CalibrationCapture: React.FC = () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        // Mirror the video
+        // 비디오 좌우 반전
         ctx.save();
         ctx.scale(-1, 1);
         ctx.translate(-canvas.width, 0);
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         ctx.restore();
 
-        // Process with MediaPipe
+        // MediaPipe로 처리
         const results = faceLandmarkerRef.current.detectForVideo(video, performance.now());
 
         if (results.faceLandmarks && results.faceLandmarks.length > 0) {
           const landmarks = results.faceLandmarks[0];
 
-          // Draw landmarks
+          // 랜드마크 그리기
           ctx.fillStyle = '#00FF00';
           ALL_TRACKED_LANDMARKS.forEach(index => {
             const landmark = landmarks[index];
@@ -138,28 +129,28 @@ const CalibrationCapture: React.FC = () => {
 
     setIsCapturing(true);
 
-    // Countdown
+    // 카운트다운
     for (let i = 3; i > 0; i--) {
       setCountdown(i);
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     setCountdown(null);
 
-    // Capture
+    // 캡처
     const results = faceLandmarkerRef.current.detectForVideo(videoRef.current, performance.now());
 
     if (results.faceLandmarks && results.faceLandmarks.length > 0) {
       const landmarks = results.faceLandmarks[0];
       const blendshapes = results.faceBlendshapes?.[0]?.categories || [];
 
-      // Extract landmarks
+      // 랜드마크 추출
       const capturedLandmarks: Record<string, [number, number, number]> = {};
       ALL_TRACKED_LANDMARKS.forEach(index => {
         const lm = landmarks[index];
         capturedLandmarks[index.toString()] = [lm.x, lm.y, lm.z];
       });
 
-      // Extract blendshapes
+      // 블렌드쉐이프 추출
       const capturedBlendshapes: Record<string, number> = {};
       blendshapes.forEach((bs: any) => {
         const name = bs.categoryName || bs.displayName || '';
@@ -227,7 +218,7 @@ const CalibrationCapture: React.FC = () => {
           margin: '20px auto 0',
         }}
       >
-        {/* Video/Canvas */}
+        {/* 비디오/캔버스 */}
         <div style={{ flex: '2', minWidth: '600px' }}>
           <div
             style={{
@@ -272,7 +263,7 @@ const CalibrationCapture: React.FC = () => {
           </div>
         </div>
 
-        {/* Controls */}
+        {/* 컨트롤 */}
         <div style={{ width: '450px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div
             style={{

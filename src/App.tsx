@@ -2,6 +2,10 @@ import { useState } from 'react';
 import Calibration from './Calibration';
 import CalibrationCapture from './Components/CalibrationCapture';
 
+/**
+ * App 컴포넌트
+ * 발음 연습 모드와 보정 도구 모드 전환
+ */
 function App() {
   const [mode, setMode] = useState<'practice' | 'calibrate'>('practice');
 

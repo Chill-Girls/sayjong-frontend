@@ -1,21 +1,21 @@
 /**
- * CameraComponent - Real-time Mouth Tracking with Vowel Overlay
+ * CameraComponent - 실시간 입 모양 추적 및 모음 오버레이
  *
- * Features:
- * - 43 landmark tracking (3 face anchors + 40 mouth points)
- * - 3D head pose tracking with full rotation support (pitch, yaw, roll)
- * - Real-time blendshape analysis for pronunciation training
- * - Target vowel overlay with calibration-based positioning (static shape)
- * - Smooth motion tracking with EMA filtering
- * - Full 40-point mouth detail (20 outer lip + 20 inner lip)
+ * 주요 기능:
+ * - 43개 랜드마크 추적 (얼굴 앵커 3개 + 입 포인트 40개)
+ * - 3D 머리 자세 추적 (피치, 요, 롤 회전 지원)
+ * - 발음 훈련을 위한 실시간 블렌드쉐이프 분석
+ * - 보정 기반 목표 모음 오버레이 (정적 형태)
+ * - EMA 필터링을 통한 부드러운 모션 추적
+ * - 전체 40개 입 디테일 포인트 (외부 입술 20개 + 내부 입술 20개)
  *
- * Architecture:
- * - Modular design with separate utilities for each concern
- * - vowelShapeBuilder: Target vowel shape generation
- * - targetLandmarksComputer: 3D coordinate transformation
- * - blendshapeProcessor: Blendshape smoothing and display
- * - landmarksDisplay: Landmark information display
- * - canvasRenderer: Canvas rendering utilities
+ * 아키텍처:
+ * - 각 관심사별로 분리된 유틸리티를 사용한 모듈러 디자인
+ * - vowelShapeBuilder: 목표 모음 형태 생성
+ * - targetLandmarksComputer: 3D 좌표 변환
+ * - blendshapeProcessor: 블렌드쉐이프 평활화 및 표시
+ * - landmarksDisplay: 랜드마크 정보 표시
+ * - canvasRenderer: 캔버스 렌더링 유틸리티
  */
 
 import { useRef, useEffect, useState } from 'react';
@@ -49,10 +49,10 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Target vowel overlay configuration
-  const TARGET_VOWEL = 'ㅓ';
+  // 목표 모음 오버레이 설정
+  const TARGET_VOWEL = 'ㅗ';
 
-  // Initialize processing utilities
+  // 처리 유틸리티 초기화
   const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
   const blendshapeSmoother = useRef(new BlendshapeSmoother(0.7));
 
@@ -64,7 +64,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           return;
         }
 
-        // Import MediaPipe
+        // MediaPipe 라이브러리 가져오기
         const vision = await import('@mediapipe/tasks-vision');
         const { FaceLandmarker, FilesetResolver } = vision;
 
@@ -72,7 +72,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm',
         );
 
-        // Create FaceLandmarker
+        // FaceLandmarker 생성
         const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
           baseOptions: {
             modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
@@ -85,7 +85,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           minFacePresenceConfidence: 0.5,
         });
 
-        // Camera class for managing video stream
+        // 비디오 스트림 관리를 위한 Camera 클래스
         class Camera {
           video: HTMLVideoElement;
           options: any;
@@ -101,12 +101,12 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
             this.video.srcObject = stream;
             this.video.play();
 
-            // Wait for video metadata
+            // 비디오 메타데이터 대기
             await new Promise(resolve => {
               this.video.onloadedmetadata = () => resolve(void 0);
             });
 
-            // Start frame processing
+            // 프레임 처리 시작
             const onFrame = () => {
               if (this.options.onFrame && !this.isProcessing) {
                 this.isProcessing = true;
@@ -120,11 +120,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           }
         }
 
-        // Initialize camera
+        // 카메라 초기화
         const camera = new Camera(videoRef.current, {
           onFrame: async () => {
             if (videoRef.current && canvasRef.current) {
-              // Skip if video not ready
+              // 비디오가 준비되지 않았으면 건너뛰기
               if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
                 return;
               }
@@ -132,7 +132,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
               try {
                 const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
 
-                // Draw on canvas
+                // 캔버스에 그리기
                 if (canvasRef.current) {
                   const canvasCtx = canvasRef.current.getContext('2d');
                   if (canvasCtx) {
@@ -146,7 +146,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
                       canvasRef.current.height,
                     );
 
-                    // Draw tracked landmarks and mouth overlay
+                    // 추적된 랜드마크 및 입 오버레이 그리기
                     if (results.faceLandmarks && results.faceLandmarks.length > 0) {
                       const allLandmarks = results.faceLandmarks[0];
 
@@ -155,20 +155,20 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
 
                       const toCanvas = createCanvasCoordConverter(w, h);
 
-                      // Draw live mouth contours (pink/red)
+                      // 실시간 입 윤곽선 그리기 (분홍색)
                       drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
 
-                      // Draw landmarks
+                      // 랜드마크 포인트 그리기
                       drawLandmarkPoints(canvasCtx, allLandmarks, toCanvas);
 
-                      // Compute target overlay landmarks with proper transformation
+                      // 적절한 변환을 통한 목표 오버레이 랜드마크 계산
                       const targetLandmarks =
                         targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
 
-                      // Draw target mouth contours (green)
+                      // 목표 입 윤곽선 그리기 (녹색)
                       drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas);
 
-                      // Draw vowel label
+                      // 모음 라벨 그리기
                       drawVowelLabel(canvasCtx, targetLandmarks, TARGET_VOWEL, toCanvas);
                     }
 

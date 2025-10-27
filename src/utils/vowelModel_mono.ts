@@ -1,74 +1,62 @@
 /**
  * vowelModel_mono.ts
  *
- * Korean Monophthong (단모음) Vowel Model - Coefficient Definitions
+ * 한국어 단모음 모델 - 보간 계수 정의
  *
- * This module provides interpolation coefficients for Korean vowels.
- * These coefficients are used by vowelBuilder.tsx to generate mouth shapes
- * by linear interpolation between basis vowels (ㅏ, ㅜ, ㅣ).
+ * 이 모듈은 한국어 모음의 보간 계수를 제공합니다.
+ * 이 계수들은 vowelBuilder.tsx에서 기본 모음(ㅏ, ㅜ, ㅣ) 간의
+ * 선형 보간을 통해 입 모양을 생성하는 데 사용됩니다.
  *
- * Basis vectors (from calibration):
- *   open   - ㅏ movement (jaw opening)
- *   round  - ㅜ movement (lip rounding)
- *   spread - ㅣ movement (lip spreading)
+ * 기본 벡터 (보정 데이터에서 유래):
+ *   open   - ㅏ 동작 (턱 벌림)
+ *   round  - ㅜ 동작 (입술 둥글게)
+ *   spread - ㅣ 동작 (입술 펴기)
  *
- * Usage:
+ * 사용법:
  *   import { VOWEL_COEFFS_MONO } from './vowelModel_mono';
  *
  *   const coeffs = VOWEL_COEFFS_MONO['ㅔ'];
- *   // Returns: { open: 0.4, spread: 0.7, round: 0.0 }
+ *   // 반환값: { open: 0.4, spread: 0.7, round: 0.0 }
  */
 
-// ============================================================================
-// Type Definitions
-// ============================================================================
-
 /**
- * Coefficients for vowel synthesis in basis space
+ * 모음 합성을 위한 계수 인터페이스
  */
 export interface Coeffs {
-  open: number; // Contribution from ㅏ (jaw opening)
-  round: number; // Contribution from ㅜ (lip rounding)
-  spread: number; // Contribution from ㅣ (lip spreading)
+  open: number; // ㅏ 방향 기여도 (턱 벌림)
+  round: number; // ㅜ 방향 기여도 (입술 둥글게)
+  spread: number; // ㅣ 방향 기여도 (입술 펴기)
 }
 
-// ============================================================================
-// Vowel Coefficients
-// ============================================================================
-
 /**
- * Empirically-derived coefficients for Korean vowels
+ * 한국어 모음을 위한 경험적 도출 계수
  *
- * Each vowel is represented as a linear combination of three basis movements:
- *   - open:   jaw opening (ㅏ direction)
- *   - round:  lip rounding (ㅜ direction)
- *   - spread: lip spreading (ㅣ direction)
+ * 각 모음은 세 가지 기본 동작의 선형 조합으로 표현됩니다:
+ *   - open:   턱 벌림 (ㅏ 방향)
+ *   - round:  입술 둥글게 (ㅜ 방향)
+ *   - spread: 입술 펴기 (ㅣ 방향)
  *
- * Vowels using calibrated data directly (not interpolated):
- *   ㅏ, ㅜ, ㅣ (basis vowels), ㅑ, ㅠ (y-glide endpoints)
+ * 보정 데이터를 직접 사용하는 모음 (보간하지 않음):
+ *   ㅏ, ㅜ, ㅣ (기본 모음), ㅑ, ㅠ (y-활음 끝점)
  *
- * Coefficients are derived from visual phonetics and articulatory studies.
+ * 계수는 시각 음성학 및 조음 연구로부터 도출되었습니다.
  */
 export const VOWEL_COEFFS_MONO: Record<string, Coeffs> = {
-  // Interpolated vowels
-  ㅓ: { open: 0.75, spread: 0.15, round: 0.5 }, // [ʌ] Mid-low back unrounded
-  ㅔ: { open: 0.4, spread: 0.7, round: 0.0 }, // [e̞] Mid front unrounded
-  ㅐ: { open: 0.4, spread: 0.7, round: 0.0 }, // [ɛ] → [e̞] (merged with ㅔ for most speakers)
-  ㅗ: { open: 0.35, spread: -0.15, round: 0.85 }, // [o] Mid-high back rounded
-  ㅛ: { open: 0.35, spread: -0.15, round: 0.85 }, // [jo] Static endpoint ≈ ㅗ
-  ㅡ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɯ] High back unrounded
-  ㅕ: { open: 0.75, spread: 0.15, round: 0.5 }, // [jʌ] Static endpoint ≈ more spread ㅓ
+  // 보간된 모음들
+  ㅓ: { open: 0.75, spread: 0.15, round: 0.5 }, // [ʌ] 중저 후설 비원순
+  ㅔ: { open: 0.4, spread: 0.7, round: 0.0 }, // [e̞] 중 전설 비원순
+  ㅐ: { open: 0.4, spread: 0.7, round: 0.0 }, // [ɛ] → [e̞] (대부분 화자에서 ㅔ와 병합)
+  ㅗ: { open: 0.35, spread: -0.15, round: 0.85 }, // [o] 중고 후설 원순
+  ㅛ: { open: 0.35, spread: -0.15, round: 0.85 }, // [jo] 정적 끝점 ≈ ㅗ
+  ㅡ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɯ] 고 후설 비원순
+  ㅕ: { open: 0.75, spread: 0.15, round: 0.5 }, // [jʌ] 정적 끝점 ≈ 더 펼쳐진 ㅓ
 };
 
-// ============================================================================
-// Export Summary
-// ============================================================================
-
 /**
- * This module exports:
- * - VOWEL_COEFFS_MONO: Coefficient definitions for vowel interpolation
- * - Coeffs: TypeScript interface for coefficient structure
+ * 이 모듈은 다음을 내보냅니다:
+ * - VOWEL_COEFFS_MONO: 모음 보간을 위한 계수 정의
+ * - Coeffs: 계수 구조를 위한 TypeScript 인터페이스
  *
- * These coefficients are used by vowelBuilder.tsx to generate mouth shapes
- * through linear interpolation of basis vowels (ㅏ, ㅜ, ㅣ) from calibration data.
+ * 이 계수들은 vowelBuilder.tsx에서 보정 데이터의 기본 모음(ㅏ, ㅜ, ㅣ)을
+ * 선형 보간하여 입 모양을 생성하는 데 사용됩니다.
  */
