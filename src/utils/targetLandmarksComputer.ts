@@ -17,12 +17,7 @@ import {
   type PersonalCoordinateSystem,
 } from './Anchor';
 import { buildTargetVowelShape, getMouthCenterFromShape } from './vowelBuilder';
-
-export interface LandmarkPoint {
-  x: number;
-  y: number;
-  z: number;
-}
+import type { LandmarkPoint } from '../constants/landmarks';
 
 /**
  * 목표 랜드마크 계산 클래스

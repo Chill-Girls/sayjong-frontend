@@ -29,18 +29,13 @@ import {
   drawTargetMouthContours,
   drawVowelLabel,
 } from '../utils/canvasRenderer';
+import type { LandmarkPoint } from '../constants/landmarks';
 
 interface CameraComponentProps {
   onResults?: (results: {
     landmarks?: LandmarkPoint[];
     blendshapes?: Record<string, number>;
   }) => void;
-}
-
-interface LandmarkPoint {
-  x: number;
-  y: number;
-  z: number;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
@@ -50,7 +45,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
   const [error, setError] = useState<string | null>(null);
 
   // 목표 모음 오버레이 설정
-  const TARGET_VOWEL = 'ㅗ';
+  const TARGET_VOWEL = 'ㅔ';
 
   // 처리 유틸리티 초기화
   const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
