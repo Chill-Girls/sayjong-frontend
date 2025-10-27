@@ -21,7 +21,6 @@ export interface DynamicCoordinateSystem {
   noseToEyeDistance: number;
 }
 
-// 입술 중앙점 -> 상대좌표 복원으로 실시간으로 찾기, Anchor 기준점이 될것임.
 /**
  *
  * @param landmarks - 얼굴 랜드마크
