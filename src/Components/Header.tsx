@@ -12,14 +12,14 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
       top: 0,
       left: 0,
       right: 0,
-      height: '55.5px', 
+      height: '55.5px',
       backgroundColor: '#f8f6f7',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 27px', 
+      padding: '0 27px',
       boxSizing: 'border-box',
-      fontSize: '24px', 
+      fontSize: '24px',
       color: '#1e1e1e',
       fontFamily: 'Pretendard',
       zIndex: 100,
@@ -30,7 +30,7 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
     navigation: {
       display: 'flex',
       alignItems: 'center',
-      gap: '18px', 
+      gap: '18px',
       fontSize: '15px',
       color: '#313131',
     },
@@ -40,8 +40,8 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
       transition: 'color 0.2s ease',
     },
     accountCircleIcon: {
-      width: '37.5px', 
-      height: '37.5px', 
+      width: '37.5px',
+      height: '37.5px',
       objectFit: 'contain',
     },
   };
@@ -57,22 +57,13 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
       <div style={styles.sayjong}>SayJong</div>
 
       <nav style={styles.navigation}>
-        <div 
-          style={getNavItemStyle('home')} 
-          onClick={() => onNavigate?.('home')}
-        >
+        <div style={getNavItemStyle('home')} onClick={() => onNavigate?.('home')}>
           Home
         </div>
-        <div 
-          style={getNavItemStyle('lesson')} 
-          onClick={() => onNavigate?.('lesson')}
-        >
+        <div style={getNavItemStyle('lesson')} onClick={() => onNavigate?.('lesson')}>
           Lesson
         </div>
-        <div 
-          style={getNavItemStyle('history')} 
-          onClick={() => onNavigate?.('history')}
-        >
+        <div style={getNavItemStyle('history')} onClick={() => onNavigate?.('history')}>
           History
         </div>
       </nav>

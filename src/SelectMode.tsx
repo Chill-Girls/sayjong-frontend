@@ -14,7 +14,13 @@ interface SelectModeProps {
   onStartLesson: (lessonType: 'syllable' | 'line' | 'singalong') => void;
 }
 
-const SelectMode: FunctionComponent<SelectModeProps> = ({ currentPage, onNavigate, songInfo, onChangeSong, onStartLesson }) => {
+const SelectMode: FunctionComponent<SelectModeProps> = ({
+  currentPage,
+  onNavigate,
+  songInfo,
+  onChangeSong,
+  onStartLesson,
+}) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
       width: '100vw',
@@ -141,7 +147,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({ currentPage, onNavigat
   return (
     <div style={styles.container}>
       <Header currentPage={currentPage} onNavigate={onNavigate} />
-      
+
       <div style={styles.content}>
         <div style={styles.songInfo}>
           <div style={styles.songTitle}>"{songInfo?.title || 'Lovers Who Hesitate'}"</div>
@@ -150,10 +156,10 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({ currentPage, onNavigat
 
         <div style={styles.lessonContainer}>
           <div style={styles.lessonTitle}>Choose your lesson</div>
-          
+
           <div style={styles.cardsWrapper}>
-            {lessonList.map((lesson) => (
-              <div 
+            {lessonList.map(lesson => (
+              <div
                 key={lesson.id}
                 onClick={() => onStartLesson(lesson.lessonType)}
                 style={{
@@ -173,21 +179,17 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({ currentPage, onNavigat
             ))}
           </div>
 
-          <div 
+          <div
             style={styles.changeSongButton}
             onClick={onChangeSong}
-            onMouseEnter={(e) => {
+            onMouseEnter={e => {
               e.currentTarget.style.opacity = '0.7';
             }}
-            onMouseLeave={(e) => {
+            onMouseLeave={e => {
               e.currentTarget.style.opacity = '1';
             }}
           >
-            <img 
-              style={styles.arrowIcon} 
-              src={ArrowLeftIcon} 
-              alt="arrow" 
-            />
+            <img style={styles.arrowIcon} src={ArrowLeftIcon} alt="arrow" />
             <div>Change Song</div>
           </div>
         </div>

@@ -71,18 +71,18 @@ const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', 
   return (
     <div style={styles.container}>
       <Header currentPage={currentPage} onNavigate={onNavigate} />
-      
+
       <div style={styles.frame} />
-      
+
       <div style={styles.titleSection}>
         <div style={styles.singAlong}>Sing Along</div>
         <div style={styles.forLoversWho}>For Lovers Who Hesitate - Jannabi</div>
       </div>
-      
+
       <div style={styles.cameraWrapper}>
         <CameraComponent width="803.25px" height="307.5px" />
       </div>
-      
+
       <Footer />
     </div>
   );

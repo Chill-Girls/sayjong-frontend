@@ -7,28 +7,28 @@ interface LessonCardProps {
   iconSrc?: string;
 }
 
-const LessonCard: FunctionComponent<LessonCardProps> = ({ 
-  title = "Syllable",
-  subtitle = "Lesson",
-  description = "Master each sound",
-  iconSrc
+const LessonCard: FunctionComponent<LessonCardProps> = ({
+  title = 'Syllable',
+  subtitle = 'Lesson',
+  description = 'Master each sound',
+  iconSrc,
 }) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
-      height: '225px', 
+      height: '225px',
       position: 'relative',
       boxShadow: '0px 3px 3px rgba(0, 0, 0, 0.25)', // 4px × 0.75
       borderRadius: '22.5px', // 30px × 0.75
       backgroundColor: '#fff',
       width: '100%',
       maxWidth: '280px',
-      minWidth: '220px', 
+      minWidth: '220px',
       overflow: 'hidden',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '16px 14px', 
+      padding: '16px 14px',
       boxSizing: 'border-box',
       gap: '12px', // 더 작은 간격
       textAlign: 'center',
@@ -70,13 +70,13 @@ const LessonCard: FunctionComponent<LessonCardProps> = ({
   };
 
   return (
-    <div 
+    <div
       style={styles.container}
-      onMouseEnter={(e) => {
+      onMouseEnter={e => {
         e.currentTarget.style.transform = 'translateY(-4px)';
         e.currentTarget.style.boxShadow = '0px 6px 6px rgba(0, 0, 0, 0.25)';
       }}
-      onMouseLeave={(e) => {
+      onMouseLeave={e => {
         e.currentTarget.style.transform = 'translateY(0)';
         e.currentTarget.style.boxShadow = '0px 3px 3px rgba(0, 0, 0, 0.25)';
       }}

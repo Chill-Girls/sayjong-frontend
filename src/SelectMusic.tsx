@@ -8,7 +8,11 @@ interface SelectMusicProps {
   onSelectMusic: (song: { title: string; artist: string }) => void;
 }
 
-const SelectMusic: FunctionComponent<SelectMusicProps> = ({ currentPage, onNavigate, onSelectMusic }) => {
+const SelectMusic: FunctionComponent<SelectMusicProps> = ({
+  currentPage,
+  onNavigate,
+  onSelectMusic,
+}) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
       width: '100vw',
@@ -77,7 +81,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({ currentPage, onNavig
   return (
     <div style={styles.container}>
       <Header currentPage={currentPage} onNavigate={onNavigate} />
-      
+
       <div style={styles.content}>
         <div style={styles.titleSection}>
           <div style={styles.mainTitle}>Practice Your Favorite Song</div>
@@ -85,21 +89,19 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({ currentPage, onNavig
         </div>
 
         <div style={styles.cardsGrid}>
-          {musicList.map((music) => (
-            <div 
-              key={music.id} 
+          {musicList.map(music => (
+            <div
+              key={music.id}
               style={styles.cardWrapper}
               onClick={() => onSelectMusic({ title: music.title, artist: music.artist })}
-              onMouseEnter={(e) => {
+              onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
               }}
-              onMouseLeave={(e) => {
+              onMouseLeave={e => {
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <MusicCard
-                title={music.title} artist={music.artist}albumId={music.id}
-              />
+              <MusicCard title={music.title} artist={music.artist} albumId={music.id} />
             </div>
           ))}
         </div>

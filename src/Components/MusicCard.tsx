@@ -3,15 +3,16 @@ import defaultImage from '../assets/Lovers who hesitate.png';
 interface MusicCardProps {
   title?: string;
   artist?: string;
+
   imageUrl?: string; //개인적으로 imageurl 필요함... 현재 디폴트 이미지 사용중
   albumId?: string | number;
 } // 데베에서 받아오는 데이터
 
-const MusicCard: FunctionComponent<MusicCardProps> = ({ 
-  title = "Lovers who hesitate", 
-  artist = "Jannabi", 
+const MusicCard: FunctionComponent<MusicCardProps> = ({
+  title = 'Lovers who hesitate',
+  artist = 'Jannabi',
   imageUrl = defaultImage,
-  albumId: _albumId // 라우팅에 사용 가능
+  albumId: _albumId, // eslint-disable-line @typescript-eslint/no-unused-vars
 }) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
@@ -31,7 +32,7 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
       textAlign: 'left',
       fontSize: '12px', // 16px × 0.75
       color: '#000',
-      fontFamily: 'Pretendard'
+      fontFamily: 'Pretendard',
     },
     infoContainer: {
       width: '140px', // 앨범 커버와 같은 너비
@@ -45,12 +46,12 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
       alignItems: 'flex-start',
       justifyContent: 'flex-end',
       gap: '6px', // 8px × 0.75
-      zIndex: 2 
+      zIndex: 2,
     },
     title: {
       alignSelf: 'stretch',
       position: 'relative',
-      letterSpacing: '-0.02em'
+      letterSpacing: '-0.02em',
     },
     artist: {
       alignSelf: 'stretch',
@@ -58,7 +59,7 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
       fontSize: '10.5px', // 14px × 0.75
       letterSpacing: '-0.02em',
       fontWeight: 300,
-      color: '#505050'
+      color: '#505050',
     },
     image: {
       width: '140px', // 정사각형 크기
@@ -71,8 +72,8 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
       borderRadius: '22.5px',
       overflow: 'hidden',
       objectFit: 'cover',
-      zIndex: 1
-    }
+      zIndex: 1,
+    },
   };
 
   return (
@@ -81,14 +82,9 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
         <div style={styles.title}>{title}</div>
         <div style={styles.artist}>{artist}</div>
       </div>
-      <img 
-        style={styles.image} 
-        src={imageUrl} 
-        alt={`${title} - ${artist}`} 
-      />
+      <img style={styles.image} src={imageUrl} alt={`${title} - ${artist}`} />
     </div>
   );
 };
 
 export default MusicCard;
-

@@ -40,7 +40,11 @@ interface CameraComponentProps {
   height?: string;
 }
 
-const CameraComponent: React.FC<CameraComponentProps> = ({ onResults, width = '563px', height = '357px' }) => {
+const CameraComponent: React.FC<CameraComponentProps> = ({
+  onResults,
+  width = '563px',
+  height = '357px',
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);

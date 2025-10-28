@@ -26,14 +26,14 @@ const Footer: FunctionComponent = () => {
     prev: {
       borderRadius: '9px', // 12px × 0.75
       backgroundColor: '#ffe9f4',
-      height: '30px', 
+      height: '30px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '12px 24px', 
+      padding: '12px 24px',
       boxSizing: 'border-box',
       cursor: 'pointer',
-      fontSize: '16px', 
+      fontSize: '16px',
     },
     labelWrapper: {
       display: 'flex',
@@ -49,12 +49,12 @@ const Footer: FunctionComponent = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '12px 24px', 
+      padding: '12px 24px',
       boxSizing: 'border-box',
-      minWidth: '100px', 
+      minWidth: '100px',
       color: '#fff',
       cursor: 'pointer',
-      fontSize: '16px', 
+      fontSize: '16px',
     },
   };
 
