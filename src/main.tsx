@@ -4,9 +4,10 @@ import './index.css';
 import App from './App.tsx';
 import SelectMusic from './SelectMusic.tsx';
 import SelectMode from './SelectMode.tsx';
+import SingAlong from './SingAlong.tsx';
 
 function Root() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'lesson' | 'history' | 'practice'>('home');
+  const [currentPage, setCurrentPage] = useState<'home' | 'lesson' | 'history' | 'practice' | 'singalong'>('home');
   const [selectedSong, setSelectedSong] = useState<{ title: string; artist: string } | null>(null);
 
   const handleNavigate = (page: 'home' | 'lesson' | 'history') => {
@@ -15,6 +16,10 @@ function Root() {
 
   if (currentPage === 'practice') {
     return <App />;
+  }
+
+  if (currentPage === 'singalong') {
+    return <SingAlong currentPage="lesson" onNavigate={handleNavigate} />;
   }
 
   if (currentPage === 'home') {
@@ -37,6 +42,8 @@ function Root() {
       onStartLesson={(lessonType) => {
         if (lessonType === 'line') {
           setCurrentPage('practice');
+        } else if (lessonType === 'singalong') {
+          setCurrentPage('singalong');
         }
       }}
     />;

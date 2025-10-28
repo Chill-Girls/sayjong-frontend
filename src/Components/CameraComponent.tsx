@@ -36,9 +36,11 @@ interface CameraComponentProps {
     landmarks?: LandmarkPoint[];
     blendshapes?: Record<string, number>;
   }) => void;
+  width?: string;
+  height?: string;
 }
 
-const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
+const CameraComponent: React.FC<CameraComponentProps> = ({ onResults, width = '563px', height = '357px' }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
@@ -213,8 +215,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
     initializeCamera();
   }, [onResults]);
 
+  const canvasWidth = parseInt(width);
+  const canvasHeight = parseInt(height);
+
   return (
-    <div style={{ position: 'relative', width: '563px', height: '357px' }}>
+    <div style={{ position: 'relative', width, height }}>
       <video
         ref={videoRef}
         style={{
@@ -239,8 +244,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({ onResults }) => {
           height: '100%',
           transform: 'scaleX(-1)',
         }}
-        width={563}
-        height={357}
+        width={canvasWidth}
+        height={canvasHeight}
       />
       {!isInitialized && !error && (
         <div
