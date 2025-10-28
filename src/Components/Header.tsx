@@ -1,20 +1,25 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 
-const Header: FunctionComponent = () => {
+interface HeaderProps {
+  currentPage?: 'home' | 'lesson' | 'history';
+  onNavigate?: (page: 'home' | 'lesson' | 'history') => void;
+}
+
+const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNavigate }) => {
   const styles: { [key: string]: CSSProperties } = {
     header: {
       position: 'fixed',
       top: 0,
       left: 0,
       right: 0,
-      height: '74px',
+      height: '55.5px',
       backgroundColor: '#f8f6f7',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 36px',
+      padding: '0 27px',
       boxSizing: 'border-box',
-      fontSize: '32px',
+      fontSize: '24px',
       color: '#1e1e1e',
       fontFamily: 'Pretendard',
       zIndex: 100,
@@ -25,36 +30,42 @@ const Header: FunctionComponent = () => {
     navigation: {
       display: 'flex',
       alignItems: 'center',
-      gap: '24px',
-      fontSize: '20px',
+      gap: '18px',
+      fontSize: '15px',
       color: '#313131',
     },
-    home: {
+    navItem: {
       position: 'relative',
-    },
-    lesson: {
-      position: 'relative',
-      color: '#f04299',
-    },
-    history: {
-      position: 'relative',
-      color: '#1e1e1e',
+      cursor: 'pointer',
+      transition: 'color 0.2s ease',
     },
     accountCircleIcon: {
-      width: '50px',
-      height: '50px',
+      width: '37.5px',
+      height: '37.5px',
       objectFit: 'contain',
     },
   };
+
+  const getNavItemStyle = (page: 'home' | 'lesson' | 'history'): CSSProperties => ({
+    ...styles.navItem,
+    color: currentPage === page ? '#f04299' : '#313131',
+    fontWeight: currentPage === page ? 600 : 400,
+  });
 
   return (
     <header style={styles.header}>
       <div style={styles.sayjong}>SayJong</div>
 
       <nav style={styles.navigation}>
-        <div style={styles.home}>Home</div>
-        <div style={styles.lesson}>Lesson</div>
-        <div style={styles.history}>History</div>
+        <div style={getNavItemStyle('home')} onClick={() => onNavigate?.('home')}>
+          Home
+        </div>
+        <div style={getNavItemStyle('lesson')} onClick={() => onNavigate?.('lesson')}>
+          Lesson
+        </div>
+        <div style={getNavItemStyle('history')} onClick={() => onNavigate?.('history')}>
+          History
+        </div>
       </nav>
 
       <img
