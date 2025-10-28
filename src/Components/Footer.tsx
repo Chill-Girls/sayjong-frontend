@@ -15,25 +15,25 @@ const Footer: FunctionComponent = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      padding: '0 36px',
+      padding: '0 27px', // 36px × 0.75
       boxSizing: 'border-box',
-      fontSize: '19px',
+      fontSize: '14.25px', // 19px × 0.75
       color: '#f04299',
       fontFamily: 'Pretendard',
       zIndex: 100,
       backgroundColor: '#f8f6f7',
     },
     prev: {
-      borderRadius: '12px',
+      borderRadius: '9px', // 12px × 0.75
       backgroundColor: '#ffe9f4',
-      height: '32px',
+      height: '24px', // 32px × 0.75
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '12px 24px',
+      padding: '9px 18px', // 12px × 0.75, 24px × 0.75
       boxSizing: 'border-box',
       cursor: 'pointer',
-      fontSize: '16px',
+      fontSize: '12px', // 16px × 0.75
     },
     labelWrapper: {
       display: 'flex',
@@ -43,18 +43,18 @@ const Footer: FunctionComponent = () => {
       position: 'relative',
     },
     next: {
-      borderRadius: '12px',
+      borderRadius: '9px', // 12px × 0.75
       backgroundColor: '#f04299',
-      height: '32px',
+      height: '24px', // 32px × 0.75
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '12px 24px',
+      padding: '9px 18px', // 12px × 0.75, 24px × 0.75
       boxSizing: 'border-box',
-      minWidth: '120px',
+      minWidth: '90px', // 120px × 0.75
       color: '#fff',
       cursor: 'pointer',
-      fontSize: '16px',
+      fontSize: '12px', // 16px × 0.75
     },
   };
 

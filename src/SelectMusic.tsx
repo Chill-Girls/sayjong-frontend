@@ -2,7 +2,13 @@ import type { CSSProperties, FunctionComponent } from 'react';
 import Header from './Components/Header';
 import MusicCard from './Components/MusicCard';
 
-const SelectMusic: FunctionComponent = () => {
+interface SelectMusicProps {
+  currentPage: 'home' | 'lesson' | 'history';
+  onNavigate: (page: 'home' | 'lesson' | 'history') => void;
+  onSelectMusic: (song: { title: string; artist: string }) => void;
+}
+
+const SelectMusic: FunctionComponent<SelectMusicProps> = ({ currentPage, onNavigate, onSelectMusic }) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
       width: '100vw',
@@ -56,21 +62,21 @@ const SelectMusic: FunctionComponent = () => {
     },
   };
 
-  // 임시 데이터
+  // 임시
   const musicList = [
     { id: 1, title: 'Lovers who hesitate', artist: 'Jannabi' },
     { id: 2, title: 'How You Like That', artist: 'BLACK PINK' },
     { id: 3, title: 'Dynamite', artist: 'BTS' },
-    { id: 4, title: 'INVU', artist: '태연' },
+    { id: 4, title: 'INVU', artist: 'Taeyeon' },
     { id: 5, title: 'Next Level', artist: 'aespa' },
-    { id: 6, title: 'STAY', artist: 'The Kid LAROI & Justin Bieber' },
-    { id: 7, title: 'Permission to Dance', artist: 'BTS' },
-    { id: 8, title: 'Celebrity', artist: 'IU' },
+    { id: 6, title: 'Blue Valentine', artist: 'NMIXX' },
+    { id: 7, title: 'Ditto', artist: 'NewJeans' },
+    { id: 8, title: 'Play with Fire', artist: 'BLACKPINK' },
   ];
 
   return (
     <div style={styles.container}>
-      <Header />
+      <Header currentPage={currentPage} onNavigate={onNavigate} />
       
       <div style={styles.content}>
         <div style={styles.titleSection}>
@@ -83,6 +89,7 @@ const SelectMusic: FunctionComponent = () => {
             <div 
               key={music.id} 
               style={styles.cardWrapper}
+              onClick={() => onSelectMusic({ title: music.title, artist: music.artist })}
               onMouseEnter={(e) => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
               }}
@@ -91,9 +98,7 @@ const SelectMusic: FunctionComponent = () => {
               }}
             >
               <MusicCard
-                title={music.title}
-                artist={music.artist}
-                albumId={music.id}
+                title={music.title} artist={music.artist}albumId={music.id}
               />
             </div>
           ))}
