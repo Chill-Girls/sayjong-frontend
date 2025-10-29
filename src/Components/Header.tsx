@@ -1,4 +1,5 @@
 import type { CSSProperties, FunctionComponent } from 'react';
+import accountIcon from '../assets/account_circle.svg';
 
 interface HeaderProps {
   currentPage?: 'home' | 'lesson' | 'history';
@@ -68,11 +69,7 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
         </div>
       </nav>
 
-      <img
-        style={styles.accountCircleIcon}
-        alt="Account Icon"
-        src="src/assets/account_circle.svg"
-      />
+      <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
     </header>
   );
 };
