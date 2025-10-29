@@ -1,26 +1,18 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import Header from './Components/Header';
-import LessonCard from './Components/LessonCard';
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import Header from './components/Header';
+import LessonCard from './components/LessonCard';
 import WordIcon from './assets/Word.svg';
 import LyricLinesIcon from './assets/Lyric Lines.svg';
 import ArtistIcon from './assets/artist.svg';
 import ArrowLeftIcon from './assets/arrow_left.svg';
+import type { Song } from './api/songs/types';
+import { getSong } from './api/songs';
 
-interface SelectModeProps {
-  currentPage: 'home' | 'lesson' | 'history';
-  onNavigate: (page: 'home' | 'lesson' | 'history') => void;
-  songInfo: { title: string; artist: string } | null;
-  onChangeSong: () => void;
-  onStartLesson: (lessonType: 'syllable' | 'line' | 'singalong') => void;
-}
+type SelectModeProps = Record<string, never>;
 
-const SelectMode: FunctionComponent<SelectModeProps> = ({
-  currentPage,
-  onNavigate,
-  songInfo,
-  onChangeSong,
-  onStartLesson,
-}) => {
+const SelectMode: FunctionComponent<SelectModeProps> = () => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
       width: '100vw',
@@ -144,14 +136,60 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({
     },
   ];
 
+  const navigate = useNavigate();
+  const { songId } = useParams();
+
+  const [song, setSong] = useState<Song | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (songId) {
+      setLoading(true);
+      getSong(Number(songId))
+        .then(data => {
+          setSong(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch song:', err);
+          setLoading(false);
+        });
+    }
+  }, [songId]);
+
+  const handleStartLesson = (lessonType: 'syllable' | 'line' | 'singalong') => {
+    if (!songId) return;
+
+    if (lessonType === 'syllable') {
+      navigate(`/lesson/${songId}/syllable/1`);
+    } else if (lessonType === 'line') {
+      navigate(`/lesson/${songId}/line/1`);
+    } else if (lessonType === 'singalong') {
+      navigate(`/lesson/${songId}/sing`);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <Header />
+        <div style={styles.content}>
+          <div style={styles.songInfo}>
+            <div style={styles.songTitle}>Loading song...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={styles.container}>
-      <Header currentPage={currentPage} onNavigate={onNavigate} />
+      <Header />
 
       <div style={styles.content}>
         <div style={styles.songInfo}>
-          <div style={styles.songTitle}>"{songInfo?.title || 'Lovers Who Hesitate'}"</div>
-          <div style={styles.artistName}>{songInfo?.artist || 'Jannabi'}</div>
+          <div style={styles.songTitle}>"{song?.title || 'Song Not Found'}"</div>
+          <div style={styles.artistName}>{song?.singer || '...'}</div>
         </div>
 
         <div style={styles.lessonContainer}>
@@ -161,7 +199,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({
             {lessonList.map(lesson => (
               <div
                 key={lesson.id}
-                onClick={() => onStartLesson(lesson.lessonType)}
+                onClick={() => handleStartLesson(lesson.lessonType)}
                 style={{
                   flex: '1',
                   display: 'flex',
@@ -181,7 +219,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({
 
           <div
             style={styles.changeSongButton}
-            onClick={onChangeSong}
+            onClick={() => navigate('/home')}
             onMouseEnter={e => {
               e.currentTarget.style.opacity = '0.7';
             }}
@@ -197,5 +235,4 @@ const SelectMode: FunctionComponent<SelectModeProps> = ({
     </div>
   );
 };
-
 export default SelectMode;

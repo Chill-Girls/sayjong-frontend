@@ -8,7 +8,6 @@ export const songResponseSchema = z.object({
   coverUrl: z.string().url().nullable(),
   titleEng: z.string(),
 });
-
 export const songListResponseSchema = z.array(songResponseSchema);
 
 export type Song = z.infer<typeof songResponseSchema>;

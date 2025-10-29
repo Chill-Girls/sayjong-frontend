@@ -1,16 +1,16 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
-import Header from './Components/Header';
-import Footer from './Components/Footer';
-import CameraComponent from './Components/CameraComponent';
-import KaraokeLine from './Components/KaraokeLine';
+import Header from './components/Header';
+import Footer from './components/Footer';
+import CameraComponent from './components/CameraComponent';
+import type { Song } from './api/songs/types';
+import { useParams } from 'react-router-dom';
+import { getSong } from './api/songs';
+import KaraokeLine from './components/KaraokeLine';
 
-interface SingAlongProps {
-  currentPage?: 'home' | 'lesson' | 'history';
-  onNavigate?: (page: 'home' | 'lesson' | 'history') => void;
-}
+type SingAlongProps = object;
 
-const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', onNavigate }) => {
+const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const [currentTime, setCurrentTime] = useState(0);
 
   const line = {
@@ -82,7 +82,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', 
       fontWeight: 500,
       margin: 0,
     },
-    forLoversWho: {
+    songTitle: {
       position: 'relative',
       fontSize: '27px', // 36px × 0.75
       fontWeight: 300,
@@ -98,16 +98,49 @@ const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', 
       justifyContent: 'center',
     },
   };
+  const { songId } = useParams();
+  const [song, setSong] = useState<Song | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (songId) {
+      setLoading(true);
+      getSong(Number(songId))
+        .then(data => {
+          setSong(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error('Failed to fetch song:', err);
+          setLoading(false);
+        });
+    }
+  }, [songId]);
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <Header />
+        <div style={styles.content}>
+          <div style={styles.songInfo}>
+            <div style={styles.songTitle}>Loading song...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
-      <Header currentPage={currentPage} onNavigate={onNavigate} />
+      <Header />
 
       <div style={styles.frame} />
 
       <div style={styles.titleSection}>
         <div style={styles.singAlong}>Sing Along</div>
-        <div style={styles.forLoversWho}>For Lovers Who Hesitate - Jannabi</div>
+        <div style={styles.songTitle}>
+          "{song?.title || 'Song Not Found'} - {song?.singer || '...'}"
+        </div>
       </div>
 
       <div style={styles.cameraWrapper}>

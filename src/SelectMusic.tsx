@@ -1,21 +1,14 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
-import Header from './Components/Header';
-import MusicCard from './Components/MusicCard';
+import { useNavigate } from 'react-router-dom';
+import Header from './components/Header';
+import MusicCard from './components/MusicCard';
 import { getSongs } from './api/songs';
 import type { Song } from './api/songs/types';
 
-interface SelectMusicProps {
-  currentPage: 'home' | 'lesson' | 'history';
-  onNavigate: (page: 'home' | 'lesson' | 'history') => void;
-  onSelectMusic: (song: { title: string; artist: string }) => void;
-}
+type SelectMusicProps = Record<string, never>;
 
-const SelectMusic: FunctionComponent<SelectMusicProps> = ({
-  currentPage,
-  onNavigate,
-  onSelectMusic,
-}) => {
+const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
       width: '100vw',
@@ -68,7 +61,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
       transition: 'transform 0.2s ease',
     },
   };
-
+  const navigate = useNavigate();
   const [songs, setSongs] = useState<Song[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -93,7 +86,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
   if (loading) {
     return (
       <div style={styles.container}>
-        <Header currentPage={currentPage} onNavigate={onNavigate} />
+        <Header />
         <div style={styles.content}>
           <div style={styles.titleSection}>
             <div style={styles.mainTitle}>Loading Songs...</div>
@@ -106,7 +99,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
   if (error) {
     return (
       <div style={styles.container}>
-        <Header currentPage={currentPage} onNavigate={onNavigate} />
+        <Header />
         <div style={styles.content}>
           <div style={styles.titleSection}>
             <div style={styles.mainTitle}>Error: {error}</div>
@@ -119,7 +112,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
 
   return (
     <div style={styles.container}>
-      <Header currentPage={currentPage} onNavigate={onNavigate} />
+      <Header />
 
       <div style={styles.content}>
         <div style={styles.titleSection}>
@@ -132,7 +125,9 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
             <div
               key={music.songId}
               style={styles.cardWrapper}
-              onClick={() => onSelectMusic({ title: music.title, artist: music.singer })}
+              onClick={() => {
+                navigate(`/lesson/${music.songId}`);
+              }}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
               }}
