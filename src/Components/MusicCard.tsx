@@ -1,17 +1,16 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import defaultImage from '../assets/Lovers who hesitate.png';
+
 interface MusicCardProps {
   title?: string;
   artist?: string;
-  imageUrl?: string; //개인적으로 imageurl 필요함... 현재 디폴트 이미지 사용중
+  coverUrl?: string | null;
   albumId?: string | number;
-} // 데베에서 받아오는 데이터
+}
 
 const MusicCard: FunctionComponent<MusicCardProps> = ({
-  title = 'Lovers who hesitate',
-  artist = 'Jannabi',
-  imageUrl = defaultImage,
-  albumId: _albumId, // eslint-disable-line @typescript-eslint/no-unused-vars
+  title = 'Unknown',
+  artist = 'Unknown',
+  coverUrl,
 }) => {
   const styles: { [key: string]: CSSProperties } = {
     container: {
@@ -73,6 +72,20 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
       objectFit: 'cover',
       zIndex: 1,
     },
+    // 회색 플레이스홀더를 위한 스타일 추가
+    imagePlaceholder: {
+      backgroundColor: '#e0e0e0', // 회색 배경
+      width: '140px',
+      height: '140px',
+      position: 'absolute',
+      margin: 0,
+      top: '24px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      borderRadius: '22.5px',
+      overflow: 'hidden',
+      zIndex: 1,
+    },
   };
 
   return (
@@ -81,7 +94,11 @@ const MusicCard: FunctionComponent<MusicCardProps> = ({
         <div style={styles.title}>{title}</div>
         <div style={styles.artist}>{artist}</div>
       </div>
-      <img style={styles.image} src={imageUrl} alt={`${title} - ${artist}`} />
+      {coverUrl ? (
+        <img style={styles.image} src={coverUrl} alt={`${title} - ${artist}`} />
+      ) : (
+        <div style={styles.imagePlaceholder} />
+      )}
     </div>
   );
 };

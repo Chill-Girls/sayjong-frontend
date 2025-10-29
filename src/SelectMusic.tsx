@@ -1,6 +1,9 @@
 import type { CSSProperties, FunctionComponent } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './Components/Header';
 import MusicCard from './Components/MusicCard';
+import { getSongs } from './api/songs';
+import type { Song } from './api/songs/types';
 
 interface SelectMusicProps {
   currentPage: 'home' | 'lesson' | 'history';
@@ -66,17 +69,53 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
     },
   };
 
-  // 임시
-  const musicList = [
-    { id: 1, title: 'Lovers who hesitate', artist: 'Jannabi' },
-    { id: 2, title: 'How You Like That', artist: 'BLACK PINK' },
-    { id: 3, title: 'Dynamite', artist: 'BTS' },
-    { id: 4, title: 'INVU', artist: 'Taeyeon' },
-    { id: 5, title: 'Next Level', artist: 'aespa' },
-    { id: 6, title: 'Blue Valentine', artist: 'NMIXX' },
-    { id: 7, title: 'Ditto', artist: 'NewJeans' },
-    { id: 8, title: 'Play with Fire', artist: 'BLACKPINK' },
-  ];
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchSongs = async () => {
+      try {
+        setLoading(true);
+        const data = await getSongs();
+        setSongs(data);
+        setError(null);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSongs();
+  }, []); // 컴포넌트 마운트 시 1회 실행
+
+  if (loading) {
+    return (
+      <div style={styles.container}>
+        <Header currentPage={currentPage} onNavigate={onNavigate} />
+        <div style={styles.content}>
+          <div style={styles.titleSection}>
+            <div style={styles.mainTitle}>Loading Songs...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div style={styles.container}>
+        <Header currentPage={currentPage} onNavigate={onNavigate} />
+        <div style={styles.content}>
+          <div style={styles.titleSection}>
+            <div style={styles.mainTitle}>Error: {error}</div>
+            <div style={styles.subTitle}>노래를 불러오는 데 실패했습니다.</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={styles.container}>
@@ -89,11 +128,11 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
         </div>
 
         <div style={styles.cardsGrid}>
-          {musicList.map(music => (
+          {songs.map(music => (
             <div
-              key={music.id}
+              key={music.songId}
               style={styles.cardWrapper}
-              onClick={() => onSelectMusic({ title: music.title, artist: music.artist })}
+              onClick={() => onSelectMusic({ title: music.title, artist: music.singer })}
               onMouseEnter={e => {
                 e.currentTarget.style.transform = 'translateY(-4px)';
               }}
@@ -101,7 +140,12 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = ({
                 e.currentTarget.style.transform = 'translateY(0)';
               }}
             >
-              <MusicCard title={music.title} artist={music.artist} albumId={music.id} />
+              <MusicCard
+                title={music.title}
+                artist={music.singer}
+                albumId={music.songId}
+                coverUrl={music.coverUrl}
+              />
             </div>
           ))}
         </div>
