@@ -12,7 +12,6 @@ import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
 
-
 interface CalibrationData {
   neutral?: CapturedFrame;
   a?: CapturedFrame;
