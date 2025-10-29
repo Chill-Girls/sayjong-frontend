@@ -1,6 +1,6 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import Header from './Components/Header';
-import LessonCard from './Components/LessonCard';
+import Header from './components/Header';
+import LessonCard from './components/LessonCard';
 import WordIcon from './assets/Word.svg';
 import LyricLinesIcon from './assets/Lyric Lines.svg';
 import ArtistIcon from './assets/artist.svg';

@@ -1,7 +1,7 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
-import Header from './Components/Header';
-import MusicCard from './Components/MusicCard';
+import Header from './components/Header';
+import MusicCard from './components/MusicCard';
 import { getSongs } from './api/songs';
 import type { Song } from './api/songs/types';
 

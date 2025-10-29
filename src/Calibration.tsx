@@ -1,8 +1,8 @@
 import { type FunctionComponent } from 'react';
 import styles from './Calibration.module.css';
-import CameraComponent from './Components/CameraComponent';
-import Header from './Components/Header';
-import Footer from './Components/Footer';
+import CameraComponent from './components/CameraComponent';
+import Header from './components/Header';
+import Footer from './components/Footer';
 import MicIcon from './assets/mic.svg';
 
 /**
