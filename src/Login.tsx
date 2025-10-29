@@ -10,7 +10,7 @@ interface LoginProps {
 interface LoginCredentials {
   id: string;
   password: string;
-}
+} // 데이터베이스 연결 부탁
 
 const Login: FunctionComponent<LoginProps> = ({ onLogin }) => {
   const scale = 0.75;
