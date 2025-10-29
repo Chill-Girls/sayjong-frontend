@@ -1,12 +1,13 @@
 import type { CSSProperties, FunctionComponent } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
 
-interface HeaderProps {
-  currentPage?: 'home' | 'lesson' | 'history';
-  onNavigate?: (page: 'home' | 'lesson' | 'history') => void;
-}
+type HeaderProps = Record<string, never>;
 
-const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNavigate }) => {
+const Header: FunctionComponent<HeaderProps> = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+
   const styles: { [key: string]: CSSProperties } = {
     header: {
       position: 'fixed',
@@ -27,6 +28,7 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
     },
     sayjong: {
       fontWeight: 600,
+      color: 'inherit',
     },
     navigation: {
       display: 'flex',
@@ -39,6 +41,7 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
       position: 'relative',
       cursor: 'pointer',
       transition: 'color 0.2s ease',
+      textDecoration: 'none',
     },
     accountCircleIcon: {
       width: '37.5px',
@@ -47,26 +50,38 @@ const Header: FunctionComponent<HeaderProps> = ({ currentPage = 'home', onNaviga
     },
   };
 
-  const getNavItemStyle = (page: 'home' | 'lesson' | 'history'): CSSProperties => ({
-    ...styles.navItem,
-    color: currentPage === page ? '#f04299' : '#313131',
-    fontWeight: currentPage === page ? 600 : 400,
-  });
+  const getNavItemStyle = (path: string, exactMatch = false): CSSProperties => {
+    let isActive = false;
+
+    if (exactMatch) {
+      isActive = currentPath === path;
+    } else {
+      isActive = currentPath.startsWith(path);
+    }
+
+    return {
+      ...styles.navItem,
+      color: isActive ? '#f04299' : '#313131',
+      fontWeight: isActive ? 600 : 400,
+    };
+  };
 
   return (
     <header style={styles.header}>
-      <div style={styles.sayjong}>SayJong</div>
+      <Link to="/home" style={styles.sayjong}>
+        SayJong
+      </Link>
 
       <nav style={styles.navigation}>
-        <div style={getNavItemStyle('home')} onClick={() => onNavigate?.('home')}>
+        <Link to="/home" style={getNavItemStyle('/home', true)}>
           Home
-        </div>
-        <div style={getNavItemStyle('lesson')} onClick={() => onNavigate?.('lesson')}>
+        </Link>
+        <Link to="/lesson" style={getNavItemStyle('/lesson')}>
           Lesson
-        </div>
-        <div style={getNavItemStyle('history')} onClick={() => onNavigate?.('history')}>
+        </Link>
+        <Link to="/history" style={getNavItemStyle('/history')}>
           History
-        </div>
+        </Link>
       </nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
