@@ -3,7 +3,6 @@ import defaultImage from '../assets/Lovers who hesitate.png';
 interface MusicCardProps {
   title?: string;
   artist?: string;
-
   imageUrl?: string; //개인적으로 imageurl 필요함... 현재 디폴트 이미지 사용중
   albumId?: string | number;
 } // 데베에서 받아오는 데이터

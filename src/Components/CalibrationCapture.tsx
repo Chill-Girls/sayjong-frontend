@@ -107,14 +107,27 @@ const CalibrationCapture: React.FC = () => {
           const landmarks = results.faceLandmarks[0];
 
           // 랜드마크 그리기
-          ctx.fillStyle = '#00FF00';
           ALL_TRACKED_LANDMARKS.forEach(index => {
             const landmark = landmarks[index];
             const x = (1 - landmark.x) * canvas.width;
             const y = landmark.y * canvas.height;
-            ctx.beginPath();
-            ctx.arc(x, y, 3, 0, 2 * Math.PI);
-            ctx.fill();
+            
+            // 이마점(10번)은 더 크고 다른 색으로 표시
+            if (index === 10) {
+              ctx.fillStyle = '#FF0000'; // 빨간색
+              ctx.beginPath();
+              ctx.arc(x, y, 6, 0, 2 * Math.PI);
+              ctx.fill();
+              // 이마점 라벨
+              ctx.fillStyle = '#FFFFFF';
+              ctx.font = '14px Arial';
+              ctx.fillText('이마', x + 8, y - 8);
+            } else {
+              ctx.fillStyle = '#00FF00'; // 초록색
+              ctx.beginPath();
+              ctx.arc(x, y, 3, 0, 2 * Math.PI);
+              ctx.fill();
+            }
           });
         }
       }
@@ -213,10 +226,10 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const vowelInstructions = {
-    neutral: '😐 Neutral face - Relax your mouth',
-    a: '😮 Say "ㅏ" (ah) - Open mouth wide',
-    u: '😗 Say "ㅜ" (oo) - Round and pucker lips',
-    i: '😁 Say "ㅣ" (ee) - Spread lips wide',
+    neutral: '😐 Neutral face - Relax your mouth\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
+    a: '😮 Say "ㅏ" (ah) - Open mouth wide\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
+    u: '😗 Say "ㅜ" (oo) - Round and pucker lips\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
+    i: '😁 Say "ㅣ" (ee) - Spread lips wide\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
   };
 
   return (
@@ -328,6 +341,7 @@ const CalibrationCapture: React.FC = () => {
                 fontSize: '14px',
                 border: '1px solid #dee2e6',
                 color: '#495057',
+                whiteSpace: 'pre-line',
               }}
             >
               {vowelInstructions[currentVowel]}
@@ -407,6 +421,8 @@ const CalibrationCapture: React.FC = () => {
             Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
             <br />
             (4 face + 40 mouth)
+            <br />
+            <span style={{ color: '#FF0000', fontWeight: 'bold' }}>● 이마점(10번) 포함</span>
           </div>
         </div>
       </div>
