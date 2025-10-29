@@ -111,7 +111,7 @@ const CalibrationCapture: React.FC = () => {
             const landmark = landmarks[index];
             const x = (1 - landmark.x) * canvas.width;
             const y = landmark.y * canvas.height;
-            
+
             // 이마점(10번)은 더 크고 다른 색으로 표시
             if (index === 10) {
               ctx.fillStyle = '#FF0000'; // 빨간색

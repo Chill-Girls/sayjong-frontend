@@ -1,5 +1,5 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Header from './Components/Header';
 import Footer from './Components/Footer';
 import CameraComponent from './Components/CameraComponent';
@@ -11,19 +11,18 @@ interface SingAlongProps {
 }
 
 const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', onNavigate }) => {
-  //const audioRef = useRef<HTMLAudioElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
 
   const line = {
-    textOriginal: "읽기쉬운맘",
+    textOriginal: '읽기쉬운맘',
     startTime: 0,
     endTime: 4.5,
     syllables: [
-      { text: "읽", start: 0.0, end: 1.0 },
-      { text: "기", start: 1.0, end: 2.0 },
-      { text: "쉬", start: 2.0, end: 3.0 },
-      { text: "운", start: 3.0, end: 3.5 },
-      { text: "맘", start: 3.5, end: 4.5 },
+      { text: '읽', start: 0.0, end: 1.0 },
+      { text: '기', start: 1.0, end: 2.0 },
+      { text: '쉬', start: 2.0, end: 3.0 },
+      { text: '운', start: 3.0, end: 3.5 },
+      { text: '맘', start: 3.5, end: 4.5 },
     ],
   };
 
@@ -115,13 +114,15 @@ const SingAlong: FunctionComponent<SingAlongProps> = ({ currentPage = 'lesson', 
         <CameraComponent width="803.25px" height="307.5px" />
       </div>
 
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        gap: '20px',
-        marginTop: '20px',
-      }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '20px',
+          marginTop: '20px',
+        }}
+      >
         <KaraokeLine line={line} currentTime={currentTime} />
       </div>
 

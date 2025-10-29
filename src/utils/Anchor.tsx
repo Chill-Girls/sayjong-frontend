@@ -75,7 +75,6 @@ export function restoreMouthCenterFromRelativePosition(
  * @returns
  */
 
-
 export function createPersonalCoordinateSystem(landmarks: Point3D[]): PersonalCoordinateSystem {
   const nose = landmarks[1]; // 코끝점
   const leftEye = landmarks[133]; // 왼쪽 눈
@@ -282,8 +281,6 @@ export function estimateDepthFromRotation(
 
   return totalDepth;
 }
-
-
 
 //눈사이 거리에 반비례하는 스케일링
 //const originalScale = originalEyeDistance;

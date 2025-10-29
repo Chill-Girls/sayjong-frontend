@@ -23,7 +23,6 @@ import type { LandmarkPoint } from '../constants/landmarks';
 import { neutral } from '../vowel_calibration.json';
 // Point3D 타입 정의
 
-
 /**
  * 목표 랜드마크 계산 클래스
  * 실시간 얼굴 랜드마크와 목표 모음 형태를 매칭하기 위한 상태 관리 및 좌표 변환
@@ -71,8 +70,8 @@ export class TargetLandmarksComputer {
         if (index >= 0 && index < 478) {
           neutralLandmarks[index] = {
             x: coords[0],
-            y: coords[1], 
-            z: coords[2]
+            y: coords[1],
+            z: coords[2],
           };
         }
       });
@@ -80,13 +79,13 @@ export class TargetLandmarksComputer {
       // 필요한 랜드마크가 모두 있는지 확인
       const requiredLandmarks = [1, 10, 13, 14, 133, 362];
       const missingLandmarks = requiredLandmarks.filter(idx => !neutralLandmarks[idx]);
-      
+
       if (missingLandmarks.length > 0) {
         console.error('필수 랜드마크가 calibration 데이터에 없습니다!');
         console.log('Missing landmark indices:', missingLandmarks);
         console.log('Available landmark indices:', Object.keys(neutral.landmarks));
       }
-      
+
       this.personalCoordinateSystem = createPersonalCoordinateSystem(neutralLandmarks);
       // 좌표계 검증
       const orthogonalityCheck = validateCoordinateSystem(this.personalCoordinateSystem);

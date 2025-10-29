@@ -1,5 +1,5 @@
 // 글씨 색 시간에 따라 변경해주는 컴포넌트
-import React from "react";
+import React from 'react';
 
 interface Syllable {
   text: string;
@@ -21,16 +21,18 @@ interface KaraokeLineProps {
 
 const KaraokeLine: React.FC<KaraokeLineProps> = ({ line, currentTime }) => {
   return (
-    <div style={{
-      width: '100%',
-      position: 'relative',
-      fontSize: '64px',
-      letterSpacing: '0.3em',
-      fontWeight: 500,
-      fontFamily: 'Pretendard',
-      textAlign: 'left',
-      display: 'inline-block',
-    }}>
+    <div
+      style={{
+        width: '100%',
+        position: 'relative',
+        fontSize: '64px',
+        letterSpacing: '0.3em',
+        fontWeight: 500,
+        fontFamily: 'Pretendard',
+        textAlign: 'left',
+        display: 'inline-block',
+      }}
+    >
       {line.syllables.map((syll, i) => {
         const isPassed = currentTime > syll.end;
         const isActive = currentTime >= syll.start && currentTime < syll.end;
