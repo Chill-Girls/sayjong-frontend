@@ -10,6 +10,8 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
+import axios from 'axios';
+
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -211,15 +213,18 @@ const CalibrationCapture: React.FC = () => {
 
       let errorMessage = '알 수 없는 오류가 발생했습니다.';
 
-      if (error.response) {
-        // 백엔드(GlobalExceptionHandler)가 보낸 응답이 있는 경우
-        // error.response.data (ErrorResponseDto)
-        errorMessage = error.response.data.message || `서버 오류: ${error.response.status}`;
-      } else if (error.request) {
-        // 요청은 보냈으나 응답을 받지 못한 경우
-        errorMessage = '서버로부터 응답을 받지 못했습니다. 네트워크를 확인해주세요.';
-      } else {
-        // 요청을 설정하는 중에 발생한 오류
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // 백엔드(GlobalExceptionHandler)가 보낸 응답이 있는 경우
+          errorMessage = error.response.data.message || `서버 오류: ${error.response.status}`;
+        } else if (error.request) {
+          // 요청은 보냈으나 응답을 받지 못한 경우
+          errorMessage = '서버로부터 응답을 받지 못했습니다. 네트워크를 확인해주세요.';
+        } else {
+          // 요청을 설정하는 중에 발생한 오류
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
         errorMessage = error.message;
       }
 
