@@ -81,6 +81,11 @@ export function buildTargetVowelShape(
       const u = (calibData.u.landmarks as any)[idStr];
       const i = (calibData.i.landmarks as any)[idStr];
 
+      if (!neutral || !a || !u || !i) {
+        console.warn(`Missing calibration data for landmark ${id}`);
+        return;
+      }
+
       // 중립 상태로부터의 변화량 계산
       const deltaA = [a[0] - neutral[0], a[1] - neutral[1], a[2] - neutral[2]];
       const deltaU = [u[0] - neutral[0], u[1] - neutral[1], u[2] - neutral[2]];

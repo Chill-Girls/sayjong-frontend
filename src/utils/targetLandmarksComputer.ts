@@ -16,8 +16,12 @@ import {
   findMouthCenterWithAnchor,
   type PersonalCoordinateSystem,
 } from './Anchor';
+import type { Point3D } from './FindPoint';
 import { buildTargetVowelShape, getMouthCenterFromShape } from './vowelBuilder';
 import type { LandmarkPoint } from '../constants/landmarks';
+// 초반 PersonalCoordinateSystem 만들 때 기준이 되는 json 데이터
+import { neutral } from '../vowel_calibration.json';
+// Point3D 타입 정의
 
 /**
  * 목표 랜드마크 계산 클래스
@@ -56,11 +60,33 @@ export class TargetLandmarksComputer {
   computeTargetLandmarks(allLandmarks: LandmarkPoint[]): Record<number, LandmarkPoint> {
     // 현재 랜드마크를 Point3D 형식으로 변환
     const currentLandmarks = allLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
-
-    // 첫 프레임인 경우 개인화된 좌표계 생성 (보정)
+    //*여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
     if (!this.personalCoordinateSystem) {
-      this.personalCoordinateSystem = createPersonalCoordinateSystem(currentLandmarks);
+      // vowel_calibration.json의 neutral 데이터를 Point3D 배열로 변환
+      // calibration 데이터도 인덱스 기반 배열로 변환해야 함
+      const neutralLandmarks: Point3D[] = new Array(478);
+      Object.entries(neutral.landmarks).forEach(([id, coords]) => {
+        const index = parseInt(id);
+        if (index >= 0 && index < 478) {
+          neutralLandmarks[index] = {
+            x: coords[0],
+            y: coords[1],
+            z: coords[2],
+          };
+        }
+      });
 
+      // 필요한 랜드마크가 모두 있는지 확인
+      const requiredLandmarks = [1, 10, 13, 14, 133, 362];
+      const missingLandmarks = requiredLandmarks.filter(idx => !neutralLandmarks[idx]);
+
+      if (missingLandmarks.length > 0) {
+        console.error('필수 랜드마크가 calibration 데이터에 없습니다!');
+        console.log('Missing landmark indices:', missingLandmarks);
+        console.log('Available landmark indices:', Object.keys(neutral.landmarks));
+      }
+
+      this.personalCoordinateSystem = createPersonalCoordinateSystem(neutralLandmarks);
       // 좌표계 검증
       const orthogonalityCheck = validateCoordinateSystem(this.personalCoordinateSystem);
       const normalizationCheck = validateNormalization(this.personalCoordinateSystem);
