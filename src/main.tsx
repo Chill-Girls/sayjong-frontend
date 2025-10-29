@@ -5,16 +5,21 @@ import App from './App.tsx';
 import SelectMusic from './SelectMusic.tsx';
 import SelectMode from './SelectMode.tsx';
 import SingAlong from './SingAlong.tsx';
+import Login from './Login.tsx';
 // eslint-disable-next-line react-refresh/only-export-components
 function Root() {
   const [currentPage, setCurrentPage] = useState<
-    'home' | 'lesson' | 'history' | 'practice' | 'singalong'
-  >('home');
+    'login' | 'home' | 'lesson' | 'history' | 'practice' | 'singalong'
+  >('login');
   const [selectedSong, setSelectedSong] = useState<{ title: string; artist: string } | null>(null);
 
   const handleNavigate = (page: 'home' | 'lesson' | 'history') => {
     setCurrentPage(page);
   };
+
+  if (currentPage === 'login') {
+    return <Login onLogin={() => setCurrentPage('home')} />;
+  }
 
   if (currentPage === 'practice') {
     return <App />;

@@ -61,8 +61,7 @@ export class TargetLandmarksComputer {
   computeTargetLandmarks(allLandmarks: LandmarkPoint[]): Record<number, LandmarkPoint> {
     // 현재 랜드마크를 Point3D 형식으로 변환
     const currentLandmarks = allLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
-
-    //***여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
+    //*여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
     if (!this.personalCoordinateSystem) {
       // vowel_calibration.json의 neutral 데이터를 Point3D 배열로 변환
       // calibration 데이터도 인덱스 기반 배열로 변환해야 함
