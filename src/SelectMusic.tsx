@@ -1,8 +1,8 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from './components/Header';
-import MusicCard from './components/MusicCard';
+import Header from './component/Header';
+import MusicCard from './component/MusicCard';
 import { getSongs } from './api/songs';
 import type { Song } from './api/songs/types';
 

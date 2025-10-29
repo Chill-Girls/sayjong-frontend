@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Calibration from './Calibration';
-import CalibrationCapture from './components/CalibrationCapture';
+import CalibrationCapture from './component/CalibrationCapture';
 
 /**
  * App 컴포넌트

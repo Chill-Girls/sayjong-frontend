@@ -1,12 +1,12 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useState, useEffect } from 'react';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import CameraComponent from './components/CameraComponent';
+import Header from './component/Header';
+import Footer from './component/Footer';
+import CameraComponent from './component/CameraComponent';
 import type { Song } from './api/songs/types';
 import { useParams } from 'react-router-dom';
 import { getSong } from './api/songs';
-import KaraokeLine from './components/KaraokeLine';
+import KaraokeLine from './component/KaraokeLine';
 
 type SingAlongProps = object;
 
