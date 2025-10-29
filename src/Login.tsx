@@ -3,16 +3,14 @@ import { useState } from 'react';
 import SejongImage from './assets/Sejong.png';
 import EyeOffIcon from './assets/eye-off.svg';
 
-interface LoginProps {
-  onLogin: () => void;
-}
+type LoginProps = Record<string, never>;
 
 interface LoginCredentials {
   id: string;
   password: string;
 } // 데이터베이스 연결 부탁
 
-const Login: FunctionComponent<LoginProps> = ({ onLogin }) => {
+const Login: FunctionComponent<LoginProps> = () => {
   const scale = 0.75;
   const [credentials, setCredentials] = useState<LoginCredentials>({
     id: '',
@@ -21,7 +19,6 @@ const Login: FunctionComponent<LoginProps> = ({ onLogin }) => {
 
   const handleLogin = () => {
     console.log('Login credentials:', credentials);
-    onLogin();
   };
 
   return (

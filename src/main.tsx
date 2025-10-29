@@ -7,6 +7,7 @@ import SelectMusic from './SelectMusic.tsx';
 import SelectMode from './SelectMode.tsx';
 import SingAlong from './SingAlong.tsx';
 import CalibrationCapture from './components/CalibrationCapture.tsx';
+import Login from './Login.tsx';
 
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
@@ -33,6 +34,8 @@ function AppRouter() {
 
       <Route path="/history" element={<HistoryPage />} />
       <Route path="/calibration" element={<CalibrationCapture />} />
+
+      <Route path="/login" element={<Login />} />
     </Routes>
   );
 }
