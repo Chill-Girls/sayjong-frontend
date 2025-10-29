@@ -207,10 +207,8 @@ const handleSaveClick = async () => {
 
       // 저장 성공
       alert(
-        'Download Complete!\n\n' +
-                  '1. vowel_calibration.json - Original calibration data\n' +
-                  '2. target_vowels.json - Precomputed target coordinates for all vowels\n\n' +
-                  'You can now upload these to your backend!'
+        'Save Complete!\n\n' +
+        'Your calibration data has been successfully saved to the backend.'
       );
 
     } catch (error) {
