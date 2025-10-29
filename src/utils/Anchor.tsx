@@ -74,11 +74,12 @@ export function restoreMouthCenterFromRelativePosition(
  * @param landmarks - 정면 얼굴 랜드마크
  * @returns
  */
+
 export function createPersonalCoordinateSystem(landmarks: Point3D[]): PersonalCoordinateSystem {
   const nose = landmarks[1]; // 코끝점
   const leftEye = landmarks[133]; // 왼쪽 눈
   const rightEye = landmarks[362]; // 오른쪽 눈
-  const forehead = landmarks[10]; // 이마 중앙점
+  const forehead = landmarks[10]; // 이마 중앙점 // -> landmarks는 초반 calibration 한 값인데???????????
 
   // Anchor.tsx 방식으로 입술 중앙점 찾기
   const mouthCenter = findMouthCenterWithAnchor(landmarks);
@@ -282,11 +283,13 @@ export function estimateDepthFromRotation(
 }
 
 //눈사이 거리에 반비례하는 스케일링
+//const originalScale = originalEyeDistance;
 export function calculateDistanceScale(
   personal: PersonalCoordinateSystem,
   dynamic: DynamicCoordinateSystem,
 ): number {
   return dynamic.eyeDistance / personal.eyeDistance;
+  //return personal.eyeDistance / dynamic.eyeDistance;
 }
 
 export function applyDistanceScale(
