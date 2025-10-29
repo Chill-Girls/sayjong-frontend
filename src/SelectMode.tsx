@@ -1,8 +1,8 @@
 import type { CSSProperties, FunctionComponent } from 'react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import Header from './component/Header';
-import LessonCard from './component/LessonCard';
+import Header from './components/Header';
+import LessonCard from './components/LessonCard';
 import WordIcon from './assets/Word.svg';
 import LyricLinesIcon from './assets/Lyric Lines.svg';
 import ArtistIcon from './assets/artist.svg';
