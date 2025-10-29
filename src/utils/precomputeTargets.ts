@@ -109,7 +109,6 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
 
   console.log(`${filename} 다운로드 완료`);*/
 
-
 // CalibrationCapture.tsx에 있던 타입을 가져옴
 interface CapturedFrame {
   landmarks: Record<string, [number, number, number]>;
@@ -145,7 +144,7 @@ export async function saveTargetsToBackend(
   return axios.post(API_ENDPOINT, payload, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${authToken}`,
+      Authorization: `Bearer ${authToken}`,
     },
   });
 }

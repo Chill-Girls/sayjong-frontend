@@ -177,7 +177,7 @@ const CalibrationCapture: React.FC = () => {
     setIsCapturing(false);
   };
 
-const handleSaveClick = async () => {
+  const handleSaveClick = async () => {
     const calibJson = JSON.stringify(calibrationData, null, 2);
     const calibBlob = new Blob([calibJson], { type: 'application/json' });
     const calibUrl = URL.createObjectURL(calibBlob);
@@ -199,18 +199,12 @@ const handleSaveClick = async () => {
         'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0SmVvbmd5ZXVuIiwiYXV0aCI6IlJPTEVfVVNFUiIsImV4cCI6MTc2MTcxNzU3MX0.1UkZWE9nwXx5lThtk0Mz0PAP5fpQ43F3ly2uQZsBd2E';
 
       // saveTargetsToBackend 호출
-      await saveTargetsToBackend(
-        precomputedTargets,
-        calibrationData,
-        TEMP_AUTH_TOKEN
-      );
+      await saveTargetsToBackend(precomputedTargets, calibrationData, TEMP_AUTH_TOKEN);
 
       // 저장 성공
       alert(
-        'Save Complete!\n\n' +
-        'Your calibration data has been successfully saved to the backend.'
+        'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
-
     } catch (error) {
       // axios 에러 처리
       console.error('서버 전송 또는 계산 실패:', error);
@@ -229,10 +223,7 @@ const handleSaveClick = async () => {
         errorMessage = error.message;
       }
 
-      alert(
-        '서버 저장에 실패했습니다.\n\n' +
-        errorMessage
-      );
+      alert('서버 저장에 실패했습니다.\n\n' + errorMessage);
     } finally {
       setIsSaving(false);
     }
