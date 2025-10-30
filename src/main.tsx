@@ -5,10 +5,12 @@ import './index.css';
 import App from './App.tsx';
 import SelectMusic from './pages/SelectMusic.tsx';
 import SelectMode from './pages/SelectMode.tsx';
+import LinePractice from './pages/LinePractice.tsx';
 import SingAlong from './pages/SingAlong.tsx';
 import CalibrationCapture from './pages/CalibrationCapture.tsx';
 import Login from './pages/Login.tsx';
 import { Toaster } from 'react-hot-toast';
+import { ModeProvider } from './context/ModeContext';
 
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
@@ -30,7 +32,7 @@ function AppRouter() {
       <Route path="/lesson/:songId" element={<SelectMode />} />
 
       <Route path="/lesson/:songId/syllable/:page" element={<App />} />
-      <Route path="/lesson/:songId/line/:page" element={<App />} />
+      <Route path="/lesson/:songId/line/:page" element={<LinePractice />} />
       <Route path="/lesson/:songId/sing" element={<SingAlong />} />
 
       <Route path="/history" element={<HistoryPage />} />
@@ -44,8 +46,10 @@ function AppRouter() {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <AppRouter />
-      <Toaster position="top-right" reverseOrder={false} />
+      <ModeProvider>
+        <AppRouter />
+        <Toaster position="top-right" reverseOrder={false} />
+      </ModeProvider>
     </BrowserRouter>
   </StrictMode>,
 );

@@ -1,0 +1,29 @@
+import { createContext, useContext, useState, type ReactNode } from 'react';
+
+export type LessonMode = 'line' | 'syllable' | 'singalong' | null;
+
+interface ModeContextValue {
+  mode: LessonMode;
+  setMode: (m: LessonMode) => void;
+}
+
+const ModeContext = createContext<ModeContextValue | undefined>(undefined);
+
+export function ModeProvider({ children }: { children: ReactNode }) {
+  const [mode, setMode] = useState<LessonMode>(null);
+  return <ModeContext.Provider value={{ mode, setMode }}>{children}</ModeContext.Provider>;
+}
+
+export function useMode() {
+  const ctx = useContext(ModeContext);
+  if (!ctx) throw new Error('useMode must be used within ModeProvider');
+  return ctx;
+}
+
+export const MODE_LABEL: Record<Exclude<LessonMode, null>, string> = {
+  line: 'Line Lesson',
+  syllable: 'Syllable Lesson',
+  singalong: 'Sing Along',
+};
+
+

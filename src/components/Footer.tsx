@@ -37,7 +37,7 @@ const Footer: FunctionComponent = () => {
     },
     labelWrapper: {
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'flex-end',
     },
     label: {
       position: 'relative',
@@ -60,16 +60,9 @@ const Footer: FunctionComponent = () => {
 
   return (
     <footer style={styles.footer}>
-      <div style={styles.prev}>
-        <div style={styles.labelWrapper}>
-          <div style={styles.label}>previous</div>
-        </div>
-      </div>
-      <div style={styles.next}>
-        <div style={styles.labelWrapper}>
+        <div style={{ ...styles.labelWrapper, width: '100%', justifyContent: 'flex-end' }}>
           <div style={styles.label}>next</div>
         </div>
-      </div>
     </footer>
   );
 };
