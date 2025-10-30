@@ -470,7 +470,7 @@ const CalibrationCapture: React.FC = () => {
               fontFamily: FONTS.primary,
             }}
           >
-            Download Calibration
+            Complete Calibration
           </button>
 
           {/* 정보 텍스트 */}
