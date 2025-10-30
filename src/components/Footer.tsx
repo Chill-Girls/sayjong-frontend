@@ -60,9 +60,9 @@ const Footer: FunctionComponent = () => {
 
   return (
     <footer style={styles.footer}>
-        <div style={{ ...styles.labelWrapper, width: '100%', justifyContent: 'flex-end' }}>
-          <div style={styles.label}>next</div>
-        </div>
+      <div style={{ ...styles.labelWrapper, width: '100%', justifyContent: 'flex-end' }}>
+        <div style={styles.label}>next</div>
+      </div>
     </footer>
   );
 };

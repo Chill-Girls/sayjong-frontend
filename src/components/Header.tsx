@@ -6,21 +6,6 @@ import { useMode, MODE_LABEL } from '../context/ModeContext';
 
 type HeaderProps = Record<string, never>;
 
-const modes = [
-  {
-    name: 'line',
-    label: 'Line',
-  },
-  {
-    name: 'syllable',
-    label: 'Syllable',
-  },
-  {
-    name: 'singalong',
-    label: 'Singalong',
-  },
-];
-
 const Header: FunctionComponent<HeaderProps> = () => {
   const location = useLocation();
   const currentPath = location.pathname;
@@ -69,7 +54,6 @@ const Header: FunctionComponent<HeaderProps> = () => {
     },
   };
 
-  
   const getNavItemStyle = (path: string, exactMatch = false): CSSProperties => {
     let isActive = false;
 
@@ -84,7 +68,6 @@ const Header: FunctionComponent<HeaderProps> = () => {
       fontWeight: isActive ? 600 : 600,
     };
   };
-  
 
   const [logoPressed, setLogoPressed] = useState(false);
   const { mode } = useMode();
@@ -105,9 +88,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
       </Link>
 
       <nav style={styles.navigation}>
-        {mode ? (
-          <div style={{ fontWeight: 600, color: '#313131' }}>{MODE_LABEL[mode]}</div>
-        ) : null}
+        {mode ? <div style={{ fontWeight: 600, color: '#313131' }}>{MODE_LABEL[mode]}</div> : null}
       </nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
