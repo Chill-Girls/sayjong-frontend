@@ -9,9 +9,11 @@ import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
-import { precomputeAllTargetVowels, downloadPrecomputedTargets } from '../utils/precomputeTargets';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { containerFullscreen, flexColumn, buttonPrimary, buttonDisabled, scaled } from '../styles/mixins';
+import { precomputeAllTargetVowels, saveTargetsToBackend  } from '../utils/precomputeTargets';
+import axios from 'axios';
+
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -36,6 +38,7 @@ const CalibrationCapture: React.FC = () => {
   const [calibrationData, setCalibrationData] = useState<CalibrationData>({});
   const [isCapturing, setIsCapturing] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [isSaving, setIsSaving] = useState(false); // 서버 전송을 위한 로딩 state 추가
 
   useEffect(() => {
     initializeMediaPipe();
@@ -187,8 +190,7 @@ const CalibrationCapture: React.FC = () => {
     setIsCapturing(false);
   };
 
-  const downloadCalibration = () => {
-    // 1. 원본 캘리브레이션 데이터 다운로드
+  const handleSaveClick = async () => {
     const calibJson = JSON.stringify(calibrationData, null, 2);
     const calibBlob = new Blob([calibJson], { type: 'application/json' });
     const calibUrl = URL.createObjectURL(calibBlob);
@@ -197,29 +199,49 @@ const CalibrationCapture: React.FC = () => {
     calibLink.download = 'vowel_calibration.json';
     calibLink.click();
     URL.revokeObjectURL(calibUrl);
+    console.log('캘리브레이션 백업 데이터 다운로드 완료');
 
-    console.log('캘리브레이션 데이터 다운로드 완료');
+    setIsSaving(true);
 
-    // 2. 모든 모음의 목표 좌표 미리 계산
     try {
       console.log('모든 모음의 목표 좌표 계산 중...');
       const precomputedTargets = precomputeAllTargetVowels(calibrationData);
 
-      // 3. 미리 계산된 목표 좌표 다운로드
-      downloadPrecomputedTargets(precomputedTargets, 'target_vowels.json');
+      // 임시 토큰
+      const TEMP_AUTH_TOKEN =
+        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0SmVvbmd5ZXVuIiwiYXV0aCI6IlJPTEVfVVNFUiIsImV4cCI6MTc2MTcxNzU3MX0.1UkZWE9nwXx5lThtk0Mz0PAP5fpQ43F3ly2uQZsBd2E';
 
+      // saveTargetsToBackend 호출
+      await saveTargetsToBackend(precomputedTargets, calibrationData, TEMP_AUTH_TOKEN);
+
+      // 저장 성공
       alert(
-        'Download Complete!\n\n' +
-          '1. vowel_calibration.json - Original calibration data\n' +
-          '2. target_vowels.json - Precomputed target coordinates for all vowels\n\n' +
-          'You can now upload these to your backend!',
+        'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
     } catch (error) {
-      console.error('목표 좌표 계산 실패:', error);
-      alert(
-        'Calibration data downloaded, but target precomputation failed.\n' +
-          'Please check the console for details.',
-      );
+      // axios 에러 처리
+      console.error('서버 전송 또는 계산 실패:', error);
+
+      let errorMessage = '알 수 없는 오류가 발생했습니다.';
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          // 백엔드(GlobalExceptionHandler)가 보낸 응답이 있는 경우
+          errorMessage = error.response.data.message || `서버 오류: ${error.response.status}`;
+        } else if (error.request) {
+          // 요청은 보냈으나 응답을 받지 못한 경우
+          errorMessage = '서버로부터 응답을 받지 못했습니다. 네트워크를 확인해주세요.';
+        } else {
+          // 요청을 설정하는 중에 발생한 오류
+          errorMessage = error.message;
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+
+      alert('서버 저장에 실패했습니다.\n\n' + errorMessage);
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -432,8 +454,8 @@ const CalibrationCapture: React.FC = () => {
 
           {/* 다운로드 버튼 */}
           <button
-            onClick={downloadCalibration}
-            disabled={Object.keys(calibrationData).length < 4}
+            onClick={handleSaveClick}
+            disabled={Object.keys(calibrationData).length < 4 || isSaving}
             style={{
               padding: `${scaled(15)} ${scaled(30)}`,
               fontSize: FONT_SIZES.md,
