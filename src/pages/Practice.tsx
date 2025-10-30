@@ -7,8 +7,7 @@ import { COLORS, FONTS, FONT_WEIGHTS } from '../styles/theme';
 import { containerFullscreen, flexColumn, card, scaled } from '../styles/mixins';
 
 /**
- * Calibration 컴포넌트
- * 발음 연습 메인 화면
+ * 좌표 & 블렌드 shape 확인
  */
 interface CalibrationProps {
   modeButtons?: React.ReactNode;
