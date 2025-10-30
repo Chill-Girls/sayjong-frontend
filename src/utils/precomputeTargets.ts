@@ -7,6 +7,7 @@
  */
 
 import { buildTargetVowelShape } from './vowelBuilder';
+import axios from 'axios';
 
 /**
  * 미리 계산된 목표 좌표 데이터 구조
@@ -93,7 +94,7 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
  * @param precomputedData - 미리 계산된 목표 좌표 데이터
  * @param filename - 저장할 파일명 (기본값: 'target_vowels.json')
  */
-export function downloadPrecomputedTargets(
+/*export function downloadPrecomputedTargets(
   precomputedData: PrecomputedTargets,
   filename: string = 'target_vowels.json',
 ) {
@@ -106,5 +107,44 @@ export function downloadPrecomputedTargets(
   a.click();
   URL.revokeObjectURL(url);
 
-  console.log(`${filename} 다운로드 완료`);
+  console.log(`${filename} 다운로드 완료`);*/
+
+// CalibrationCapture.tsx에 있던 타입을 가져옴
+interface CapturedFrame {
+  landmarks: Record<string, [number, number, number]>;
+  blendshapes: Record<string, number>;
+}
+interface CalibrationData {
+  neutral?: CapturedFrame;
+  a?: CapturedFrame;
+  u?: CapturedFrame;
+  i?: CapturedFrame;
+}
+
+/**
+ * 미리 계산된 데이터와 원본 데이터를 백엔드 서버에 저장
+ * @param precomputedData - 정답 좌표 (ㅏ, ㅑ, ㅓ...)
+ * @param rawData - calibration 캡처 데이터 (neutral, a, u, i)
+ * @param authToken - 사용자 인증 JWT 토큰
+ */
+export async function saveTargetsToBackend(
+  precomputedData: PrecomputedTargets,
+  rawData: CalibrationData,
+  authToken: string,
+): Promise<void> {
+  const API_ENDPOINT = '/api/calibration/targets'; // 백엔드 api 호출
+
+  console.log('백엔드로 캘리브레이션 데이터(최종+원본) 전송 시작...');
+
+  const payload = {
+    precomputedData: precomputedData,
+    rawData: rawData,
+  };
+
+  return axios.post(API_ENDPOINT, payload, {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${authToken}`,
+    },
+  });
 }
