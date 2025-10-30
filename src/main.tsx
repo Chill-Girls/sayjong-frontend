@@ -3,11 +3,11 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
 import App from './App.tsx';
-import SelectMusic from './SelectMusic.tsx';
-import SelectMode from './SelectMode.tsx';
-import SingAlong from './SingAlong.tsx';
-import CalibrationCapture from './components/CalibrationCapture.tsx';
-import Login from './Login.tsx';
+import SelectMusic from './pages/SelectMusic.tsx';
+import SelectMode from './pages/SelectMode.tsx';
+import SingAlong from './pages/SingAlong.tsx';
+import CalibrationCapture from './pages/CalibrationCapture.tsx';
+import Login from './pages/Login.tsx';
 import { Toaster } from 'react-hot-toast';
 
 // 임시 History 페이지
