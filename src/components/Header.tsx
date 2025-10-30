@@ -68,21 +68,11 @@ const Header: FunctionComponent<HeaderProps> = () => {
 
   return (
     <header style={styles.header}>
-      <Link to="/home" style={styles.sayjong}>
+      <Link to="/home" style={getNavItemStyle('/home', true)}>
         SayJong
       </Link>
 
-      <nav style={styles.navigation}>
-        <Link to="/home" style={getNavItemStyle('/home', true)}>
-          Home
-        </Link>
-        <Link to="/lesson" style={getNavItemStyle('/lesson')}>
-          Lesson
-        </Link>
-        <Link to="/history" style={getNavItemStyle('/history')}>
-          History
-        </Link>
-      </nav>
+      <nav style={styles.navigation}></nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
     </header>
