@@ -3,8 +3,8 @@ import CameraComponent from '../components/CameraComponent';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import MicIcon from '../assets/mic.svg';
-import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, SHADOWS } from '../styles/theme';
-import { containerFullscreen, flexColumn, flexCenter, card, scaled } from '../styles/mixins';
+import { COLORS, FONTS, FONT_WEIGHTS } from '../styles/theme';
+import { containerFullscreen, flexColumn, card, scaled } from '../styles/mixins';
 
 /**
  * Calibration 컴포넌트

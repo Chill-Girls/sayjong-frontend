@@ -9,7 +9,7 @@ import ArtistIcon from '../assets/artist.svg';
 import ArrowLeftIcon from '../assets/arrow_left.svg';
 import type { Song } from '../api/songs/types';
 import { getSong } from '../api/songs';
-import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, SHADOWS } from '../styles/theme';
+import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { containerFullscreen, flexColumn, flexCenter, cardLesson, scaled } from '../styles/mixins';
 
 type SelectModeProps = Record<string, never>;

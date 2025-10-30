@@ -1,6 +1,6 @@
 // 자주 사용하는 인라인 스타일 믹스인
 import type { CSSProperties } from 'react';
-import { COLORS, FONTS, SCALE, SPACING, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from './theme';
+import { COLORS, FONTS, SCALE, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from './theme';
 
 /**
  * 컨테이너 스타일 믹스인
