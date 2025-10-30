@@ -1,5 +1,8 @@
 import type { FunctionComponent } from 'react';
 import { useState } from 'react';
+import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
+import { login, signup } from './api/auth';
 import SejongImage from './assets/Sejong.png';
 import EyeOffIcon from './assets/eye-off.svg';
 
@@ -8,17 +11,98 @@ type LoginProps = Record<string, never>;
 interface LoginCredentials {
   id: string;
   password: string;
-} // 데이터베이스 연결 부탁
+  nickname?: string;
+}
+
+function setTokens(accessToken: string, refreshToken: string) {
+  localStorage.setItem('accessToken', accessToken);
+  localStorage.setItem('refreshToken', refreshToken); //TODO: BE와 cookie로 작업
+}
 
 const Login: FunctionComponent<LoginProps> = () => {
   const scale = 0.75;
+  const navigate = useNavigate();
+  const [isSignUp, setIsSignUp] = useState(false);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     id: '',
     password: '',
+    nickname: '',
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = () => {
-    console.log('Login credentials:', credentials);
+  const handleLogin = async () => {
+    if (!credentials.id || !credentials.password) {
+      setError('Please enter your ID and password.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const tokenInfo = await login({
+        loginId: credentials.id,
+        userPassword: credentials.password,
+      });
+      setTokens(tokenInfo.accessToken, tokenInfo.refreshToken);
+      toast.success('Login successful! Welcome back!');
+      navigate('/calibration');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError(err instanceof Error ? err.message : 'Login failed.');
+      toast.error(err instanceof Error ? err.message : 'Login failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    if (!credentials.id || !credentials.password || !credentials.nickname) {
+      setError('Please fill in all fields.');
+      return;
+    }
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      await signup({
+        loginId: credentials.id,
+        userPassword: credentials.password,
+        nickname: credentials.nickname,
+      });
+      // 회원가입 성공 후 로그인 모드로 전환
+      toast.success('Sign up successful! Please log in now.');
+      setIsSignUp(false);
+      setCredentials({ id: '', password: '', nickname: '' });
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError(err instanceof Error ? err.message : 'Sign up failed.');
+      toast.error(err instanceof Error ? err.message : 'Sign up failed.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (isSignUp) {
+      handleSignUp();
+    } else {
+      handleLogin();
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSubmit();
+    }
+  };
+
+  const toggleMode = () => {
+    setIsSignUp(!isSignUp);
+    setError(null);
+    setCredentials({ id: '', password: '', nickname: '' });
   };
 
   return (
@@ -94,7 +178,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                 fontSize: `${40 * scale}px`,
               }}
             >
-              SIGNUP/LOGIN
+              {isSignUp ? 'SIGN UP' : 'LOGIN'}
             </div>
             <div
               style={{
@@ -103,14 +187,16 @@ const Login: FunctionComponent<LoginProps> = () => {
                 opacity: 0.75,
               }}
             >
-              <span style={{ whiteSpace: 'pre-wrap' }}>Login to learn korean with KPOP songs!</span>
-              <span style={{ fontFamily: 'Poppins' }}></span>
+              <span style={{ whiteSpace: 'pre-wrap' }}>
+                {isSignUp
+                  ? 'Create an account to learn Korean with KPOP songs!'
+                  : 'Login to learn Korean with KPOP songs!'}
+              </span>
             </div>
           </div>
           <div
             style={{
               alignSelf: 'stretch',
-              height: `${313 * scale}px`,
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'flex-start',
@@ -129,6 +215,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                 gap: `${24 * scale}px`,
               }}
             >
+              {/* ID Input */}
               <div
                 style={{
                   width: `${512 * scale}px`,
@@ -173,7 +260,9 @@ const Login: FunctionComponent<LoginProps> = () => {
                         type="text"
                         value={credentials.id}
                         onChange={e => setCredentials({ ...credentials, id: e.target.value })}
+                        onKeyPress={handleKeyPress}
                         placeholder=""
+                        disabled={isLoading}
                         style={{
                           width: '100%',
                           border: 'none',
@@ -209,6 +298,8 @@ const Login: FunctionComponent<LoginProps> = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Password Input */}
               <div
                 style={{
                   width: `${512 * scale}px`,
@@ -254,7 +345,9 @@ const Login: FunctionComponent<LoginProps> = () => {
                         type="password"
                         value={credentials.password}
                         onChange={e => setCredentials({ ...credentials, password: e.target.value })}
+                        onKeyPress={handleKeyPress}
                         placeholder=""
+                        disabled={isLoading}
                         style={{
                           width: '100%',
                           border: 'none',
@@ -313,34 +406,114 @@ const Login: FunctionComponent<LoginProps> = () => {
                   </div>
                 </div>
               </div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  fontSize: `${14 * scale}px`,
-                  color: '#313131',
-                  fontFamily: 'Pretendard',
-                  gap: `${8 * scale}px`,
-                }}
-              >
-                <input
-                  type="checkbox"
+
+              {/* Nickname Input - Only for Sign Up */}
+              {isSignUp && (
+                <div
                   style={{
-                    width: `${18 * scale}px`,
-                    height: `${18 * scale}px`,
-                    cursor: 'pointer',
-                  }}
-                />
-                <label
-                  style={{
-                    fontWeight: 500,
-                    cursor: 'pointer',
+                    width: `${512 * scale}px`,
+                    borderRadius: '4px 4px 0px 0px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'flex-start',
                   }}
                 >
-                  Remember me
-                </label>
-              </div>
+                  <div
+                    style={{
+                      alignSelf: 'stretch',
+                      borderRadius: '4px',
+                      backgroundColor: '#fff',
+                      border: '1px solid #79747e',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'flex-start',
+                    }}
+                  >
+                    <div
+                      style={{
+                        alignSelf: 'stretch',
+                        borderRadius: '4px 4px 0px 0px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: `${8 * scale}px 0px ${8 * scale}px ${16 * scale}px`,
+                      }}
+                    >
+                      <div
+                        style={{
+                          height: `${40 * scale}px`,
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-start',
+                          justifyContent: 'center',
+                          position: 'relative',
+                        }}
+                      >
+                        <input
+                          type="text"
+                          value={credentials.nickname}
+                          onChange={e =>
+                            setCredentials({ ...credentials, nickname: e.target.value })
+                          }
+                          onKeyPress={handleKeyPress}
+                          placeholder=""
+                          disabled={isLoading}
+                          style={{
+                            width: '100%',
+                            border: 'none',
+                            outline: 'none',
+                            backgroundColor: 'transparent',
+                            fontSize: `${16 * scale}px`,
+                            fontFamily: 'Poppins',
+                            padding: 0,
+                            position: 'relative',
+                            zIndex: 2,
+                            color: '#1c1b1f',
+                          }}
+                        />
+                        <div
+                          style={{
+                            margin: '0 !important',
+                            position: 'absolute',
+                            top: `${-16 * scale}px`,
+                            left: `${-4 * scale}px`,
+                            backgroundColor: '#fff',
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: `0px ${4 * scale}px`,
+                            zIndex: 1,
+                            fontSize: `${14 * scale}px`,
+                            fontFamily: 'Pretendard',
+                            pointerEvents: 'none',
+                          }}
+                        >
+                          <div style={{ position: 'relative' }}>Nickname</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
+
+            {/* Error Message */}
+            {error && (
+              <div
+                style={{
+                  width: `${512 * scale}px`,
+                  padding: `${12 * scale}px ${16 * scale}px`,
+                  backgroundColor: '#ffebee',
+                  borderRadius: '4px',
+                  fontSize: `${14 * scale}px`,
+                  color: '#c62828',
+                  fontFamily: 'Pretendard',
+                }}
+              >
+                {error}
+              </div>
+            )}
+
+            {/* Submit Button */}
             <div
               style={{
                 borderRadius: `${30 * scale}px`,
@@ -362,19 +535,20 @@ const Login: FunctionComponent<LoginProps> = () => {
                 }}
               >
                 <button
-                  onClick={handleLogin}
+                  onClick={handleSubmit}
+                  disabled={isLoading}
                   style={{
                     alignSelf: 'stretch',
                     height: `${48 * scale}px`,
                     borderRadius: '4px',
-                    backgroundColor: '#f04299',
+                    backgroundColor: isLoading ? '#ccc' : '#f04299',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     padding: `${8 * scale}px ${16 * scale}px`,
                     boxSizing: 'border-box',
                     border: 'none',
-                    cursor: 'pointer',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
                   }}
                 >
                   <div
@@ -384,11 +558,46 @@ const Login: FunctionComponent<LoginProps> = () => {
                       color: '#f3f3f3',
                     }}
                   >
-                    Login
+                    {isLoading ? 'loading...' : isSignUp ? 'Sign Up' : 'Login'}
                   </div>
                 </button>
               </div>
             </div>
+
+            {/* Toggle between Login/SignUp */}
+            <div
+              style={{
+                width: `${512 * scale}px`,
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                fontSize: `${14 * scale}px`,
+                color: '#313131',
+                fontFamily: 'Pretendard',
+              }}
+            >
+              <span style={{ opacity: 0.75 }}>
+                {isSignUp ? 'Already have an account?' : "Don't have an account?"}
+              </span>
+              <button
+                onClick={toggleMode}
+                disabled={isLoading}
+                style={{
+                  marginLeft: `${8 * scale}px`,
+                  background: 'none',
+                  border: 'none',
+                  color: '#f04299',
+                  fontWeight: 600,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  fontSize: `${14 * scale}px`,
+                  fontFamily: 'Pretendard',
+                  textDecoration: 'underline',
+                }}
+              >
+                {isSignUp ? 'Login' : 'Sign up'}
+              </button>
+            </div>
+
             <div
               style={{
                 alignSelf: 'stretch',

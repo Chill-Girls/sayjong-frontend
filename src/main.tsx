@@ -8,6 +8,7 @@ import SelectMode from './SelectMode.tsx';
 import SingAlong from './SingAlong.tsx';
 import CalibrationCapture from './components/CalibrationCapture.tsx';
 import Login from './Login.tsx';
+import { Toaster } from 'react-hot-toast';
 
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
@@ -44,6 +45,7 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <AppRouter />
+      <Toaster position="top-right" reverseOrder={false} />
     </BrowserRouter>
   </StrictMode>,
 );
