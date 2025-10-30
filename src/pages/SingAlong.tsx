@@ -8,11 +8,17 @@ import KaraokeLine from '../components/KaraokeLine';
 import type { Song } from '../api/songs/types';
 import { getSong } from '../api/songs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
+import { useMode } from '../context/ModeContext';
 import { containerFullscreen, flexColumn, flexCenter, scaled } from '../styles/mixins';
 
 type SingAlongProps = object;
 
 const SingAlong: FunctionComponent<SingAlongProps> = () => {
+  const { setMode } = useMode();
+  useEffect(() => {
+    setMode('singalong');
+    return () => setMode(null);
+  }, [setMode]);
   const { songId } = useParams();
   const [song, setSong] = useState<Song | null>(null);
   const [loading, setLoading] = useState(true);
@@ -142,15 +148,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
           fontSize: FONT_SIZES.xl,
         }}
       >
-        <div
-          style={{
-            position: 'relative',
-            fontWeight: FONT_WEIGHTS.medium,
-            margin: 0,
-          }}
-        >
-          Sing Along
-        </div>
         <div
           style={{
             position: 'relative',

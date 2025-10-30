@@ -1,6 +1,8 @@
 import type { CSSProperties, FunctionComponent } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
+import { useMode, MODE_LABEL } from '../context/ModeContext';
 
 type HeaderProps = Record<string, never>;
 
@@ -16,9 +18,9 @@ const Header: FunctionComponent<HeaderProps> = () => {
       right: 0,
       height: '55.5px',
       backgroundColor: '#f8f6f7',
-      display: 'flex',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
-      justifyContent: 'space-between',
       padding: '0 27px',
       boxSizing: 'border-box',
       fontSize: '24px',
@@ -34,8 +36,9 @@ const Header: FunctionComponent<HeaderProps> = () => {
       display: 'flex',
       alignItems: 'center',
       gap: '18px',
-      fontSize: '15px',
+      fontSize: '24px',
       color: '#313131',
+      justifySelf: 'center',
     },
     navItem: {
       position: 'relative',
@@ -47,6 +50,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
       width: '37.5px',
       height: '37.5px',
       objectFit: 'contain',
+      justifySelf: 'end',
     },
   };
 
@@ -58,21 +62,34 @@ const Header: FunctionComponent<HeaderProps> = () => {
     } else {
       isActive = currentPath.startsWith(path);
     }
-
     return {
       ...styles.navItem,
       color: isActive ? '#f04299' : '#313131',
-      fontWeight: isActive ? 600 : 400,
+      fontWeight: isActive ? 600 : 600,
     };
   };
 
+  const [logoPressed, setLogoPressed] = useState(false);
+  const { mode } = useMode();
+
   return (
     <header style={styles.header}>
-      <Link to="/home" style={getNavItemStyle('/home', true)}>
+      <Link
+        to="/home"
+        style={{
+          ...getNavItemStyle('/home', true),
+          color: logoPressed ? '#313131' : '#f04299',
+        }}
+        onMouseDown={() => setLogoPressed(true)}
+        onMouseUp={() => setLogoPressed(false)}
+        onMouseLeave={() => setLogoPressed(false)}
+      >
         SayJong
       </Link>
 
-      <nav style={styles.navigation}></nav>
+      <nav style={styles.navigation}>
+        {mode ? <div style={{ fontWeight: 600, color: '#313131' }}>{MODE_LABEL[mode]}</div> : null}
+      </nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
     </header>
