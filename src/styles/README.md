@@ -25,7 +25,7 @@ const styles = {
     fontFamily: FONTS.primary,
     padding: SPACING.md,
     fontSize: FONT_SIZES.lg,
-  }
+  },
 };
 ```
 
@@ -54,11 +54,13 @@ const MyComponent = () => {
 ### 3. CSS 클래스 사용
 
 먼저 `main.tsx`에서 import:
+
 ```typescript
 import './styles/common.css';
 ```
 
 컴포넌트에서 사용:
+
 ```tsx
 <div className="container-fullscreen">
   <div className="flex-column-center">
@@ -70,6 +72,7 @@ import './styles/common.css';
 ## 🎯 주요 상수
 
 ### 색상 (COLORS)
+
 - `primary`: #f04299 (브랜드 핑크)
 - `dark`: #313131 (다크 텍스트)
 - `background`: #f8f6f7 (메인 배경)
@@ -77,10 +80,12 @@ import './styles/common.css';
 - `lightPink`: #ffe9f4
 
 ### 폰트 (FONTS)
+
 - `primary`: Pretendard
 - `secondary`: Poppins
 
 ### 간격 (SPACING)
+
 - `xs`: 6px
 - `sm`: 12px
 - `md`: 18px
@@ -88,6 +93,7 @@ import './styles/common.css';
 - `xl`: 52.5px
 
 ### 폰트 크기 (FONT_SIZES)
+
 - `sm`: 10.5px
 - `base`: 12px
 - `lg`: 18px
@@ -98,6 +104,7 @@ import './styles/common.css';
 ## 📝 베스트 프랙티스
 
 ### ✅ DO
+
 ```typescript
 // 테마 상수 사용
 backgroundColor: COLORS.primary
@@ -110,6 +117,7 @@ padding: scaled(20)
 ```
 
 ### ❌ DON'T
+
 ```typescript
 // 하드코딩된 값 사용
 backgroundColor: '#f04299'
@@ -124,18 +132,20 @@ padding: '15px'  // 20px × 0.75를 직접 계산
 ## 🔧 헬퍼 함수
 
 ### `scaled(value: number): string`
+
 값에 0.75 스케일을 적용합니다.
 
 ```typescript
-scaled(20)  // '15px'
-scaled(40)  // '30px'
+scaled(20); // '15px'
+scaled(40); // '30px'
 ```
 
 ### `scaledValues(...values: number[]): string`
+
 여러 값에 스케일을 적용합니다.
 
 ```typescript
-scaledValues(10, 20, 30, 40)  // '7.5px 15px 22.5px 30px'
+scaledValues(10, 20, 30, 40); // '7.5px 15px 22.5px 30px'
 ```
 
 ## 🚀 마이그레이션 가이드
@@ -143,6 +153,7 @@ scaledValues(10, 20, 30, 40)  // '7.5px 15px 22.5px 30px'
 기존 인라인 스타일을 새로운 시스템으로 변경:
 
 ### Before
+
 ```typescript
 const styles = {
   container: {
@@ -151,11 +162,12 @@ const styles = {
     flexDirection: 'column',
     alignItems: 'center',
     padding: '18px',
-  }
+  },
 };
 ```
 
 ### After
+
 ```typescript
 import { containerFullscreen } from './styles/mixins';
 import { SPACING } from './styles/theme';
@@ -164,7 +176,7 @@ const styles = {
   container: {
     ...containerFullscreen,
     padding: SPACING.md,
-  }
+  },
 };
 ```
 
@@ -174,4 +186,3 @@ const styles = {
 - 새로운 색상이나 상수가 필요하면 `theme.ts`에 추가하세요
 - 공통으로 사용되는 스타일은 `mixins.ts`에 추가하세요
 - CSS 클래스가 필요하면 `common.css`에 추가하세요
-

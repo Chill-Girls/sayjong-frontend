@@ -172,4 +172,3 @@ const Calibration: FunctionComponent<CalibrationProps> = ({ modeButtons }) => {
 };
 
 export default Calibration;
-

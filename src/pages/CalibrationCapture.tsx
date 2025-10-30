@@ -10,10 +10,15 @@ import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
-import { containerFullscreen, flexColumn, buttonPrimary, buttonDisabled, scaled } from '../styles/mixins';
-import { precomputeAllTargetVowels, saveTargetsToBackend  } from '../utils/precomputeTargets';
+import {
+  containerFullscreen,
+  flexColumn,
+  buttonPrimary,
+  buttonDisabled,
+  scaled,
+} from '../styles/mixins';
+import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
-
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -446,7 +451,9 @@ const CalibrationCapture: React.FC = () => {
                   <span style={{ fontWeight: FONT_WEIGHTS.semibold, color: '#495057' }}>
                     {vowel}
                   </span>
-                  <span style={{ fontSize: FONT_SIZES.base }}>{calibrationData[vowel] ? '✅' : '⏳'}</span>
+                  <span style={{ fontSize: FONT_SIZES.base }}>
+                    {calibrationData[vowel] ? '✅' : '⏳'}
+                  </span>
                 </div>
               ))}
             </div>

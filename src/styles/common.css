@@ -153,7 +153,11 @@
   letter-spacing: 0.3em;
   font-weight: 500;
   font-family: Pretendard;
-  text-shadow: 2px 0 0 #000, 0 2px 0 #000, -2px 0 0 #000, 0 -2px 0 #000;
+  text-shadow:
+    2px 0 0 #000,
+    0 2px 0 #000,
+    -2px 0 0 #000,
+    0 -2px 0 #000;
 }
 
 .karaoke-active {
@@ -205,4 +209,3 @@
     padding: 12px;
   }
 }
-

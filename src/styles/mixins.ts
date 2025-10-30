@@ -164,4 +164,3 @@ export const scaled = (value: number): string => `${value * SCALE}px`;
 export const scaledValues = (...values: number[]): string => {
   return values.map(v => `${v * SCALE}px`).join(' ');
 };
-
