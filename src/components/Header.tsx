@@ -1,4 +1,5 @@
 import type { CSSProperties, FunctionComponent } from 'react';
+import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
 
@@ -50,6 +51,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
     },
   };
 
+  
   const getNavItemStyle = (path: string, exactMatch = false): CSSProperties => {
     let isActive = false;
 
@@ -58,17 +60,28 @@ const Header: FunctionComponent<HeaderProps> = () => {
     } else {
       isActive = currentPath.startsWith(path);
     }
-
     return {
       ...styles.navItem,
       color: isActive ? '#f04299' : '#313131',
-      fontWeight: isActive ? 600 : 400,
+      fontWeight: isActive ? 600 : 600,
     };
   };
+  
+
+  const [logoPressed, setLogoPressed] = useState(false);
 
   return (
     <header style={styles.header}>
-      <Link to="/home" style={getNavItemStyle('/home', true)}>
+      <Link
+        to="/home"
+        style={{
+          ...getNavItemStyle('/home', true),
+          color: logoPressed ? '#313131' : '#f04299',
+        }}
+        onMouseDown={() => setLogoPressed(true)}
+        onMouseUp={() => setLogoPressed(false)}
+        onMouseLeave={() => setLogoPressed(false)}
+      >
         SayJong
       </Link>
 
