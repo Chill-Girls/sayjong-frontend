@@ -68,13 +68,11 @@ const Header: FunctionComponent<HeaderProps> = () => {
 
   return (
     <header style={styles.header}>
-      <Link to="/home"  style={ getNavItemStyle('/home', true) }>
+      <Link to="/home" style={getNavItemStyle('/home', true)}>
         SayJong
       </Link>
 
-      <nav style={styles.navigation}>
-      
-      </nav>
+      <nav style={styles.navigation}></nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
     </header>
