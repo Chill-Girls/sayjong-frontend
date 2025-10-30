@@ -9,6 +9,14 @@ import { useRef, useEffect, useState } from 'react';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
+import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
+import {
+  containerFullscreen,
+  flexColumn,
+  buttonPrimary,
+  buttonDisabled,
+  scaled,
+} from '../styles/mixins';
 import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
 
@@ -116,14 +124,10 @@ const CalibrationCapture: React.FC = () => {
 
             // 이마점(10번)은 더 크고 다른 색으로 표시
             if (index === 10) {
-              ctx.fillStyle = '#FF0000'; // 빨간색
+              ctx.fillStyle = '#00FF00'; // 초록색
               ctx.beginPath();
-              ctx.arc(x, y, 6, 0, 2 * Math.PI);
+              ctx.arc(x, y, 3, 0, 2 * Math.PI);
               ctx.fill();
-              // 이마점 라벨
-              ctx.fillStyle = '#FFFFFF';
-              ctx.font = '14px Arial';
-              ctx.fillText('이마', x + 8, y - 8);
             } else {
               ctx.fillStyle = '#00FF00'; // 초록색
               ctx.beginPath();
@@ -247,24 +251,30 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const vowelInstructions = {
-    neutral: '😐 Neutral face - Relax your mouth\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
-    a: '😮 Say "ㅏ" (ah) - Open mouth wide\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
-    u: '😗 Say "ㅜ" (oo) - Round and pucker lips\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
-    i: '😁 Say "ㅣ" (ee) - Spread lips wide\n📍 이마점(빨간 점)이 잘 보이는지 확인하세요',
+    neutral: '😐 Neutral face - Relax your mouth\n  ',
+    a: '😮 Say "ㅏ" (ah) - Open mouth wide\n  ',
+    u: '😗 Say "ㅜ" (oo) - Round and pucker lips\n  ',
+    i: '😁 Say "ㅣ" (ee) - Spread lips wide\n  ',
   };
 
   return (
     <div
       style={{
-        padding: '20px',
-        width: '100vw',
-        backgroundColor: '#ffffff',
+        ...containerFullscreen,
+        padding: scaled(20),
+        backgroundColor: COLORS.white,
         minHeight: '100vh',
-        boxSizing: 'border-box',
       }}
     >
       <h1
-        style={{ textAlign: 'center', color: '#f04299', fontSize: '2.5rem', marginBottom: '2rem' }}
+        style={{
+          textAlign: 'center',
+          color: COLORS.primary,
+          fontSize: '2.5rem',
+          marginBottom: '2rem',
+          fontFamily: FONTS.primary,
+          fontWeight: FONT_WEIGHTS.bold,
+        }}
       >
         Vowel Calibration Tool
       </h1>
@@ -272,21 +282,30 @@ const CalibrationCapture: React.FC = () => {
       <div
         style={{
           display: 'flex',
-          gap: '30px',
-          marginTop: '20px',
-          maxWidth: '1400px',
-          margin: '20px auto 0',
+          gap: scaled(30),
+          marginTop: scaled(20),
+          maxWidth: scaled(1400),
+          margin: `${scaled(20)} auto 0`,
+          alignItems: 'flex-start',
         }}
       >
         {/* 비디오/캔버스 */}
-        <div style={{ flex: '2', minWidth: '600px' }}>
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            minWidth: scaled(700),
+            maxWidth: scaled(900),
+          }}
+        >
           <div
             style={{
               position: 'relative',
-              width: '100%',
-              aspectRatio: '16/9',
-              backgroundColor: '#000',
-              borderRadius: '10px',
+              width: scaled(800),
+              height: scaled(600),
+              backgroundColor: COLORS.gray,
+              borderRadius: scaled(10),
               overflow: 'hidden',
             }}
           >
@@ -311,8 +330,8 @@ const CalibrationCapture: React.FC = () => {
                   top: '50%',
                   left: '50%',
                   transform: 'translate(-50%, -50%)',
-                  fontSize: '120px',
-                  fontWeight: 'bold',
+                  fontSize: scaled(120),
+                  fontWeight: FONT_WEIGHTS.bold,
                   color: '#00FF00',
                   textShadow: '0 0 20px rgba(0,255,0,0.8)',
                 }}
@@ -324,17 +343,27 @@ const CalibrationCapture: React.FC = () => {
         </div>
 
         {/* 컨트롤 */}
-        <div style={{ width: '450px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div
+          style={{ width: scaled(450), ...flexColumn, gap: scaled(20), fontFamily: FONTS.primary }}
+        >
+          {/* 현재 모음 선택 */}
           <div
             style={{
               backgroundColor: '#f8f9fa',
-              padding: '20px',
-              borderRadius: '12px',
+              padding: scaled(20),
+              borderRadius: scaled(12),
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
               border: '1px solid #e9ecef',
             }}
           >
-            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>
+            <h3
+              style={{
+                margin: `0 0 ${scaled(15)} 0`,
+                color: COLORS.primary,
+                fontSize: '1.2rem',
+                fontWeight: FONT_WEIGHTS.semibold,
+              }}
+            >
               Current Vowel
             </h3>
             <select
@@ -342,11 +371,12 @@ const CalibrationCapture: React.FC = () => {
               onChange={e => setCurrentVowel(e.target.value as any)}
               style={{
                 width: '100%',
-                padding: '12px',
-                fontSize: '16px',
-                borderRadius: '8px',
-                border: '2px solid #f04299',
-                marginBottom: '10px',
+                padding: scaled(12),
+                fontSize: FONT_SIZES.base,
+                borderRadius: scaled(8),
+                border: `2px solid ${COLORS.primary}`,
+                marginBottom: scaled(10),
+                fontFamily: FONTS.primary,
               }}
             >
               <option value="neutral">Neutral (중립)</option>
@@ -356,10 +386,10 @@ const CalibrationCapture: React.FC = () => {
             </select>
             <div
               style={{
-                padding: '15px',
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                fontSize: '14px',
+                padding: scaled(15),
+                backgroundColor: COLORS.white,
+                borderRadius: scaled(8),
+                fontSize: FONT_SIZES.sm,
                 border: '1px solid #dee2e6',
                 color: '#495057',
                 whiteSpace: 'pre-line',
@@ -369,81 +399,101 @@ const CalibrationCapture: React.FC = () => {
             </div>
           </div>
 
+          {/* 캡처 버튼 */}
           <button
             onClick={captureFrame}
             disabled={!isInitialized || isCapturing}
             style={{
-              padding: '15px 30px',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              backgroundColor: isCapturing ? '#ccc' : '#f04299',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '10px',
-              cursor: isCapturing ? 'not-allowed' : 'pointer',
+              ...(isCapturing ? buttonDisabled : buttonPrimary),
+              padding: `${scaled(15)} ${scaled(30)}`,
+              fontSize: FONT_SIZES.md,
+              fontWeight: FONT_WEIGHTS.bold,
+              borderRadius: scaled(10),
             }}
           >
             {isCapturing ? 'Capturing...' : `Capture ${currentVowel.toUpperCase()}`}
           </button>
 
+          {/* 캡처된 데이터 표시 */}
           <div
             style={{
               backgroundColor: '#f8f9fa',
-              padding: '20px',
-              borderRadius: '12px',
+              padding: scaled(20),
+              borderRadius: scaled(12),
               boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
               border: '1px solid #e9ecef',
             }}
           >
-            <h3 style={{ margin: '0 0 15px 0', color: '#f04299', fontSize: '1.2rem' }}>
+            <h3
+              style={{
+                margin: `0 0 ${scaled(15)} 0`,
+                color: COLORS.primary,
+                fontSize: '1.2rem',
+                fontWeight: FONT_WEIGHTS.semibold,
+              }}
+            >
               Captured Data
             </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ ...flexColumn, gap: scaled(8) }}>
               {(['neutral', 'a', 'u', 'i'] as const).map(vowel => (
                 <div
                   key={vowel}
                   style={{
-                    padding: '12px',
+                    padding: scaled(12),
                     backgroundColor: calibrationData[vowel] ? '#e8f5e8' : '#fff3cd',
-                    borderRadius: '8px',
+                    borderRadius: scaled(8),
                     display: 'flex',
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: `1px solid ${calibrationData[vowel] ? '#c3e6c3' : '#ffeaa7'}`,
                   }}
                 >
-                  <span style={{ fontWeight: '600', color: '#495057' }}>{vowel}</span>
-                  <span style={{ fontSize: '16px' }}>{calibrationData[vowel] ? '✅' : '⏳'}</span>
+                  <span style={{ fontWeight: FONT_WEIGHTS.semibold, color: '#495057' }}>
+                    {vowel}
+                  </span>
+                  <span style={{ fontSize: FONT_SIZES.base }}>
+                    {calibrationData[vowel] ? '✅' : '⏳'}
+                  </span>
                 </div>
               ))}
             </div>
           </div>
 
+          {/* 다운로드 버튼 */}
           <button
             onClick={handleSaveClick}
             disabled={Object.keys(calibrationData).length < 4 || isSaving}
             style={{
-              padding: '15px 30px',
-              fontSize: '18px',
-              fontWeight: '600',
+              padding: `${scaled(15)} ${scaled(30)}`,
+              fontSize: FONT_SIZES.md,
+              fontWeight: FONT_WEIGHTS.semibold,
               backgroundColor: Object.keys(calibrationData).length < 4 ? '#e9ecef' : '#28a745',
-              color: Object.keys(calibrationData).length < 4 ? '#6c757d' : '#fff',
+              color: Object.keys(calibrationData).length < 4 ? '#6c757d' : COLORS.white,
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: scaled(12),
               cursor: Object.keys(calibrationData).length < 4 ? 'not-allowed' : 'pointer',
               boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
               transition: 'all 0.2s ease',
+              fontFamily: FONTS.primary,
             }}
           >
-            Download Calibration
+            Complete Calibration
           </button>
 
-          <div style={{ fontSize: '12px', color: '#6c757d', textAlign: 'center' }}>
+          {/* 정보 텍스트 */}
+          <div
+            style={{
+              fontSize: FONT_SIZES.xs,
+              color: '#6c757d',
+              textAlign: 'center',
+              lineHeight: 1.6,
+            }}
+          >
             Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
             <br />
             (4 face + 40 mouth)
             <br />
-            <span style={{ color: '#FF0000', fontWeight: 'bold' }}>● 이마점(10번) 포함</span>
+            <span style={{ color: '#FF0000', fontWeight: FONT_WEIGHTS.bold }}></span>
           </div>
         </div>
       </div>

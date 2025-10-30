@@ -1,0 +1,211 @@
+/* 프로젝트 전체에서 사용하는 공통 스타일 */
+
+/* === 레이아웃 === */
+.container-fullscreen {
+  width: 100vw;
+  min-height: 100vh;
+  background-color: #f8f6f7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+.container-centered {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  background-color: #fff;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* === 텍스트 스타일 === */
+.font-pretendard {
+  font-family: Pretendard;
+}
+
+.font-poppins {
+  font-family: Poppins;
+}
+
+.text-primary {
+  color: #f04299;
+}
+
+.text-dark {
+  color: #313131;
+}
+
+.text-white {
+  color: #fff;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+/* === 브랜드 로고 === */
+.logo-sayjong {
+  font-size: 48px; /* 64px × 0.75 */
+  letter-spacing: -0.01em;
+  line-height: 150%;
+  font-weight: 800;
+  color: #f04299;
+  font-family: Pretendard;
+}
+
+.logo-sayjong .jong {
+  color: #313131;
+}
+
+/* === 버튼 스타일 === */
+.btn-primary {
+  background-color: #f04299;
+  color: #f3f3f3;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: Pretendard;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.btn-primary:hover {
+  opacity: 0.9;
+}
+
+.btn-primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+/* === 입력 필드 === */
+.input-field {
+  width: 100%;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-family: Poppins;
+  color: #1c1b1f;
+}
+
+.input-container {
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #79747e;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.input-label {
+  position: absolute;
+  background-color: #fff;
+  font-family: Pretendard;
+  pointer-events: none;
+  padding: 0px 3px; /* 4px × 0.75 */
+  z-index: 1;
+}
+
+/* === 카드 스타일 === */
+.card {
+  border-radius: 22.5px; /* 30px × 0.75 */
+  background-color: #fff;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.card-lesson {
+  box-shadow: 0px 3px 3px rgba(0, 0, 0, 0.25);
+  border-radius: 16.88px; /* 22.5px × 0.75 */
+  background-color: #ffe9f4;
+}
+
+/* === 카라오케 스타일 === */
+.karaoke-text {
+  font-size: 64px;
+  letter-spacing: 0.3em;
+  font-weight: 500;
+  font-family: Pretendard;
+  text-shadow:
+    2px 0 0 #000,
+    0 2px 0 #000,
+    -2px 0 0 #000,
+    0 -2px 0 #000;
+}
+
+.karaoke-active {
+  color: #f04299;
+}
+
+.karaoke-passed {
+  color: #a855f7;
+}
+
+.karaoke-upcoming {
+  color: #fff;
+}
+
+/* === 유틸리티 === */
+.relative {
+  position: relative;
+}
+
+.absolute {
+  position: absolute;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.h-full {
+  height: 100%;
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.no-select {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+}
+
+/* === 반응형 (필요시) === */
+@media (max-width: 1024px) {
+  .container-fullscreen {
+    padding: 12px;
+  }
+}
