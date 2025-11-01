@@ -4,9 +4,6 @@ interface BtnNextProps {
   style?: React.CSSProperties;
 }
 const BtnNext: React.FC<BtnNextProps> = ({ style }) => {
-    return (
-        <img src={btn_next} alt="next" style={style} />
-    );
+  return <img src={btn_next} alt="next" style={style} />;
 };
 export default BtnNext;
-

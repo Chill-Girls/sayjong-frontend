@@ -22,4 +22,3 @@ export function useRecording() {
   if (!ctx) throw new Error('useRecording must be used within RecordingProvider');
   return ctx;
 }
-

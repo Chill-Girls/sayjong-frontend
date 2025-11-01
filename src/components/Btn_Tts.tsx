@@ -4,8 +4,6 @@ interface BtnTtsProps {
 }
 
 const Btn_Tts = ({ style }: BtnTtsProps) => {
-    return (
-        <img src={btnTts} alt="tts" style={style} />
-    );
+  return <img src={btnTts} alt="tts" style={style} />;
 };
 export default Btn_Tts;

@@ -5,8 +5,6 @@ interface BtnPrevProps {
 }
 
 const Btn_prev: React.FC<BtnPrevProps> = ({ style }) => {
-    return (
-        <img src={btn_prev} alt="prev" style={style} />
-    );
+  return <img src={btn_prev} alt="prev" style={style} />;
 };
 export default Btn_prev;

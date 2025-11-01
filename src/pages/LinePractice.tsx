@@ -20,33 +20,37 @@ interface LinePracticeProps {
 export interface LinePracticeData {
   songId: number;
   lyricLineId: number;
-  originalText : string;
-  tesxRomaja : string;
+  originalText: string;
+  tesxRomaja: string;
   textEng: string;
   startTime: number;
 } // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
 const LinePractice: FunctionComponent<LinePracticeProps> = () => {
   const { setMode } = useMode();
-  
+
   useEffect(() => {
     setMode('line');
     return () => setMode(null);
   }, [setMode]);
 
   // 예시 데이터
-  const songTitle = "Soda Pop";
-  const singer = "Saja Boys";
-
-
+  const songTitle = 'Soda Pop';
+  const singer = 'Saja Boys';
 
   // 글자 수에 따라 폰트 크기를 조정하는 함수
-  const getAdaptiveFontSize = (text: string, baseSize: number, maxSize: number, minSize: number) => {
+  const getAdaptiveFontSize = (
+    text: string,
+    baseSize: number,
+    maxSize: number,
+    minSize: number,
+  ) => {
     // 한글은 2바이트, 영문은 1바이트로 계산
     // 대략적인 비율: 한글 1자 ≈ 영문 1.5자
-    const approxChars = text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 + 
-                        (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
-    
+    const approxChars =
+      text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 +
+      (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
+
     // 글자 수가 많을수록 폰트 크기를 줄임
     if (approxChars > 20) {
       const adjustedSize = Math.max(minSize, baseSize * (20 / approxChars));
@@ -100,7 +104,7 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
         </div>
       </div>
 
-        {/* 메인 콘텐츠 영역 */}
+      {/* 메인 콘텐츠 영역 */}
       <div
         style={{
           width: '100%',
@@ -150,15 +154,15 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
           }}
         >
           {/* 이전 버튼 */}
-         
-            <BtnPrev 
-              style={{
-                width: scaled(100),
-                height: scaled(100),
-                filter: 'brightness(0.5)',
-                marginTop: scaled(40),
-              }}
-            />
+
+          <BtnPrev
+            style={{
+              width: scaled(100),
+              height: scaled(100),
+              filter: 'brightness(0.5)',
+              marginTop: scaled(40),
+            }}
+          />
 
           {/* 가사 콘텐츠 */}
           <div
@@ -173,7 +177,9 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             {/* 한글 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].originalText, 56, 56, 40)),
+                fontSize: scaled(
+                  getAdaptiveFontSize(exampleLinePracticeData[0].originalText, 56, 56, 40),
+                ),
                 fontWeight: FONT_WEIGHTS.semibold,
                 letterSpacing: '0.05em',
                 color: COLORS.dark,
@@ -186,7 +192,9 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             {/* 영어 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].textEng, 32, 32, 24)),
+                fontSize: scaled(
+                  getAdaptiveFontSize(exampleLinePracticeData[0].textEng, 32, 32, 24),
+                ),
                 fontWeight: FONT_WEIGHTS.light,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
@@ -198,7 +206,9 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             {/* 로마자 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].tesxRomaja, 40, 40, 28)),
+                fontSize: scaled(
+                  getAdaptiveFontSize(exampleLinePracticeData[0].tesxRomaja, 40, 40, 28),
+                ),
                 fontWeight: FONT_WEIGHTS.semibold,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
@@ -209,16 +219,15 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
           </div>
 
           {/* 다음 버튼 */}
-        
-            <BtnNext
-              style={{
-                width: scaled(100),
-                height: scaled(100),
-                filter: 'brightness(0.5)',
-                marginTop: scaled(40),
-              }}
-            />
-      
+
+          <BtnNext
+            style={{
+              width: scaled(100),
+              height: scaled(100),
+              filter: 'brightness(0.5)',
+              marginTop: scaled(40),
+            }}
+          />
         </div>
       </div>
 
@@ -245,7 +254,7 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             cursor: 'pointer',
             padding: 0,
           }}
-          >
+        >
           <BtnMic
             style={{
               width: '100%',
@@ -266,7 +275,7 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             cursor: 'pointer',
             padding: 0,
           }}
-          >
+        >
           <BtnListenRecording
             style={{
               width: '100%',
