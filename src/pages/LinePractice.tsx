@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import { getSongLyricLines } from '../api/songs';
 import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
@@ -29,13 +29,10 @@ export interface LinePracticeData {
 
 const LinePractice: React.FC<LinePracticeProps> = () => {
   const { songId } = useParams<{ songId: string }>();
-  const navigate = useNavigate();
   const { setMode } = useMode();
   const [lines, setLines] = useState<LyricLine[]>([]);
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<LyricLine | null>(null);
 
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
@@ -54,13 +51,11 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     if (!songId) return;
     const id = Number(songId);
     if (Number.isNaN(id)) {
-      setError('유효하지 않은 노래 ID입니다.');
+      setSelected(null);
       return;
     }
 
     const fetchLines = async () => {
-      setLoading(true);
-      setError(null);
       try {
         const res = await getSongLyricLines(id);
         setLines(res.lyrics ?? []);
@@ -69,13 +64,10 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         setSelected(res.lyrics && res.lyrics.length > 0 ? res.lyrics[0] : null);
       } catch (err) {
         console.error('getSongLyricLines error', err);
-        setError('가사 소절을 불러오는 데 실패했습니다.');
         setSelected(null);
         setLines([]);
         setSongTitle('');
         setSinger('');
-      } finally {
-        setLoading(false);
       }
     };
 
