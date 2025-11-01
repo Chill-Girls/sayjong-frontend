@@ -32,6 +32,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const navigate = useNavigate();
   const { setMode } = useMode();
   const [lines, setLines] = useState<LyricLine[]>([]);
+  const [songTitle, setSongTitle] = useState<string>('');
+  const [singer, setSinger] = useState<string>('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<LyricLine | null>(null);
@@ -61,13 +63,17 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       setError(null);
       try {
         const res = await getSongLyricLines(id);
-        setLines(res);
-        // 선택은 usableLines의 첫 번째로 설정 (마지막 빈 항목 제외)
-        const first = res.length > 1 ? res[0] : res[0];
-        setSelected(first ?? null);
+        setLines(res.lyrics ?? []);
+        setSongTitle(res.title ?? '');
+        setSinger(res.singer ?? '');
+        setSelected(res.lyrics && res.lyrics.length > 0 ? res.lyrics[0] : null);
       } catch (err) {
         console.error('getSongLyricLines error', err);
         setError('가사 소절을 불러오는 데 실패했습니다.');
+        setSelected(null);
+        setLines([]);
+        setSongTitle('');
+        setSinger('');
       } finally {
         setLoading(false);
       }
@@ -76,7 +82,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     fetchLines();
   }, [songId]);
 
-  // 화면에 보여줄 소절 선택(선택된 소절 또는 usableLines의 첫 소절 또는 빈값)
+  // 화면에 보여줄 소절 선택
   const displayLine = selected ??
     usableLines[0] ?? {
       lyricLineId: 0,
@@ -91,10 +97,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const totalLines = usableLines.length;
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
-
-  // 예시 데이터
-  const songTitle = 'Soda Pop';
-  const singer = 'Saja Boys';
 
   // 글자 수에 따라 폰트 크기를 조정하는 함수
   const getAdaptiveFontSize = (
@@ -179,7 +181,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             fontWeight: FONT_WEIGHTS.light,
           }}
         >
-          {songTitle} - {singer}
+          {songTitle} {singer ? `- ${singer}` : null}
         </div>
 
         {/* 현재 소절 위치 표시: "3 / 12" */}

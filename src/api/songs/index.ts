@@ -1,6 +1,6 @@
 import { apiClient } from '../client';
 import { songResponseSchema, songListResponseSchema, type SongList, type Song } from './types';
-import { lyricLinesResponseSchema, type LyricLine } from './types';
+import { songWithLyricsSchema, type SongWithLyrics } from './types';
 
 // 노래 목록 조회
 export async function getSongs(): Promise<SongList> {
@@ -27,10 +27,10 @@ export async function getSong(id: number): Promise<Song> {
 }
 
 // 특정 노래의 전체 소절(lyric lines) 조회
-export async function getSongLyricLines(songId: number): Promise<LyricLine[]> {
+export async function getSongLyricLines(songId: number): Promise<SongWithLyrics> {
   try {
     const response = await apiClient.get(`/songs/${songId}/lyriclines`);
-    const validatedData = lyricLinesResponseSchema.parse(response.data);
+    const validatedData = songWithLyricsSchema.parse(response.data);
     return validatedData;
   } catch (error) {
     console.error(`API Error (getSongLyricLines) for ID ${songId}:`, error);
