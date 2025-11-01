@@ -202,18 +202,23 @@ const CalibrationCapture: React.FC = () => {
       console.log('모든 모음의 목표 좌표 계산 중...');
       const precomputedTargets = precomputeAllTargetVowels(calibrationData);
 
-      // 임시 토큰
-      const TEMP_AUTH_TOKEN =
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0SmVvbmd5ZXVuIiwiYXV0aCI6IlJPTEVfVVNFUiIsImV4cCI6MTc2MTcxNzU3MX0.1UkZWE9nwXx5lThtk0Mz0PAP5fpQ43F3ly2uQZsBd2E';
+      // accessToken을 localStorage에서 가져옴
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('로그인되어 있지 않습니다. 로그인 후 시도해주세요.');
+        setIsSaving(false);
+        return;
+      }
 
       // saveTargetsToBackend 호출
-      await saveTargetsToBackend(precomputedTargets, calibrationData, TEMP_AUTH_TOKEN);
+      await saveTargetsToBackend(precomputedTargets, calibrationData, token);
 
       // 저장 성공
       alert(
         'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
     } catch (error) {
+ 
       // axios 에러 처리
       console.error('서버 전송 또는 계산 실패:', error);
 
