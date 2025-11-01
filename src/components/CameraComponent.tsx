@@ -219,7 +219,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     };
 
     initializeCamera();
-  }, [onResults, vowels]);
+  }, [onResults, vowels, TARGET_VOWEL]);
 
   const canvasWidth = parseInt(width);
   const canvasHeight = parseInt(height);
