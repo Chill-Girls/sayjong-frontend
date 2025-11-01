@@ -153,18 +153,19 @@ export function drawTargetMouthContours(
  * 모음 라벨 텍스트 그리기
  * @param ctx - 캔버스 렌더링 컨텍스트
  * @param targetLandmarks - 목표 랜드마크 좌표 맵
- * @param vowel - 표시할 모음 문자
+ * @param vowel - 표시할 모음 문자 (null일 수 있음)
  * @param toCanvas - 캔버스 좌표 변환 함수
  */
 export function drawVowelLabel(
   ctx: CanvasRenderingContext2D,
   targetLandmarks: Record<number, LandmarkPoint>,
-  vowel: string,
+  vowel: string | null,
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
   ctx.save();
   const labelLandmark = targetLandmarks[0];
-  if (labelLandmark) {
+
+  if (labelLandmark && vowel) {
     const labelPos = toCanvas(labelLandmark);
     ctx.translate(labelPos.x - 40, labelPos.y);
     ctx.scale(-1, 1);
