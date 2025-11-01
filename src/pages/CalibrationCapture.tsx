@@ -20,7 +20,6 @@ import {
 import {
   precomputeAllTargetVowels,
   saveTargetsToBackend,
-  downloadPrecomputedTargets,
 } from '../utils/precomputeTargets';
 import axios from 'axios';
 
