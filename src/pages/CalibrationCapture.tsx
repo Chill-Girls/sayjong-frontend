@@ -17,7 +17,11 @@ import {
   buttonDisabled,
   scaled,
 } from '../styles/mixins';
-import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
+import {
+  precomputeAllTargetVowels,
+  saveTargetsToBackend,
+  downloadPrecomputedTargets,
+} from '../utils/precomputeTargets';
 import axios from 'axios';
 
 interface CalibrationData {
@@ -211,6 +215,10 @@ const CalibrationCapture: React.FC = () => {
     try {
       console.log('모든 모음의 목표 좌표 계산 중...');
       const precomputedTargets = precomputeAllTargetVowels(calibrationData);
+
+      // 타겟 vowels JSON 다운로드 (블렌드쉐이프 포함)
+      downloadPrecomputedTargets(precomputedTargets, 'target_vowels.json');
+      console.log('타겟 vowels JSON 다운로드 완료');
 
       // 임시 토큰
       const TEMP_AUTH_TOKEN =
