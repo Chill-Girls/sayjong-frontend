@@ -35,6 +35,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
+  
+  const vowels: string[] = [];
 
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
   const usableLines = React.useMemo(() => {
@@ -104,7 +106,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 +
       (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
 
-    // 글자 수가 많을수록 폰트 크기를 줄임
     if (approxChars > 20) {
       const adjustedSize = Math.max(minSize, baseSize * (20 / approxChars));
       return Math.min(maxSize, adjustedSize);
