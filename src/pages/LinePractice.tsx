@@ -1,5 +1,7 @@
-import type { FunctionComponent } from 'react';
-import { useEffect } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import { getSongLyricLines } from '../api/songs';
+import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -19,7 +21,6 @@ import {
 } from '../utils/blendshapeProcessor';
 import targetVowelsData from '../target_vowels.json';
 
-
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
 }
@@ -36,17 +37,118 @@ export interface LinePracticeData {
 const LinePractice: React.FC<LinePracticeProps> = () => {
   const { songId } = useParams<{ songId: string }>();
   const { setMode } = useMode();
+  const [lines, setLines] = useState<LyricLine[]>([]);
+  const [songTitle, setSongTitle] = useState<string>('');
+  const [singer, setSinger] = useState<string>('');
+  const [selected, setSelected] = useState<LyricLine | null>(null);
+
+  // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
+  const usableLines = React.useMemo(() => {
+    if (!lines || lines.length === 0) return [] as LyricLine[];
+    // 마지막 항목이 빈 소절(또는 sentinel)이라면 제외
+    return lines.length > 1 ? lines.slice(0, lines.length - 1) : lines;
+  }, [lines]);
+
+  const currentBlendshapesRef = useRef<Record<string, number>>({});
+  const similarityScoreRef = useRef<number | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
+  const [displaySimilarity, setDisplaySimilarity] = useState<number | null>(null);
+  const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
 
   useEffect(() => {
     setMode('line');
     return () => setMode(null);
   }, [setMode]);
 
-  // 예시 데이터
-  const songTitle = 'Soda Pop';
-  const singer = 'Saja Boys';
-  const currentLine = exampleLinePracticeData[0];
-  const vowels = extractVowels(currentLine.originalText);
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      if (!vowel) return null;
+      if (targetBlendshapesCacheRef.current[vowel]) {
+        return targetBlendshapesCacheRef.current[vowel];
+      }
+      const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
+      if (target) {
+        targetBlendshapesCacheRef.current[vowel] = target;
+        return target;
+      }
+      return null;
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!songId) return;
+    const id = Number(songId);
+    if (Number.isNaN(id)) {
+      setSelected(null);
+      return;
+    }
+
+    const fetchLines = async () => {
+      try {
+        const res = await getSongLyricLines(id);
+        setLines(res.lyrics ?? []);
+        setSongTitle(res.title ?? '');
+        setSinger(res.singer ?? '');
+        setSelected(res.lyrics && res.lyrics.length > 0 ? res.lyrics[0] : null);
+      } catch (err) {
+        console.error('getSongLyricLines error', err);
+        setSelected(null);
+        setLines([]);
+        setSongTitle('');
+        setSinger('');
+      }
+    };
+
+    fetchLines();
+  }, [songId]);
+
+  // 화면에 보여줄 소절 선택
+  const displayLine = selected ??
+    usableLines[0] ?? {
+      lyricLineId: 0,
+      lineNo: 0,
+      originalText: '',
+      textRomaja: '',
+      textEng: '',
+      startTime: 0,
+    };
+
+  // 현재 표시중인 소절에서 모음 추출 — displayLine 변경 시 재계산
+  const vowels = React.useMemo(
+    () => extractVowels(displayLine?.originalText ?? ''),
+    [displayLine?.originalText],
+  );
+  const currentVowel = vowels[0] || null;
+
+  const handleCameraResults = useCallback(
+    (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
+      if (!results.blendshapes) return;
+
+      const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
+      currentBlendshapesRef.current = filteredBlendshapes;
+
+      const targetBlendshapes = getTargetBlendshapes(currentVowel);
+      if (targetBlendshapes) {
+        const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
+        similarityScoreRef.current = similarity;
+      }
+
+      const now = performance.now();
+      if (now - lastUpdateTimeRef.current >= 33) {
+        lastUpdateTimeRef.current = now;
+        setDisplayBlendshapes({ ...filteredBlendshapes });
+        setDisplaySimilarity(similarityScoreRef.current);
+      }
+    },
+    [currentVowel, getTargetBlendshapes],
+  );
+
+  // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
+  const totalLines = usableLines.length;
+  const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
+  const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
 
   // 글자 수에 따라 폰트 크기를 조정하는 함수
   const getAdaptiveFontSize = (
