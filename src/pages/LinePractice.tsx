@@ -36,8 +36,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
   
-  const vowels: string[] = [];
-
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
   const usableLines = React.useMemo(() => {
     if (!lines || lines.length === 0) return [] as LyricLine[];
@@ -87,6 +85,12 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       textEng: '',
       startTime: 0,
     };
+
+  // 현재 표시중인 소절에서 모음 추출 — displayLine 변경 시 재계산
+  const vowels = React.useMemo(
+    () => extractVowels(displayLine?.originalText ?? ''),
+    [displayLine?.originalText],
+  );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
   const totalLines = usableLines.length;
@@ -180,12 +184,12 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
         {/* 현재 소절 위치 표시: "3 / 12" */}
         <div
-          style={{
-            marginTop: scaled(8),
-            fontSize: scaled(14),
-            color: COLORS.textSecondary,
-            fontWeight: FONT_WEIGHTS.light,
-          }}
+        style={{
+          marginTop: scaled(8),
+          fontSize: scaled(14),
+          color: COLORS.textSecondary,
+          fontWeight: FONT_WEIGHTS.light,
+        }}
         >
           {totalLines > 0 ? `Line ${displayIndex} / ${totalLines}` : 'No lyric lines'}
         </div>
