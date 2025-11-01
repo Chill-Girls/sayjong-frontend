@@ -1,5 +1,7 @@
-import type { FunctionComponent } from 'react';
-import { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { getSongLyricLines } from '../api/songs';
+import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -9,7 +11,6 @@ import BtnListenRecording from '../components/Btn_ListenRecording';
 import BtnTts from '../components/Btn_Tts';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
-import { exampleLinePracticeData } from '../temp/examplelyricsdata';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { extractVowels } from '../utils/hangul';
@@ -27,19 +28,74 @@ export interface LinePracticeData {
   startTime: number;
 } // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
-const LinePractice: FunctionComponent<LinePracticeProps> = () => {
+const LinePractice: React.FC<LinePracticeProps> = () => {
+  const { songId } = useParams<{ songId: string }>();
   const { setMode } = useMode();
+  const [lines, setLines] = useState<LyricLine[]>([]);
+  const [songTitle, setSongTitle] = useState<string>('');
+  const [singer, setSinger] = useState<string>('');
+  const [selected, setSelected] = useState<LyricLine | null>(null);
+
+  // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
+  const usableLines = React.useMemo(() => {
+    if (!lines || lines.length === 0) return [] as LyricLine[];
+    // 마지막 항목이 빈 소절(또는 sentinel)이라면 제외
+    return lines.length > 1 ? lines.slice(0, lines.length - 1) : lines;
+  }, [lines]);
 
   useEffect(() => {
     setMode('line');
     return () => setMode(null);
   }, [setMode]);
 
-  // 예시 데이터
-  const songTitle = 'Soda Pop';
-  const singer = 'Saja Boys';
-  const currentLine = exampleLinePracticeData[0];
-  const vowels = extractVowels(currentLine.originalText);
+  useEffect(() => {
+    if (!songId) return;
+    const id = Number(songId);
+    if (Number.isNaN(id)) {
+      setSelected(null);
+      return;
+    }
+
+    const fetchLines = async () => {
+      try {
+        const res = await getSongLyricLines(id);
+        setLines(res.lyrics ?? []);
+        setSongTitle(res.title ?? '');
+        setSinger(res.singer ?? '');
+        setSelected(res.lyrics && res.lyrics.length > 0 ? res.lyrics[0] : null);
+      } catch (err) {
+        console.error('getSongLyricLines error', err);
+        setSelected(null);
+        setLines([]);
+        setSongTitle('');
+        setSinger('');
+      }
+    };
+
+    fetchLines();
+  }, [songId]);
+
+  // 화면에 보여줄 소절 선택
+  const displayLine = selected ??
+    usableLines[0] ?? {
+      lyricLineId: 0,
+      lineNo: 0,
+      originalText: '',
+      textRomaja: '',
+      textEng: '',
+      startTime: 0,
+    };
+
+  // 현재 표시중인 소절에서 모음 추출 — displayLine 변경 시 재계산
+  const vowels = React.useMemo(
+    () => extractVowels(displayLine?.originalText ?? ''),
+    [displayLine?.originalText],
+  );
+
+  // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
+  const totalLines = usableLines.length;
+  const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
+  const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
 
   // 글자 수에 따라 폰트 크기를 조정하는 함수
   const getAdaptiveFontSize = (
@@ -54,7 +110,6 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
       text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 +
       (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
 
-    // 글자 수가 많을수록 폰트 크기를 줄임
     if (approxChars > 20) {
       const adjustedSize = Math.max(minSize, baseSize * (20 / approxChars));
       return Math.min(maxSize, adjustedSize);
@@ -69,6 +124,27 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
   const handleMyRecordingClick = () => {
     console.log('내 녹음 듣기 버튼 클릭');
   };
+
+  // 이전/다음 소절 이동 핸들러
+  const handlePrevLine = () => {
+    if (!usableLines || usableLines.length === 0) return;
+    const idx = usableLines.findIndex(
+      l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
+    );
+    if (idx > 0) setSelected(usableLines[idx - 1]);
+  };
+
+  const handleNextLine = () => {
+    if (!usableLines || usableLines.length === 0) return;
+    const idx = usableLines.findIndex(
+      l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
+    );
+    if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
+  };
+
+  if (!songId) {
+    return <div>노래 ID가 제공되지 않았습니다.</div>;
+  }
 
   return (
     <div
@@ -103,7 +179,19 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             fontWeight: FONT_WEIGHTS.light,
           }}
         >
-          {songTitle} - {singer}
+          {songTitle} {singer ? `- ${singer}` : null}
+        </div>
+
+        {/* 현재 소절 위치 표시: "3 / 12" */}
+        <div
+          style={{
+            marginTop: scaled(8),
+            fontSize: scaled(14),
+            color: COLORS.textSecondary,
+            fontWeight: FONT_WEIGHTS.light,
+          }}
+        >
+          {totalLines > 0 ? `Line ${displayIndex} / ${totalLines}` : 'No lyric lines'}
         </div>
       </div>
 
@@ -158,14 +246,27 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
         >
           {/* 이전 버튼 */}
 
-          <BtnPrev
+          <button
+            onClick={handlePrevLine}
             style={{
               width: scaled(100),
               height: scaled(100),
-              filter: 'brightness(0.5)',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
               marginTop: scaled(40),
             }}
-          />
+            aria-label="Previous line"
+          >
+            <BtnPrev
+              style={{
+                width: '100%',
+                height: '100%',
+                filter: 'brightness(0.5)',
+              }}
+            />
+          </button>
 
           {/* 가사 콘텐츠 */}
           <div
@@ -180,51 +281,64 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             {/* 한글 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(currentLine.originalText, 56, 56, 40)),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 letterSpacing: '0.05em',
                 color: COLORS.dark,
                 textAlign: 'center',
               }}
             >
-              {currentLine.originalText}
+              {displayLine.originalText}
             </div>
 
             {/* 영어 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(currentLine.textEng, 32, 32, 24)),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24)),
                 fontWeight: FONT_WEIGHTS.light,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {currentLine.textEng}
+              {displayLine.textEng}
             </div>
 
             {/* 로마자 가사 */}
             <div
               style={{
-                fontSize: scaled(getAdaptiveFontSize(currentLine.tesxRomaja, 40, 40, 28)),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {currentLine.tesxRomaja}
+              {displayLine.textRomaja}
             </div>
           </div>
 
           {/* 다음 버튼 */}
 
-          <BtnNext
+          <button
+            onClick={handleNextLine}
             style={{
               width: scaled(100),
               height: scaled(100),
-              filter: 'brightness(0.5)',
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
               marginTop: scaled(40),
             }}
-          />
+            aria-label="Next line"
+          >
+            <BtnNext
+              style={{
+                width: '100%',
+                height: '100%',
+                filter: 'brightness(0.5)',
+              }}
+            />
+          </button>
         </div>
       </div>
 

@@ -12,3 +12,25 @@ export const songListResponseSchema = z.array(songResponseSchema);
 
 export type Song = z.infer<typeof songResponseSchema>;
 export type SongList = z.infer<typeof songListResponseSchema>;
+
+export const lyricLineSchema = z.object({
+  lyricLineId: z.number(),
+  lineNo: z.number(),
+  originalText: z.string(),
+  textRomaja: z.string().nullable().optional(),
+  textEng: z.string().nullable().optional(),
+  nativeAudioUrl: z.string().nullable().optional(),
+  startTime: z.number().nullable().optional(),
+});
+
+export const lyricsArraySchema = z.array(lyricLineSchema);
+
+export const songWithLyricsSchema = z.object({
+  songId: z.number(),
+  title: z.string(),
+  singer: z.string(),
+  lyrics: lyricsArraySchema,
+});
+
+export type LyricLine = z.infer<typeof lyricLineSchema>;
+export type SongWithLyrics = z.infer<typeof songWithLyricsSchema>;

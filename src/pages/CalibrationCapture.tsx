@@ -17,11 +17,7 @@ import {
   buttonDisabled,
   scaled,
 } from '../styles/mixins';
-import {
-  precomputeAllTargetVowels,
-  saveTargetsToBackend,
-  downloadPrecomputedTargets,
-} from '../utils/precomputeTargets';
+import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
 
 interface CalibrationData {
@@ -216,16 +212,16 @@ const CalibrationCapture: React.FC = () => {
       console.log('모든 모음의 목표 좌표 계산 중...');
       const precomputedTargets = precomputeAllTargetVowels(calibrationData);
 
-      // 타겟 vowels JSON 다운로드 (블렌드쉐이프 포함)
-      downloadPrecomputedTargets(precomputedTargets, 'target_vowels.json');
-      console.log('타겟 vowels JSON 다운로드 완료');
-
-      // 임시 토큰
-      const TEMP_AUTH_TOKEN =
-        'eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0SmVvbmd5ZXVuIiwiYXV0aCI6IlJPTEVfVVNFUiIsImV4cCI6MTc2MTcxNzU3MX0.1UkZWE9nwXx5lThtk0Mz0PAP5fpQ43F3ly2uQZsBd2E';
+      // accessToken을 localStorage에서 가져옴
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        alert('로그인되어 있지 않습니다. 로그인 후 시도해주세요.');
+        setIsSaving(false);
+        return;
+      }
 
       // saveTargetsToBackend 호출
-      await saveTargetsToBackend(precomputedTargets, calibrationData, TEMP_AUTH_TOKEN);
+      await saveTargetsToBackend(precomputedTargets, calibrationData, token);
 
       // 저장 성공
       alert(
