@@ -10,7 +10,7 @@ import SingAlong from './pages/SingAlong.tsx';
 import CalibrationCapture from './pages/CalibrationCapture.tsx';
 import Login from './pages/Login.tsx';
 import { Toaster } from 'react-hot-toast';
-import { ModeProvider } from './context/ModeContext';
+import { ModeProvider } from './constants/ModeContext.tsx';
 
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components

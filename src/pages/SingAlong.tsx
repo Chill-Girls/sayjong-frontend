@@ -8,7 +8,7 @@ import KaraokeLine from '../components/KaraokeLine';
 import type { Song } from '../api/songs/types';
 import { getSong } from '../api/songs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
-import { useMode } from '../context/ModeContext';
+import { useMode } from '../constants/ModeContext';
 import { containerFullscreen, flexColumn, flexCenter, scaled } from '../styles/mixins';
 
 type SingAlongProps = object;

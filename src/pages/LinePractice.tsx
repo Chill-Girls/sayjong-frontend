@@ -1,216 +1,304 @@
 import type { FunctionComponent } from 'react';
-import { useEffect, useState } from 'react';
-import { useMode } from '../context/ModeContext';
-import CameraComponent from '../components/CameraComponent';
+import { useEffect } from 'react';
+import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import MicIcon from '../assets/mic.svg';
-import { COLORS, FONTS, FONT_WEIGHTS } from '../styles/theme';
-import { containerFullscreen, flexColumn, card, scaled } from '../styles/mixins';
-import { exampleLinePracticeData } from '../context/examplelyricsdata';
+import CameraComponent from '../components/CameraComponent';
+import BtnMic from '../components/Btn_Mic';
+import BtnListenRecording from '../components/Btn_ListenRecording';
+import BtnTts from '../components/Btn_Tts';
+import BtnPrev from '../components/Btn_prev';
+import BtnNext from '../components/Btn_next';
+import { exampleLinePracticeData } from '../constants/examplelyricsdata';
+import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
+import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
+
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
 }
 
 export interface LinePracticeData {
-  lineId: number;
-  textKor: string;
-  textRomaja: string;
-  textEng: string;
-  nativeAudioUrl: string;
   songId: number;
-}
+  lyricLineId: number;
+  originalText : string;
+  tesxRomaja : string;
+  textEng: string;
+  startTime: number;
+} // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
-// example data is imported from utils/linePracticeData
-
-const LinePractice: FunctionComponent<LinePracticeProps> = ({ modeButtons }) => {
-  const [showCamera, setShowCamera] = useState(false);
+const LinePractice: FunctionComponent<LinePracticeProps> = () => {
   const { setMode } = useMode();
+  
   useEffect(() => {
     setMode('line');
     return () => setMode(null);
   }, [setMode]);
+
+  // 예시 데이터
+  const songTitle = "Soda Pop";
+  const singer = "Saja Boys";
+
+  // 글자 수에 따라 폰트 크기를 조정하는 함수
+  const getAdaptiveFontSize = (text: string, baseSize: number, maxSize: number, minSize: number) => {
+    // 한글은 2바이트, 영문은 1바이트로 계산
+    // 대략적인 비율: 한글 1자 ≈ 영문 1.5자
+    const approxChars = text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 + 
+                        (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
+    
+    // 글자 수가 많을수록 폰트 크기를 줄임
+    if (approxChars > 20) {
+      const adjustedSize = Math.max(minSize, baseSize * (20 / approxChars));
+      return Math.min(maxSize, adjustedSize);
+    }
+    return Math.min(maxSize, baseSize);
+  };
+
+  const handleMicClick = () => {
+    console.log('마이크 버튼 클릭');
+  };
+
+  const handleMyRecordingClick = () => {
+    console.log('내 녹음 듣기 버튼 클릭');
+  };
+
+  const handleTtsClick = () => {
+    console.log('TTS 버튼 클릭');
+  };
+
   return (
     <div
       style={{
         ...containerFullscreen,
         height: '100vh',
-        justifyContent: 'center',
+        position: 'relative',
         gap: scaled(64),
         textAlign: 'left',
-        fontSize: scaled(32),
-        color: COLORS.primary,
+        fontSize: scaled(40),
+        color: COLORS.dark,
         fontFamily: FONTS.primary,
-        paddingTop: scaled(74),
+        paddingTop: scaled(119.5),
         paddingBottom: scaled(100),
       }}
     >
       <Header />
 
-      {/* 타이틀 */}
+      {/* 노래 제목 */}
       <div
         style={{
           alignSelf: 'stretch',
           ...flexColumn,
           alignItems: 'center',
-          gap: scaled(8),
           zIndex: 1,
-          textAlign: 'center',
-          fontSize: scaled(35),
-          color: COLORS.dark,
         }}
       >
         <div
           style={{
             position: 'relative',
-            fontWeight: FONT_WEIGHTS.medium,
-          }}
-        >
-          Line Practice
-        </div>
-        <div
-          style={{
-            position: 'relative',
-            fontSize: scaled(30),
+            fontSize: scaled(40),
             fontWeight: FONT_WEIGHTS.light,
-            textAlign: 'left',
           }}
         >
-          Please pronouce these vowels
+          {songTitle} - {singer}
         </div>
       </div>
 
-      {/* 메인 컨테이너 */}
+        {/* 메인 콘텐츠 영역 */}
       <div
         style={{
           width: '100%',
           backgroundColor: COLORS.background,
           overflow: 'hidden',
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'center',
           justifyContent: 'center',
-          gap: scaled(32),
-          minWidth: scaled(1100),
-          maxWidth: scaled(1400),
+          gap: scaled(40),
+          padding: `0 ${scaled(50)}`,
           zIndex: 2,
-          fontSize: scaled(128),
         }}
       >
-        {/* 왼쪽: 카메라 & 마이크 */}
+        {/* 카메라 영역 */}
         <div
           style={{
             flex: 1,
-            ...flexColumn,
-            alignItems: 'flex-start',
-            justifyContent: 'center',
-            gap: scaled(82),
-            minWidth: scaled(520),
-            maxWidth: scaled(592),
-          }}
-        >
-          <div
-            style={{
-              width: scaled(750),
-              height: scaled(475),
-              borderRadius: scaled(12),
-              backgroundColor: '#000',
-              overflow: 'hidden',
-              boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            {showCamera ? (
-              <CameraComponent />
-            ) : (
-              <div
-                style={{
-                  color: '#999',
-                  fontSize: '16px',
-                  textAlign: 'center',
-                }}
-              >
-                Click the mic to start camera
-              </div>
-            )}
-          </div>
-          <div
-            style={{
-              ...flexColumn,
-              alignItems: 'center',
-              gap: scaled(12),
-              width: scaled(750),
-            }}
-          >
-            <img
-              style={{
-                width: scaled(50),
-                position: 'relative',
-                maxHeight: '100%',
-                cursor: 'pointer',
-              }}
-              src={MicIcon}
-              alt="Microphone"
-              onClick={() => setShowCamera(prev => !prev)}
-            />
-            {modeButtons}
-          </div>
-        </div>
-
-        {/* 오른쪽: 가사 표시 */}
-        <div
-          style={{
-            flex: 1,
-            ...card,
             ...flexColumn,
             alignItems: 'center',
             justifyContent: 'center',
-            gap: scaled(16),
-            minWidth: scaled(400),
-            padding: scaled(24),
-            marginLeft: scaled(32),
+            minWidth: scaled(550),
           }}
         >
           <div
             style={{
-              ...flexColumn,
-              alignItems: 'right',
-              justifyContent: 'center',
-              gap: scaled(10),
-              width: '100%',
+              width: scaled(700),
+              height: scaled(449),
+              position: 'relative',
+              backgroundColor: COLORS.gray,
+              borderRadius: BORDER_RADIUS.md,
             }}
           >
+            <CameraComponent width={scaled(700)} height={scaled(449)} />
+          </div>
+        </div>
+
+        {/* 가사 영역 */}
+        <div
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'center',
+            gap: scaled(30),
+            minWidth: scaled(400),
+            position: 'relative',
+          }}
+        >
+          {/* 이전 버튼 */}
+         
+            <BtnPrev 
+              style={{
+                width: scaled(100),
+                height: scaled(100),
+                filter: 'brightness(0.5)',
+                marginTop: scaled(40),
+              }}
+            />
+
+          {/* 가사 콘텐츠 */}
+          <div
+            style={{
+              ...flexColumn,
+              alignItems: 'center',
+              gap: scaled(20),
+              flex: 1,
+              maxWidth: scaled(600),
+            }}
+          >
+            {/* 한글 가사 */}
             <div
               style={{
-                fontSize: scaled(24),
+                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].originalText, 56, 56, 40)),
                 fontWeight: FONT_WEIGHTS.semibold,
+                letterSpacing: '0.05em',
                 color: COLORS.dark,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData.textKor.split('\n').find(l => l.trim().length > 0) || ''}
+              {exampleLinePracticeData[0].originalText}
             </div>
+
+            {/* 영어 가사 */}
             <div
               style={{
-                fontSize: scaled(18),
-                color: COLORS.primary,
+                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].textEng, 32, 32, 24)),
+                fontWeight: FONT_WEIGHTS.light,
+                color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData.textEng.split('\n').find(l => l.trim().length > 0) || ''}
+              {exampleLinePracticeData[0].textEng}
             </div>
+
+            {/* 로마자 가사 */}
             <div
               style={{
-                fontSize: scaled(18),
-                color: '#666',
+                fontSize: scaled(getAdaptiveFontSize(exampleLinePracticeData[0].tesxRomaja, 40, 40, 28)),
+                fontWeight: FONT_WEIGHTS.semibold,
+                color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData.textRomaja.split('\n').find(l => l.trim().length > 0) || ''}
+              {exampleLinePracticeData[0].tesxRomaja}
             </div>
           </div>
+
+          {/* 다음 버튼 */}
+        
+            <BtnNext
+              style={{
+                width: scaled(100),
+                height: scaled(100),
+                filter: 'brightness(0.5)',
+                marginTop: scaled(40),
+              }}
+            />
+      
         </div>
+      </div>
+
+      {/* 버튼 영역 */}
+      <div
+        style={{
+          alignSelf: 'stretch',
+          overflow: 'hidden',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: `0 ${scaled(193)}`,
+          gap: scaled(80),
+          zIndex: 3,
+        }}
+      >
+        <button
+          onClick={handleMicClick}
+          style={{
+            width: scaled(80),
+            height: scaled(80),
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+          >
+          <BtnMic
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%',
+            }}
+          />
+        </button>
+
+        <button
+          onClick={handleMyRecordingClick}
+          style={{
+            width: scaled(80),
+            height: scaled(80),
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+          >
+          <BtnListenRecording
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%',
+            }}
+          />
+        </button>
+
+        <button
+          onClick={handleTtsClick}
+          style={{
+            width: scaled(80),
+            height: scaled(80),
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 0,
+          }}
+          >
+          <BtnTts
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              borderRadius: '50%',
+            }}
+          />
+        </button>
       </div>
 
       <Footer />
