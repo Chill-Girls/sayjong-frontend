@@ -2,7 +2,7 @@ import type { CSSProperties, FunctionComponent } from 'react';
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
-import { useMode, MODE_LABEL } from '../context/ModeContext';
+import { useMode, MODE_LABEL } from '../constants/ModeContext';
 
 type HeaderProps = Record<string, never>;
 
@@ -78,7 +78,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
         to="/home"
         style={{
           ...getNavItemStyle('/home', true),
-          color: logoPressed ? '#313131' : '#f04299',
+          color: logoPressed ? '#1e1e1e' : '#1e1e1e',
         }}
         onMouseDown={() => setLogoPressed(true)}
         onMouseUp={() => setLogoPressed(false)}
@@ -88,7 +88,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
       </Link>
 
       <nav style={styles.navigation}>
-        {mode ? <div style={{ fontWeight: 600, color: '#313131' }}>{MODE_LABEL[mode]}</div> : null}
+        {mode ? <div style={{ fontWeight: 600, color: '#f04299' }}>{MODE_LABEL[mode]}</div> : null}
       </nav>
 
       <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />

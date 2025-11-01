@@ -23,7 +23,7 @@ export function useMode() {
 
 // eslint-disable-next-line react-refresh/only-export-components
 export const MODE_LABEL: Record<Exclude<LessonMode, null>, string> = {
-  line: 'Line Lesson',
-  syllable: 'Syllable Lesson',
-  singalong: 'Sing Along',
+  line: 'LINE LESSON',
+  syllable: 'SYLLABLE LESSON',
+  singalong: 'SING ALONG',
 };
