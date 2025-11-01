@@ -13,6 +13,7 @@ import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
+import { extractVowels } from '../utils/hangul';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
@@ -230,7 +231,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
               borderRadius: BORDER_RADIUS.md,
             }}
           >
-            <CameraComponent width={scaled(700)} height={scaled(449)} />
+            <CameraComponent width={scaled(700)} height={scaled(449)} vowels={vowels} />
           </div>
         </div>
 

@@ -29,9 +29,9 @@ import { neutral } from '../vowel_calibration.json';
  */
 export class TargetLandmarksComputer {
   private personalCoordinateSystem: PersonalCoordinateSystem | null = null;
-  private targetVowel: string;
+  private targetVowel: string | null;
 
-  constructor(targetVowel: string) {
+  constructor(targetVowel: string | null) {
     this.targetVowel = targetVowel;
   }
 
@@ -39,7 +39,7 @@ export class TargetLandmarksComputer {
    * 목표 모음 변경
    * @param vowel - 새로운 목표 모음
    */
-  setTargetVowel(vowel: string) {
+  setTargetVowel(vowel: string | null) {
     this.targetVowel = vowel;
   }
 
@@ -58,6 +58,8 @@ export class TargetLandmarksComputer {
    * @returns 목표 랜드마크 좌표 맵
    */
   computeTargetLandmarks(allLandmarks: LandmarkPoint[]): Record<number, LandmarkPoint> {
+    if (!this.targetVowel) return {};
+
     // 현재 랜드마크를 Point3D 형식으로 변환
     const currentLandmarks = allLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
     //*여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
