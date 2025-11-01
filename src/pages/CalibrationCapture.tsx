@@ -17,10 +17,7 @@ import {
   buttonDisabled,
   scaled,
 } from '../styles/mixins';
-import {
-  precomputeAllTargetVowels,
-  saveTargetsToBackend,
-} from '../utils/precomputeTargets';
+import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
 
 interface CalibrationData {

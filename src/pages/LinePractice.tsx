@@ -35,7 +35,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
-  
+
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
   const usableLines = React.useMemo(() => {
     if (!lines || lines.length === 0) return [] as LyricLine[];
@@ -184,12 +184,12 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
         {/* 현재 소절 위치 표시: "3 / 12" */}
         <div
-        style={{
-          marginTop: scaled(8),
-          fontSize: scaled(14),
-          color: COLORS.textSecondary,
-          fontWeight: FONT_WEIGHTS.light,
-        }}
+          style={{
+            marginTop: scaled(8),
+            fontSize: scaled(14),
+            color: COLORS.textSecondary,
+            fontWeight: FONT_WEIGHTS.light,
+          }}
         >
           {totalLines > 0 ? `Line ${displayIndex} / ${totalLines}` : 'No lyric lines'}
         </div>
