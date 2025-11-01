@@ -20,12 +20,11 @@
 
 import { useRef, useEffect, useState } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { BlendshapeSmoother } from '../utils/blendshapeProcessor';
+import { BlendshapeSmoother, TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import { updateLandmarksDisplay } from '../utils/landmarksDisplay';
 import {
   createCanvasCoordConverter,
   drawLiveMouthContours,
-  drawLandmarkPoints,
   drawTargetMouthContours,
   drawVowelLabel,
 } from '../utils/canvasRenderer';
@@ -51,6 +50,20 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const lastRenderTimeRef = useRef<number>(0);
+  const lastDetectionTimeRef = useRef<number>(0);
+  const shouldUpdateDisplayRef = useRef<boolean>(false);
+  const lastVideoTimeRef = useRef<number>(0);
+  const canvasContextRef = useRef<CanvasRenderingContext2D | null>(null);
+  const toCanvasConverterRef = useRef<((p: LandmarkPoint) => { x: number; y: number }) | null>(
+    null,
+  );
+  const processedResultsRef = useRef<{
+    landmarks?: LandmarkPoint[];
+    blendshapes?: Record<string, number>;
+  }>({});
+  const cachedResultsRef = useRef<any>(null);
 
   // 목표 모음 오버레이 설정
   const TARGET_VOWEL = vowels.length > 0 ? vowels[0] : null;
@@ -75,7 +88,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm',
         );
 
-        // FaceLandmarker 생성
         const faceLandmarker = await FaceLandmarker.createFromOptions(filesetResolver, {
           baseOptions: {
             modelAssetPath: `https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task`,
@@ -84,15 +96,15 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           outputFaceBlendshapes: true,
           runningMode: 'VIDEO',
           numFaces: 1,
-          minFaceDetectionConfidence: 0.5,
-          minFacePresenceConfidence: 0.5,
+          minFaceDetectionConfidence: 0.2,
+          minFacePresenceConfidence: 0.2,
+          minTrackingConfidence: 0.2,
         });
 
         // 비디오 스트림 관리를 위한 Camera 클래스
         class Camera {
           video: HTMLVideoElement;
           options: any;
-          isProcessing: boolean = false;
 
           constructor(video: HTMLVideoElement, options: any) {
             this.video = video;
@@ -100,107 +112,185 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           }
 
           async start() {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: {
+                width: { ideal: 640 },
+                height: { ideal: 480 },
+                facingMode: 'user',
+                frameRate: { ideal: 60, max: 60 },
+              },
+            });
             this.video.srcObject = stream;
-            this.video.play();
+            await this.video.play();
 
-            // 비디오 메타데이터 대기
             await new Promise(resolve => {
-              this.video.onloadedmetadata = () => resolve(void 0);
+              if (this.video.readyState >= 2) {
+                resolve(void 0);
+              } else {
+                this.video.onloadedmetadata = () => resolve(void 0);
+              }
             });
 
-            // 프레임 처리 시작
-            const onFrame = () => {
-              if (this.options.onFrame && !this.isProcessing) {
-                this.isProcessing = true;
-                this.options.onFrame().finally(() => {
-                  this.isProcessing = false;
-                });
-              }
-              requestAnimationFrame(onFrame);
-            };
-            onFrame();
+            if (this.options.onFrame) {
+              this.options.onFrame();
+            }
           }
         }
 
-        // 카메라 초기화
-        const camera = new Camera(videoRef.current, {
-          onFrame: async () => {
-            if (videoRef.current && canvasRef.current) {
-              // 비디오가 준비되지 않았으면 건너뛰기
-              if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
-                return;
+        if (canvasRef.current) {
+          canvasContextRef.current = canvasRef.current.getContext('2d', {
+            willReadFrequently: false,
+            alpha: false,
+          });
+          toCanvasConverterRef.current = createCanvasCoordConverter(
+            canvasRef.current.width,
+            canvasRef.current.height,
+          );
+        }
+        const renderFrame = () => {
+          if (!videoRef.current || !canvasRef.current || !canvasContextRef.current) {
+            animationFrameRef.current = requestAnimationFrame(renderFrame);
+            return;
+          }
+
+          if (videoRef.current.videoWidth === 0 || videoRef.current.videoHeight === 0) {
+            animationFrameRef.current = requestAnimationFrame(renderFrame);
+            return;
+          }
+
+          try {
+            const now = performance.now();
+            let results = cachedResultsRef.current;
+            const timeSinceLastDetection = now - lastDetectionTimeRef.current;
+
+            if (timeSinceLastDetection >= 8) {
+              const videoTime = videoRef.current.currentTime;
+              if (videoTime !== lastVideoTimeRef.current) {
+                lastVideoTimeRef.current = videoTime;
+                results = faceLandmarker.detectForVideo(videoRef.current, now);
+                cachedResultsRef.current = results;
+                lastDetectionTimeRef.current = now;
               }
+            }
 
-              try {
-                const results = faceLandmarker.detectForVideo(videoRef.current, performance.now());
+            if (!results) {
+              animationFrameRef.current = requestAnimationFrame(renderFrame);
+              return;
+            }
 
-                // 캔버스에 그리기
-                if (canvasRef.current) {
-                  const canvasCtx = canvasRef.current.getContext('2d');
-                  if (canvasCtx) {
-                    canvasCtx.save();
-                    canvasCtx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-                    canvasCtx.drawImage(
-                      videoRef.current,
-                      0,
-                      0,
-                      canvasRef.current.width,
-                      canvasRef.current.height,
-                    );
+            const hasFace = results.faceLandmarks && results.faceLandmarks.length > 0;
 
-                    // 추적된 랜드마크 및 입 오버레이 그리기
-                    if (results.faceLandmarks && results.faceLandmarks.length > 0) {
-                      const allLandmarks = results.faceLandmarks[0];
+            if (now - lastRenderTimeRef.current >= 8) {
+              lastRenderTimeRef.current = now;
 
-                      const w = canvasRef.current!.width;
-                      const h = canvasRef.current!.height;
+              const canvasCtx = canvasContextRef.current;
+              const canvas = canvasRef.current;
 
-                      const toCanvas = createCanvasCoordConverter(w, h);
+              if (!toCanvasConverterRef.current) {
+                toCanvasConverterRef.current = createCanvasCoordConverter(
+                  canvas.width,
+                  canvas.height,
+                );
+              }
+              const toCanvas = toCanvasConverterRef.current;
 
-                      // 실시간 입 윤곽선 그리기 (분홍색)
-                      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
+              canvasCtx.imageSmoothingEnabled = false;
+              canvasCtx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
 
-                      // 랜드마크 포인트 그리기
-                      drawLandmarkPoints(canvasCtx, allLandmarks, toCanvas);
+              if (hasFace) {
+                const allLandmarks = results.faceLandmarks![0];
+                drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
 
-                      // 적절한 변환을 통한 목표 오버레이 랜드마크 계산
-                      const targetLandmarks =
-                        targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
+                if (TARGET_VOWEL) {
+                  let targetLandmarks = cachedResultsRef.current?.lastTargetLandmarks;
 
-                      // 목표 입 윤곽선 그리기 (녹색)
-                      drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas);
+                  if (timeSinceLastDetection >= 8 || !targetLandmarks) {
+                    targetLandmarks =
+                      targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
 
-                      // 모음 라벨 그리기
-                      drawVowelLabel(canvasCtx, targetLandmarks, TARGET_VOWEL, toCanvas);
-                    }
+                    if (!cachedResultsRef.current) cachedResultsRef.current = {};
+                    cachedResultsRef.current.lastTargetLandmarks = targetLandmarks;
+                  }
 
-                    canvasCtx.restore();
+                  if (targetLandmarks) {
+                    drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas);
+                    drawVowelLabel(canvasCtx, targetLandmarks, TARGET_VOWEL, toCanvas);
                   }
                 }
+              }
 
-                if (onResults) {
-                  const processedResults = {
-                    landmarks: results.faceLandmarks?.[0]?.map(lm => ({
+              if (onResults) {
+                const processedResults = processedResultsRef.current;
+
+                if (hasFace) {
+                  const landmarks = results.faceLandmarks![0];
+                  if (
+                    !processedResults.landmarks ||
+                    processedResults.landmarks.length !== landmarks.length
+                  ) {
+                    processedResults.landmarks = landmarks.map((lm: LandmarkPoint) => ({
                       x: lm.x,
                       y: lm.y,
                       z: lm.z,
-                    })),
-                    blendshapes: results.faceBlendshapes?.[0]?.categories?.reduce(
-                      (acc, category) => {
-                        acc[category.categoryName] = category.score;
-                        return acc;
-                      },
-                      {} as Record<string, number>,
-                    ),
-                  };
-                  onResults(processedResults);
+                    }));
+                  } else {
+                    for (let i = 0; i < landmarks.length; i++) {
+                      const lm = landmarks[i];
+                      processedResults.landmarks![i].x = lm.x;
+                      processedResults.landmarks![i].y = lm.y;
+                      processedResults.landmarks![i].z = lm.z;
+                    }
+                  }
+                } else {
+                  processedResults.landmarks = undefined;
                 }
 
-                updateLandmarksDisplay(results, 'landmarks-display', blendshapeSmoother.current);
-              } catch (error) {
-                console.error('Error processing frame:', error);
+                if (!processedResults.blendshapes) {
+                  processedResults.blendshapes = {};
+                }
+
+                const blendshapeCategories = results.faceBlendshapes?.[0]?.categories;
+                if (blendshapeCategories && Array.isArray(blendshapeCategories)) {
+                  const blendshapeMap = new Map<string, number>();
+                  const catCount = blendshapeCategories.length;
+                  for (let i = 0; i < catCount; i++) {
+                    const cat = blendshapeCategories[i];
+                    blendshapeMap.set(cat.categoryName, cat.score);
+                  }
+
+                  const targetCount = TARGET_BLENDSHAPES.length;
+                  for (let i = 0; i < targetCount; i++) {
+                    const key = TARGET_BLENDSHAPES[i];
+                    processedResults.blendshapes![key] = blendshapeMap.get(key) ?? 0;
+                  }
+                }
+
+                onResults(processedResults);
               }
+
+              const landmarksDisplayEl = shouldUpdateDisplayRef.current
+                ? document.getElementById('landmarks-display')
+                : null;
+              if (landmarksDisplayEl) {
+                updateLandmarksDisplay(results, 'landmarks-display', blendshapeSmoother.current);
+                shouldUpdateDisplayRef.current = false;
+                setTimeout(() => {
+                  shouldUpdateDisplayRef.current = true;
+                }, 500);
+              }
+            }
+          } catch (error) {
+            console.error('Error processing frame:', error);
+          }
+
+          animationFrameRef.current = requestAnimationFrame(renderFrame);
+        };
+
+        const camera = new Camera(videoRef.current, {
+          onFrame: () => {
+            if (!animationFrameRef.current) {
+              animationFrameRef.current = requestAnimationFrame(renderFrame);
+              shouldUpdateDisplayRef.current = true;
             }
           },
           width: 563,
@@ -219,6 +309,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     };
 
     initializeCamera();
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
   }, [onResults, vowels, TARGET_VOWEL]);
 
   const canvasWidth = parseInt(width);

@@ -40,29 +40,30 @@ export function drawLiveMouthContours(
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
   ctx.beginPath();
-  OUTER_LIP_LANDMARKS.forEach((index, i) => {
+  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
+    const index = OUTER_LIP_LANDMARKS[i];
     const point = toCanvas(landmarks[index]);
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
     } else {
       ctx.lineTo(point.x, point.y);
     }
-  });
+  }
   ctx.closePath();
   ctx.stroke();
 
-  // 내부 입술 윤곽선 - 입술 내부 경계 표현
   ctx.strokeStyle = '#f04299';
   ctx.lineWidth = 1.5;
   ctx.beginPath();
-  INNER_LIP_LANDMARKS.forEach((index, i) => {
+  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
+    const index = INNER_LIP_LANDMARKS[i];
     const point = toCanvas(landmarks[index]);
     if (i === 0) {
       ctx.moveTo(point.x, point.y);
     } else {
       ctx.lineTo(point.x, point.y);
     }
-  });
+  }
   ctx.closePath();
   ctx.stroke();
 }
@@ -78,23 +79,23 @@ export function drawLandmarkPoints(
   landmarks: LandmarkPoint[],
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
-  // 얼굴 앵커 포인트 (파란색)
+  // 얼굴 앵커 포인트 (파란색) - 배치 렌더링으로 최적화
   ctx.fillStyle = '#4299f0';
+  ctx.beginPath(); // 하나의 path로 배치
   FACE_ANCHORS.forEach(index => {
     const p = toCanvas(landmarks[index]);
-    ctx.beginPath();
     ctx.arc(p.x, p.y, 3, 0, 2 * Math.PI);
-    ctx.fill();
   });
+  ctx.fill(); // 한 번에 그리기
 
-  // 입 랜드마크 (주황색)
+  // 입 랜드마크 (주황색) - 배치 렌더링으로 최적화
   ctx.fillStyle = '#ff8800';
+  ctx.beginPath(); // 하나의 path로 배치
   MOUTH_LANDMARKS.forEach(index => {
     const p = toCanvas(landmarks[index]);
-    ctx.beginPath();
     ctx.arc(p.x, p.y, 2, 0, 2 * Math.PI);
-    ctx.fill();
   });
+  ctx.fill(); // 한 번에 그리기
 }
 
 /**
@@ -116,7 +117,8 @@ export function drawTargetMouthContours(
 
   // 목표 외부 입술 윤곽선 그리기
   ctx.beginPath();
-  OUTER_LIP_LANDMARKS.forEach((index, i) => {
+  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
+    const index = OUTER_LIP_LANDMARKS[i];
     const landmark = targetLandmarks[index];
     if (landmark) {
       const point = toCanvas(landmark);
@@ -126,15 +128,15 @@ export function drawTargetMouthContours(
         ctx.lineTo(point.x, point.y);
       }
     }
-  });
+  }
   ctx.closePath();
   ctx.stroke();
 
-  // 목표 내부 입술 윤곽선 그리기
   ctx.strokeStyle = '#00FF00';
   ctx.lineWidth = 2;
   ctx.beginPath();
-  INNER_LIP_LANDMARKS.forEach((index, i) => {
+  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
+    const index = INNER_LIP_LANDMARKS[i];
     const landmark = targetLandmarks[index];
     if (landmark) {
       const point = toCanvas(landmark);
@@ -144,7 +146,7 @@ export function drawTargetMouthContours(
         ctx.lineTo(point.x, point.y);
       }
     }
-  });
+  }
   ctx.closePath();
   ctx.stroke();
 }

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { getSongLyricLines } from '../api/songs';
 import type { LyricLine } from '../api/songs/types';
@@ -14,6 +14,12 @@ import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { extractVowels } from '../utils/hangul';
+import {
+  calculateBlendshapeSimilarity,
+  TARGET_BLENDSHAPES,
+  filterTargetBlendshapes,
+} from '../utils/blendshapeProcessor';
+import targetVowelsData from '../target_vowels.json';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
@@ -43,10 +49,33 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     return lines.length > 1 ? lines.slice(0, lines.length - 1) : lines;
   }, [lines]);
 
+  const currentBlendshapesRef = useRef<Record<string, number>>({});
+  const similarityScoreRef = useRef<number | null>(null);
+  const lastUpdateTimeRef = useRef<number>(0);
+  const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
+  const [displaySimilarity, setDisplaySimilarity] = useState<number | null>(null);
+  const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
+
   useEffect(() => {
     setMode('line');
     return () => setMode(null);
   }, [setMode]);
+
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      if (!vowel) return null;
+      if (targetBlendshapesCacheRef.current[vowel]) {
+        return targetBlendshapesCacheRef.current[vowel];
+      }
+      const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
+      if (target) {
+        targetBlendshapesCacheRef.current[vowel] = target;
+        return target;
+      }
+      return null;
+    },
+    [],
+  );
 
   useEffect(() => {
     if (!songId) return;
@@ -90,6 +119,30 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const vowels = React.useMemo(
     () => extractVowels(displayLine?.originalText ?? ''),
     [displayLine?.originalText],
+  );
+  const currentVowel = vowels[0] || null;
+
+  const handleCameraResults = useCallback(
+    (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
+      if (!results.blendshapes) return;
+
+      const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
+      currentBlendshapesRef.current = filteredBlendshapes;
+
+      const targetBlendshapes = getTargetBlendshapes(currentVowel);
+      if (targetBlendshapes) {
+        const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
+        similarityScoreRef.current = similarity;
+      }
+
+      const now = performance.now();
+      if (now - lastUpdateTimeRef.current >= 33) {
+        lastUpdateTimeRef.current = now;
+        setDisplayBlendshapes({ ...filteredBlendshapes });
+        setDisplaySimilarity(similarityScoreRef.current);
+      }
+    },
+    [currentVowel, getTargetBlendshapes],
   );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
@@ -228,7 +281,57 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
               borderRadius: BORDER_RADIUS.md,
             }}
           >
-            <CameraComponent width={scaled(700)} height={scaled(449)} vowels={vowels} />
+            <CameraComponent
+              width={scaled(700)}
+              height={scaled(449)}
+              vowels={vowels}
+              onResults={handleCameraResults}
+            />
+            {displaySimilarity !== null && currentVowel && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: scaled(10),
+                  right: scaled(10),
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  color: COLORS.white,
+                  padding: `${scaled(12)} ${scaled(16)}`,
+                  borderRadius: scaled(8),
+                  fontSize: scaled(16),
+                  fontFamily: FONTS.primary,
+                  zIndex: 10,
+                  minWidth: scaled(200),
+                }}
+              >
+                <div style={{ fontWeight: FONT_WEIGHTS.semibold, marginBottom: scaled(4) }}>
+                  Similarity Score (임시)
+                </div>
+                <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>
+                  모음: {currentVowel}
+                </div>
+                <div
+                  style={{
+                    fontSize: scaled(24),
+                    fontWeight: FONT_WEIGHTS.bold,
+                    color:
+                      displaySimilarity > 0.7
+                        ? '#4CAF50'
+                        : displaySimilarity > 0.5
+                          ? '#FFC107'
+                          : '#F44336',
+                  }}
+                >
+                  {(displaySimilarity * 100).toFixed(1)}%
+                </div>
+                <div style={{ fontSize: scaled(12), marginTop: scaled(8), opacity: 0.8 }}>
+                  {TARGET_BLENDSHAPES.map(name => (
+                    <div key={name} style={{ marginTop: scaled(2) }}>
+                      {name}: {displayBlendshapes[name]?.toFixed(3) ?? 'N/A'}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

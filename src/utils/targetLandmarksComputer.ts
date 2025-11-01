@@ -10,7 +10,6 @@ import {
   calculateHybridRotationAngles,
   estimateDepthFromRotation,
   calculateDistanceScale,
-  applyDistanceScale,
   validateCoordinateSystem,
   validateNormalization,
   findMouthCenterWithAnchor,
@@ -60,14 +59,20 @@ export class TargetLandmarksComputer {
   computeTargetLandmarks(allLandmarks: LandmarkPoint[]): Record<number, LandmarkPoint> {
     if (!this.targetVowel) return {};
 
-    // 현재 랜드마크를 Point3D 형식으로 변환
-    const currentLandmarks = allLandmarks.map(lm => ({ x: lm.x, y: lm.y, z: lm.z }));
+    // 현재 랜드마크를 Point3D 형식으로 변환 (최적화: 직접 배열 생성)
+    const currentLandmarks: Point3D[] = new Array(allLandmarks.length);
+    for (let i = 0; i < allLandmarks.length; i++) {
+      const lm = allLandmarks[i];
+      currentLandmarks[i] = { x: lm.x, y: lm.y, z: lm.z };
+    }
     //*여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
     if (!this.personalCoordinateSystem) {
       // vowel_calibration.json의 neutral 데이터를 Point3D 배열로 변환
       // calibration 데이터도 인덱스 기반 배열로 변환해야 함
       const neutralLandmarks: Point3D[] = new Array(478);
-      Object.entries(neutral.landmarks).forEach(([id, coords]) => {
+      const neutralEntries = Object.entries(neutral.landmarks);
+      for (let i = 0; i < neutralEntries.length; i++) {
+        const [id, coords] = neutralEntries[i];
         const index = parseInt(id);
         if (index >= 0 && index < 478) {
           neutralLandmarks[index] = {
@@ -76,7 +81,7 @@ export class TargetLandmarksComputer {
             z: coords[2],
           };
         }
-      });
+      }
 
       // 필요한 랜드마크가 모두 있는지 확인
       const requiredLandmarks = [1, 10, 13, 14, 133, 362];
@@ -131,55 +136,65 @@ export class TargetLandmarksComputer {
     const dynamicSystem = dynamicCoordinateSystem;
     const distanceScale = calculateDistanceScale(personalSystem, dynamicSystem);
 
-    // 각 목표 랜드마크에 대해 좌표 변환 수행
-    Object.entries(targetShape).forEach(([id, targetPoint]) => {
-      // 목표 형태 입술 중앙점으로부터의 상대 위치 계산
-      const relativePoint = {
-        x: targetPoint.x - jsonMouthCenter.x,
-        y: targetPoint.y - jsonMouthCenter.y,
-        z: (targetPoint.z || 0) - (jsonMouthCenter.z || 0),
-      };
+    // 각 목표 랜드마크에 대해 좌표 변환 수행 (최적화: for loop, 빠른 계산을 위해 변수 캐싱)
+    const targetEntries = Object.entries(targetShape);
+    const entryCount = targetEntries.length;
+    const personalXAxis = personalSystem.xAxis;
+    const personalYAxis = personalSystem.yAxis;
+    const personalZAxis = personalSystem.zAxis;
+    const dynamicXAxis = dynamicSystem.xAxis;
+    const dynamicYAxis = dynamicSystem.yAxis;
+    const dynamicZAxis = dynamicSystem.zAxis;
+    const mouthCenterX = currentMouthCenter.x;
+    const mouthCenterY = currentMouthCenter.y;
+    const mouthCenterZ = currentMouthCenter.z || 0;
+    const jsonMouthCenterX = jsonMouthCenter.x;
+    const jsonMouthCenterY = jsonMouthCenter.y;
+    const jsonMouthCenterZ = jsonMouthCenter.z || 0;
 
-      // 거리 스케일 적용
-      const scaledRelativePoint = applyDistanceScale(relativePoint, distanceScale);
+    for (let i = 0; i < entryCount; i++) {
+      const [id, targetPoint] = targetEntries[i];
+      // 목표 형태 입술 중앙점으로부터의 상대 위치 계산 (인라인 최적화)
+      const relX = targetPoint.x - jsonMouthCenterX;
+      const relY = targetPoint.y - jsonMouthCenterY;
+      const relZ = (targetPoint.z || 0) - jsonMouthCenterZ;
 
-      // 개인화 좌표계 기준으로 로컬 좌표 계산
+      // 거리 스케일 적용 (인라인, 함수 호출 제거)
+      const scaledRelX = relX * distanceScale;
+      const scaledRelY = relY * distanceScale;
+      const scaledRelZ = relZ * distanceScale;
+
+      // 개인화 좌표계 기준으로 로컬 좌표 계산 (인라인, 변수 재사용)
       const localX =
-        scaledRelativePoint.x * personalSystem.xAxis.x +
-        scaledRelativePoint.y * personalSystem.xAxis.y +
-        scaledRelativePoint.z * (personalSystem.xAxis.z || 0);
+        scaledRelX * personalXAxis.x +
+        scaledRelY * personalXAxis.y +
+        scaledRelZ * (personalXAxis.z || 0);
       const localY =
-        scaledRelativePoint.x * personalSystem.yAxis.x +
-        scaledRelativePoint.y * personalSystem.yAxis.y +
-        scaledRelativePoint.z * (personalSystem.yAxis.z || 0);
+        scaledRelX * personalYAxis.x +
+        scaledRelY * personalYAxis.y +
+        scaledRelZ * (personalYAxis.z || 0);
       const localZ =
-        scaledRelativePoint.x * personalSystem.zAxis.x +
-        scaledRelativePoint.y * personalSystem.zAxis.y +
-        scaledRelativePoint.z * (personalSystem.zAxis.z || 0);
+        scaledRelX * personalZAxis.x +
+        scaledRelY * personalZAxis.y +
+        scaledRelZ * (personalZAxis.z || 0);
 
-      // 동적 좌표계로 월드 좌표 변환
+      // 동적 좌표계로 월드 좌표 변환 (인라인)
       const transformedX =
-        currentMouthCenter.x +
-        localX * dynamicSystem.xAxis.x +
-        localY * dynamicSystem.yAxis.x +
-        localZ * dynamicSystem.zAxis.x;
+        mouthCenterX + localX * dynamicXAxis.x + localY * dynamicYAxis.x + localZ * dynamicZAxis.x;
       const transformedY =
-        currentMouthCenter.y +
-        localX * dynamicSystem.xAxis.y +
-        localY * dynamicSystem.yAxis.y +
-        localZ * dynamicSystem.zAxis.y;
+        mouthCenterY + localX * dynamicXAxis.y + localY * dynamicYAxis.y + localZ * dynamicZAxis.y;
       const transformedZ =
-        (currentMouthCenter.z || 0) +
-        localX * (dynamicSystem.xAxis.z || 0) +
-        localY * (dynamicSystem.yAxis.z || 0) +
-        localZ * (dynamicSystem.zAxis.z || 0);
+        mouthCenterZ +
+        localX * (dynamicXAxis.z || 0) +
+        localY * (dynamicYAxis.z || 0) +
+        localZ * (dynamicZAxis.z || 0);
 
       targetLandmarks[parseInt(id)] = {
         x: transformedX,
         y: transformedY,
         z: transformedZ + depthCorrection,
       };
-    });
+    }
 
     // 디버깅 로그 (1% 확률로 출력)
     if (Math.random() < 0.01) {

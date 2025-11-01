@@ -4,56 +4,6 @@
  * 블렌드쉐이프 -> 입술이 얼마나 열리고 닫히는지 등의 정보
  */
 
-export const BLENDSHAPE_NAMES = [
-  'neutral',
-  'browDownLeft',
-  'browDownRight',
-  'browInnerUp',
-  'browOuterUpLeft',
-  'browOuterUpRight',
-  'eyeLookDownLeft',
-  'eyeLookDownRight',
-  'eyeLookInLeft',
-  'eyeLookInRight',
-  'eyeLookOutLeft',
-  'eyeLookOutRight',
-  'eyeLookUpLeft',
-  'eyeLookUpRight',
-  'eyeSquintLeft',
-  'eyeSquintRight',
-  'eyeWideLeft',
-  'eyeWideRight',
-  'jawForward',
-  'jawLeft',
-  'jawOpen',
-  'jawRight',
-  'mouthClose',
-  'mouthDimpleLeft',
-  'mouthDimpleRight',
-  'mouthFrownLeft',
-  'mouthFrownRight',
-  'mouthFunnel',
-  'mouthLeft',
-  'mouthLowerDownLeft',
-  'mouthLowerDownRight',
-  'mouthPressLeft',
-  'mouthPressRight',
-  'mouthPucker',
-  'mouthRight',
-  'mouthRollLower',
-  'mouthRollUpper',
-  'mouthShrugLower',
-  'mouthShrugUpper',
-  'mouthSmileLeft',
-  'mouthSmileRight',
-  'mouthStretchLeft',
-  'mouthStretchRight',
-  'mouthUpperUpLeft',
-  'mouthUpperUpRight',
-  'noseSneerLeft',
-  'noseSneerRight',
-];
-
 /** 발음 훈련을 위한 목표 블렌드쉐이프 */
 export const TARGET_BLENDSHAPES = [
   'jawOpen',
@@ -62,6 +12,15 @@ export const TARGET_BLENDSHAPES = [
   'mouthSmileRight',
   'mouthFunnel',
 ];
+
+/** 유사도 계산 시 사용하는 블렌드쉐이프별 가중치 */
+export const BLENDSHAPE_WEIGHTS: Record<string, number> = {
+  jawOpen: 2.0,
+  mouthPucker: 1.5,
+  mouthSmileLeft: 1.2,
+  mouthSmileRight: 1.2,
+  mouthFunnel: 1.0,
+};
 
 /**
  * 블렌드쉐이프 평활화를 위한 클래스
@@ -161,19 +120,83 @@ export function displayBlendshapesAsObjects(blendshapes: any[]): string {
 
 /**
  * 블렌드쉐이프를 숫자 배열 형태로 표시합니다
- * @param blendshapes - 블렌드쉐이프 숫자 배열
+ * @param blendshapes - 블렌드쉐이프 숫자 배열 (MediaPipe 표준 순서)
  * @returns HTML 문자열
+ *
+ * 참고: MediaPipe의 기본 blendshape 순서를 사용합니다
+ * 실제 사용 시에는 displayBlendshapesAsObjects를 사용하는 것이 더 안정적입니다.
  */
 export function displayBlendshapesAsNumbers(blendshapes: number[]): string {
   let html = '';
+  const targetIndices: Record<string, number> = {
+    jawOpen: 20,
+    mouthPucker: 41,
+    mouthSmileLeft: 47,
+    mouthSmileRight: 48,
+    mouthFunnel: 35,
+  };
 
-  TARGET_BLENDSHAPES.forEach(targetName => {
-    const index = BLENDSHAPE_NAMES.indexOf(targetName);
-    if (index !== -1 && index < blendshapes.length) {
+  for (let i = 0; i < TARGET_BLENDSHAPES.length; i++) {
+    const targetName = TARGET_BLENDSHAPES[i];
+    const index = targetIndices[targetName];
+    if (index !== undefined && index < blendshapes.length) {
       const score = blendshapes[index];
       html += `<span class="blendshapeValue">${targetName}:</span> ${score.toFixed(3)}<br/>`;
     }
-  });
+  }
 
   return html;
+}
+
+/**
+ * TARGET_BLENDSHAPES만 필터링합니다
+ */
+export function filterTargetBlendshapes(
+  allBlendshapes: Record<string, number>,
+): Record<string, number> {
+  const filtered: Record<string, number> = {};
+  TARGET_BLENDSHAPES.forEach(name => {
+    if (allBlendshapes[name] !== undefined) {
+      filtered[name] = allBlendshapes[name];
+    }
+  });
+  return filtered;
+}
+
+/**
+ * 현재 블렌드쉐이프와 목표 블렌드쉐이프의 유사도를 계산합니다
+ * @param currentBlendshapes - 현재 프레임의 블렌드쉐이프
+ * @param targetBlendshapes - 목표 모음의 블렌드쉐이프
+ * @param weights - 블렌드쉐이프별 가중치 (선택, 기본값: BLENDSHAPE_WEIGHTS)
+ * @returns 유사도 점수 (0.0 ~ 1.0, 1.0 = 완벽한 일치)
+ */
+export function calculateBlendshapeSimilarity(
+  currentBlendshapes: Record<string, number>,
+  targetBlendshapes: Record<string, number>,
+  weights: Record<string, number> = BLENDSHAPE_WEIGHTS,
+): number {
+  let totalWeightedSquaredError = 0;
+  let totalWeight = 0;
+
+  for (let i = 0; i < TARGET_BLENDSHAPES.length; i++) {
+    const blendshapeName = TARGET_BLENDSHAPES[i];
+    const currentValue = currentBlendshapes[blendshapeName] ?? 0;
+    const targetValue = targetBlendshapes[blendshapeName] ?? 0;
+    const difference = Math.abs(currentValue - targetValue);
+    const squaredError = difference * difference;
+    const weight = weights[blendshapeName] || 1.0;
+    totalWeightedSquaredError += squaredError * weight;
+    totalWeight += weight;
+  }
+
+  if (totalWeight === 0) {
+    return 0.0;
+  }
+
+  const averageSquaredError = totalWeightedSquaredError / totalWeight;
+  const rmse = Math.sqrt(averageSquaredError);
+  const strictError = Math.pow(rmse, 1.2);
+  const similarity = Math.max(0, Math.min(1, 1 - strictError));
+
+  return similarity;
 }
