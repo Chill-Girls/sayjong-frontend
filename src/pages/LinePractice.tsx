@@ -77,18 +77,19 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   }, [songId]);
 
   // 화면에 보여줄 소절 선택(선택된 소절 또는 usableLines의 첫 소절 또는 빈값)
-  const displayLine = selected ?? usableLines[0] ?? {
-    lyricLineId: 0,
-    lineNo: 0,
-    originalText: '',
-    textRomaja: '',
-    textEng: '',
-    startTime: 0,
-  };
+  const displayLine = selected ??
+    usableLines[0] ?? {
+      lyricLineId: 0,
+      lineNo: 0,
+      originalText: '',
+      textRomaja: '',
+      textEng: '',
+      startTime: 0,
+    };
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
   const totalLines = usableLines.length;
-  const currentIndex = usableLines.findIndex((l) => l.lyricLineId === displayLine.lyricLineId);
+  const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
 
   // 예시 데이터
@@ -127,13 +128,17 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   // 이전/다음 소절 이동 핸들러
   const handlePrevLine = () => {
     if (!usableLines || usableLines.length === 0) return;
-    const idx = usableLines.findIndex((l) => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId));
+    const idx = usableLines.findIndex(
+      l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
+    );
     if (idx > 0) setSelected(usableLines[idx - 1]);
   };
 
   const handleNextLine = () => {
     if (!usableLines || usableLines.length === 0) return;
-    const idx = usableLines.findIndex((l) => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId));
+    const idx = usableLines.findIndex(
+      l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
+    );
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
   };
 
@@ -276,9 +281,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             {/* 한글 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 letterSpacing: '0.05em',
                 color: COLORS.dark,
@@ -291,9 +294,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             {/* 영어 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24)),
                 fontWeight: FONT_WEIGHTS.light,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
@@ -305,9 +306,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             {/* 로마자 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 color: COLORS.textSecondary,
                 textAlign: 'center',

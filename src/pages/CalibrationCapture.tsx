@@ -218,7 +218,6 @@ const CalibrationCapture: React.FC = () => {
         'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
     } catch (error) {
- 
       // axios 에러 처리
       console.error('서버 전송 또는 계산 실패:', error);
 
