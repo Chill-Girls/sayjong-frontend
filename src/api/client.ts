@@ -3,7 +3,6 @@ import axios from 'axios';
 export const apiClient = axios.create({
   baseURL: '/api',
   timeout: 5000,
-  withCredentials: true,
 });
 
 // 요청에 accessToken 자동 부착
