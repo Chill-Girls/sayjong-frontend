@@ -12,6 +12,7 @@ import BtnNext from '../components/Btn_next';
 import { exampleLinePracticeData } from '../temp/examplelyricsdata';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
+import { extractVowels } from '../utils/hangul';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
@@ -37,6 +38,8 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
   // 예시 데이터
   const songTitle = 'Soda Pop';
   const singer = 'Saja Boys';
+  const currentLine = exampleLinePracticeData[0];
+  const vowels = extractVowels(currentLine.originalText);
 
   // 글자 수에 따라 폰트 크기를 조정하는 함수
   const getAdaptiveFontSize = (
@@ -137,7 +140,7 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
               borderRadius: BORDER_RADIUS.md,
             }}
           >
-            <CameraComponent width={scaled(700)} height={scaled(449)} />
+            <CameraComponent width={scaled(700)} height={scaled(449)} vowels={vowels} />
           </div>
         </div>
 
@@ -177,44 +180,38 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
             {/* 한글 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(exampleLinePracticeData[0].originalText, 56, 56, 40),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(currentLine.originalText, 56, 56, 40)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 letterSpacing: '0.05em',
                 color: COLORS.dark,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData[0].originalText}
+              {currentLine.originalText}
             </div>
 
             {/* 영어 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(exampleLinePracticeData[0].textEng, 32, 32, 24),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(currentLine.textEng, 32, 32, 24)),
                 fontWeight: FONT_WEIGHTS.light,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData[0].textEng}
+              {currentLine.textEng}
             </div>
 
             {/* 로마자 가사 */}
             <div
               style={{
-                fontSize: scaled(
-                  getAdaptiveFontSize(exampleLinePracticeData[0].tesxRomaja, 40, 40, 28),
-                ),
+                fontSize: scaled(getAdaptiveFontSize(currentLine.tesxRomaja, 40, 40, 28)),
                 fontWeight: FONT_WEIGHTS.semibold,
                 color: COLORS.textSecondary,
                 textAlign: 'center',
               }}
             >
-              {exampleLinePracticeData[0].tesxRomaja}
+              {currentLine.tesxRomaja}
             </div>
           </div>
 
