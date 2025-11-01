@@ -38,12 +38,14 @@ interface CameraComponentProps {
   }) => void;
   width?: string;
   height?: string;
+  vowels: (string | null)[];
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onResults,
   width = '563px',
   height = '357px',
+  vowels = [],
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -51,7 +53,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [error, setError] = useState<string | null>(null);
 
   // 목표 모음 오버레이 설정
-  const TARGET_VOWEL = 'ㅔ';
+  const TARGET_VOWEL = vowels.length > 0 ? vowels[0] : null;
 
   // 처리 유틸리티 초기화
   const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
@@ -217,7 +219,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     };
 
     initializeCamera();
-  }, [onResults]);
+  }, [onResults, vowels]);
 
   const canvasWidth = parseInt(width);
   const canvasHeight = parseInt(height);
