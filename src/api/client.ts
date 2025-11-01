@@ -21,7 +21,6 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   res => res,
   error => {
-    const originalRequest = error?.config;
     if (error?.response?.status === 401) {
       // 클라이언트에 저장된 토큰 제거
       localStorage.removeItem('accessToken');
