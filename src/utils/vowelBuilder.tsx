@@ -130,3 +130,70 @@ export function getMouthCenterFromShape(targetShape: Record<number, Point3D>): P
     z: ((upperLip.z || 0) + (lowerLip.z || 0)) / 2,
   };
 }
+
+/**
+ * 목표 모음의 블렌드쉐이프 값 생성
+ * 보정된 기본 모음(ㅏ, ㅜ, ㅣ)을 기반으로 다른 모음의 블렌드쉐이프를 선형 보간하여 생성
+ * @param vowel - 생성할 모음 (예: 'ㅏ', 'ㅜ', 'ㅣ', 'ㅔ' 등)
+ * @param customCalibrationData - 선택적으로 제공할 캘리브레이션 데이터 (없으면 기본 import 사용)
+ * @returns 블렌드쉐이프 이름별 값 맵
+ */
+export function buildTargetVowelBlendshapes(
+  vowel: string,
+  customCalibrationData?: any,
+): Record<string, number> {
+  // 커스텀 데이터가 제공되면 그것을 사용, 아니면 기본 import 사용
+  const calibData = customCalibrationData || calibrationData;
+
+  const isCalibratedVowel =
+    vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ' || vowel === 'ㅑ' || vowel === 'ㅠ';
+
+  if (isCalibratedVowel) {
+    // 보정된 데이터 직접 사용
+    const calibratedKey =
+      vowel === 'ㅏ' || vowel === 'ㅑ' ? 'a' : vowel === 'ㅜ' || vowel === 'ㅠ' ? 'u' : 'i';
+    return calibData[calibratedKey].blendshapes || {};
+  }
+
+  // 계수를 이용한 보간
+  if (!(vowel in VOWEL_COEFFS_MONO)) {
+    console.warn(`Unknown vowel for blendshape interpolation: ${vowel}`);
+    return {};
+  }
+
+  const coeffs = VOWEL_COEFFS_MONO[vowel];
+  const neutral = calibData.neutral.blendshapes || {};
+  const a = calibData.a.blendshapes || {};
+  const u = calibData.u.blendshapes || {};
+  const i = calibData.i.blendshapes || {};
+
+  // 모든 고유 블렌드쉐이프 이름 수집
+  const allBlendshapeNames = new Set<string>();
+  [neutral, a, u, i].forEach(bs => {
+    Object.keys(bs).forEach(name => allBlendshapeNames.add(name));
+  });
+
+  // 각 블렌드쉐이프에 대해 보간 수행
+  const targetBlendshapes: Record<string, number> = {};
+
+  allBlendshapeNames.forEach(name => {
+    const neutralVal = neutral[name] || 0;
+    const aVal = a[name] || 0;
+    const uVal = u[name] || 0;
+    const iVal = i[name] || 0;
+
+    // 중립 상태로부터의 변화량 계산
+    const deltaA = aVal - neutralVal;
+    const deltaU = uVal - neutralVal;
+    const deltaI = iVal - neutralVal;
+
+    // 선형 보간을 통한 목표 블렌드쉐이프 값 생성
+    const targetValue =
+      neutralVal + coeffs.open * deltaA + coeffs.round * deltaU + coeffs.spread * deltaI;
+
+    // 음수 값은 0으로 클리핑 (블렌드쉐이프 값은 0~1 범위)
+    targetBlendshapes[name] = Math.max(0, Math.min(1, targetValue));
+  });
+
+  return targetBlendshapes;
+}

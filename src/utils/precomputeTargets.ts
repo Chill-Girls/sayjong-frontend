@@ -6,7 +6,7 @@
  * 성능 향상 및 백엔드 저장을 위한 데이터 생성
  */
 
-import { buildTargetVowelShape } from './vowelBuilder';
+import { buildTargetVowelShape, buildTargetVowelBlendshapes } from './vowelBuilder';
 import axios from 'axios';
 
 /**
@@ -53,6 +53,9 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
       // buildTargetVowelShape는 캘리브레이션 데이터를 기반으로 목표 형태 생성
       const targetShape = buildTargetVowelShape(vowel, calibrationData);
 
+      // buildTargetVowelBlendshapes로 블렌드쉐이프 값 계산
+      const targetBlendshapes = buildTargetVowelBlendshapes(vowel, calibrationData);
+
       // Point3D를 확정된 z값을 가진 객체로 변환
       const landmarks: { [landmarkId: string]: { x: number; y: number; z: number } } = {};
       Object.entries(targetShape).forEach(([id, point]) => {
@@ -65,10 +68,12 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
 
       vowelTargets[vowel] = {
         landmarks,
-        blendshapes: calibrationData[vowel]?.blendshapes || {}, // 있으면 포함
+        blendshapes: targetBlendshapes, // 계산된 블렌드쉐이프 값 사용
       };
 
-      console.log(`${vowel} 목표 좌표 계산 완료 (${Object.keys(targetShape).length}개 랜드마크)`);
+      console.log(
+        `${vowel} 목표 좌표 계산 완료 (${Object.keys(targetShape).length}개 랜드마크, ${Object.keys(targetBlendshapes).length}개 블렌드쉐이프)`,
+      );
     } catch (error) {
       console.error(`${vowel} 계산 실패:`, error);
       // 실패한 경우 빈 객체로 설정
@@ -94,7 +99,7 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
  * @param precomputedData - 미리 계산된 목표 좌표 데이터
  * @param filename - 저장할 파일명 (기본값: 'target_vowels.json')
  */
-/*export function downloadPrecomputedTargets(
+export function downloadPrecomputedTargets(
   precomputedData: PrecomputedTargets,
   filename: string = 'target_vowels.json',
 ) {
@@ -107,7 +112,8 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
   a.click();
   URL.revokeObjectURL(url);
 
-  console.log(`${filename} 다운로드 완료`);*/
+  console.log(`${filename} 다운로드 완료`);
+}
 
 // CalibrationCapture.tsx에 있던 타입을 가져옴
 interface CapturedFrame {

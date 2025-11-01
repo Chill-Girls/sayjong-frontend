@@ -63,14 +63,6 @@ export const TARGET_BLENDSHAPES = [
   'mouthFunnel',
 ];
 
-/** 추가 발음 관련 블렌드쉐이프 */
-export const ADDITIONAL_BLENDSHAPES = [
-  'mouthClose',
-  'mouthStretchLeft',
-  'mouthStretchRight',
-  'browInnerUp',
-];
-
 /**
  * 블렌드쉐이프 평활화를 위한 클래스
  * EMA(지수 이동 평균) 필터링을 사용하여 블렌드쉐이프 데이터를 부드럽게 만듭니다
@@ -164,20 +156,6 @@ export function displayBlendshapesAsObjects(blendshapes: any[]): string {
     html += 'No target blendshapes found<br/>';
   }
 
-  html += '<br/><strong>Additional Pronunciation Blendshapes:</strong><br/>';
-  const additionalData = blendshapes.filter((bs: any) => {
-    const name = bs.categoryName || bs.category || bs.name || '';
-    return ADDITIONAL_BLENDSHAPES.includes(name);
-  });
-
-  if (additionalData.length > 0) {
-    additionalData.forEach((bs: any) => {
-      const name = bs.categoryName || bs.category || bs.name;
-      const score = bs.score || bs.value || 0;
-      html += `<span class="blendshapeValue">${name}:</span> ${score.toFixed(3)}<br/>`;
-    });
-  }
-
   return html;
 }
 
@@ -190,15 +168,6 @@ export function displayBlendshapesAsNumbers(blendshapes: number[]): string {
   let html = '';
 
   TARGET_BLENDSHAPES.forEach(targetName => {
-    const index = BLENDSHAPE_NAMES.indexOf(targetName);
-    if (index !== -1 && index < blendshapes.length) {
-      const score = blendshapes[index];
-      html += `<span class="blendshapeValue">${targetName}:</span> ${score.toFixed(3)}<br/>`;
-    }
-  });
-
-  html += '<br/><strong>Additional Pronunciation Blendshapes:</strong><br/>';
-  ADDITIONAL_BLENDSHAPES.forEach(targetName => {
     const index = BLENDSHAPE_NAMES.indexOf(targetName);
     if (index !== -1 && index < blendshapes.length) {
       const score = blendshapes[index];
