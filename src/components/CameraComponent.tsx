@@ -38,7 +38,7 @@ interface CameraComponentProps {
   }) => void;
   width?: string;
   height?: string;
-  vowels: (string | null)[];
+  vowels?: (string | null)[];
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
