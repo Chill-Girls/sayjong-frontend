@@ -17,7 +17,11 @@ import {
   buttonDisabled,
   scaled,
 } from '../styles/mixins';
-import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
+import {
+  precomputeAllTargetVowels,
+  saveTargetsToBackend,
+  downloadPrecomputedTargets,
+} from '../utils/precomputeTargets';
 import axios from 'axios';
 
 interface CalibrationData {
@@ -184,7 +188,7 @@ const CalibrationCapture: React.FC = () => {
         blendshapes: capturedBlendshapes,
       };
 
-      setCalibrationData(prev => ({
+      setCalibrationData((prev: CalibrationData) => ({
         ...prev,
         [currentVowel]: frame,
       }));
@@ -196,11 +200,25 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const handleSaveClick = async () => {
+    const calibJson = JSON.stringify(calibrationData, null, 2);
+    const calibBlob = new Blob([calibJson], { type: 'application/json' });
+    const calibUrl = URL.createObjectURL(calibBlob);
+    const calibLink = document.createElement('a');
+    calibLink.href = calibUrl;
+    calibLink.download = 'vowel_calibration.json';
+    calibLink.click();
+    URL.revokeObjectURL(calibUrl);
+    console.log('캘리브레이션 백업 데이터 다운로드 완료');
+
     setIsSaving(true);
 
     try {
       console.log('모든 모음의 목표 좌표 계산 중...');
       const precomputedTargets = precomputeAllTargetVowels(calibrationData);
+
+      // 타겟 vowels JSON 다운로드 (블렌드쉐이프 포함)
+      downloadPrecomputedTargets(precomputedTargets, 'target_vowels.json');
+      console.log('타겟 vowels JSON 다운로드 완료');
 
       // 임시 토큰
       const TEMP_AUTH_TOKEN =
@@ -358,7 +376,9 @@ const CalibrationCapture: React.FC = () => {
             </h3>
             <select
               value={currentVowel}
-              onChange={e => setCurrentVowel(e.target.value as any)}
+              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                setCurrentVowel(e.target.value as 'neutral' | 'a' | 'u' | 'i')
+              }
               style={{
                 width: '100%',
                 padding: scaled(12),
