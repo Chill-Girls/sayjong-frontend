@@ -28,7 +28,7 @@ function downloadAudio(audioBlob: Blob, filename: string = "recording.ogg") {
     document.body.appendChild(link); // DOM에 추가 (클릭하려면 필요)
   
     // 3. 링크 속성 설정
-    link.href = url;
+    link.href = 'E:/2025-2/Capstone/sayjong-frontend/src/temp/recording.ogg';
     link.download = filename ; // 파일 이름 설정
   
     // 4. 강제 클릭! (다운로드 시작)

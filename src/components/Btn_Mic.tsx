@@ -1,11 +1,13 @@
 import btnMic from '../assets/btn_mic.svg';
 import { useState, useRef } from 'react';
+import { useRecording } from '../constants/RecordingContext';
 
 interface BtnMicProps {
   style?: React.CSSProperties;
 }
 
 const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
+    const { setRecordedAudioBlob } = useRecording();
     const [isRecording, setIsRecording] = useState(false);
     const mediaRecorderRef = useRef<MediaRecorder | null>(null);
     const audioChunksRef = useRef<Blob[]>([]);
@@ -27,13 +29,9 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
 
                 mediaRecorder.onstop = () => {
                     const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-                    // 녹음 파일 저장
-                    const url = URL.createObjectURL(audioBlob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `recording_${Date.now()}.webm`;
-                    link.click();
-                    URL.revokeObjectURL(url);
+                    // 녹음 데이터를 Context에 저장
+                    setRecordedAudioBlob(audioBlob);
+                    console.log('녹음 완료, temp 폴더에 저장됨 (메모리)');
                     
                     // 스트림 정리
                     stream.getTracks().forEach(track => track.stop());

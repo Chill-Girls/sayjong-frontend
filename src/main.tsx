@@ -11,6 +11,7 @@ import CalibrationCapture from './pages/CalibrationCapture.tsx';
 import Login from './pages/Login.tsx';
 import { Toaster } from 'react-hot-toast';
 import { ModeProvider } from './constants/ModeContext.tsx';
+import { RecordingProvider } from './constants/RecordingContext.tsx';
 
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
@@ -47,8 +48,10 @@ createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
       <ModeProvider>
-        <AppRouter />
-        <Toaster position="top-right" reverseOrder={false} />
+        <RecordingProvider>
+          <AppRouter />
+          <Toaster position="top-right" reverseOrder={false} />
+        </RecordingProvider>
       </ModeProvider>
     </BrowserRouter>
   </StrictMode>,

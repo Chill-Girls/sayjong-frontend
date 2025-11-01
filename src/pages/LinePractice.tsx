@@ -9,7 +9,7 @@ import BtnListenRecording from '../components/Btn_ListenRecording';
 import BtnTts from '../components/Btn_Tts';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
-import { exampleLinePracticeData } from '../constants/examplelyricsdata';
+import { exampleLinePracticeData } from '../temp/examplelyricsdata';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 
@@ -38,6 +38,8 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
   const songTitle = "Soda Pop";
   const singer = "Saja Boys";
 
+
+
   // 글자 수에 따라 폰트 크기를 조정하는 함수
   const getAdaptiveFontSize = (text: string, baseSize: number, maxSize: number, minSize: number) => {
     // 한글은 2바이트, 영문은 1바이트로 계산
@@ -59,10 +61,6 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
 
   const handleMyRecordingClick = () => {
     console.log('내 녹음 듣기 버튼 클릭');
-  };
-
-  const handleTtsClick = () => {
-    console.log('TTS 버튼 클릭');
   };
 
   return (
@@ -279,26 +277,14 @@ const LinePractice: FunctionComponent<LinePracticeProps> = () => {
           />
         </button>
 
-        <button
-          onClick={handleTtsClick}
+        <BtnTts
           style={{
             width: scaled(80),
             height: scaled(80),
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            padding: 0,
+            objectFit: 'cover',
+            borderRadius: '50%',
           }}
-          >
-          <BtnTts
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              borderRadius: '50%',
-            }}
-          />
-        </button>
+        />
       </div>
 
       <Footer />
