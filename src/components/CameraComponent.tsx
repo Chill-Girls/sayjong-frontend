@@ -18,7 +18,7 @@
  * - canvasRenderer: 캔버스 렌더링 유틸리티
  */
 
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
 import { BlendshapeSmoother, TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import { updateLandmarksDisplay } from '../utils/landmarksDisplay';
@@ -66,10 +66,12 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const cachedResultsRef = useRef<any>(null);
 
   // 목표 모음 오버레이 설정
-  const TARGET_VOWEL = vowels.length > 0 ? vowels[0] : null;
+  const targetVowelRef = useRef<string | null>(null);
+  const faceLandmarkerRef = useRef<any>(null);
+  const videoStreamRef = useRef<MediaStream | null>(null);
 
   // 처리 유틸리티 초기화
-  const targetLandmarksComputer = useRef(new TargetLandmarksComputer(TARGET_VOWEL));
+  const targetLandmarksComputer = useRef<TargetLandmarksComputer | null>(null);
   const blendshapeSmoother = useRef(new BlendshapeSmoother(0.7));
 
   useEffect(() => {
@@ -100,6 +102,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           minFacePresenceConfidence: 0.2,
           minTrackingConfidence: 0.2,
         });
+        faceLandmarkerRef.current = faceLandmarker;
 
         // 비디오 스트림 관리를 위한 Camera 클래스
         class Camera {
@@ -120,6 +123,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                 frameRate: { ideal: 60, max: 60 },
               },
             });
+            videoStreamRef.current = stream;
             this.video.srcObject = stream;
             await this.video.play();
 
@@ -167,9 +171,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
               const videoTime = videoRef.current.currentTime;
               if (videoTime !== lastVideoTimeRef.current) {
                 lastVideoTimeRef.current = videoTime;
-                results = faceLandmarker.detectForVideo(videoRef.current, now);
-                cachedResultsRef.current = results;
-                lastDetectionTimeRef.current = now;
+                if (faceLandmarkerRef.current) {
+                  results = faceLandmarkerRef.current.detectForVideo(videoRef.current, now);
+                  cachedResultsRef.current = results;
+                  lastDetectionTimeRef.current = now;
+                }
               }
             }
 
@@ -201,7 +207,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                 const allLandmarks = results.faceLandmarks![0];
                 drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
 
-                if (TARGET_VOWEL) {
+                const currentTargetVowel = targetVowelRef.current;
+                if (currentTargetVowel && targetLandmarksComputer.current) {
                   let targetLandmarks = cachedResultsRef.current?.lastTargetLandmarks;
 
                   if (timeSinceLastDetection >= 8 || !targetLandmarks) {
@@ -214,7 +221,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 
                   if (targetLandmarks) {
                     drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas);
-                    drawVowelLabel(canvasCtx, targetLandmarks, TARGET_VOWEL, toCanvas);
+                    drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas);
                   }
                 }
               }
@@ -297,6 +304,18 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           height: 357,
         });
 
+        // TARGET_VOWEL 업데이트
+        const currentTargetVowel = vowels.length > 0 ? vowels[0] : null;
+        targetVowelRef.current = currentTargetVowel;
+        
+        // TargetLandmarksComputer 초기화 또는 업데이트
+        if (!targetLandmarksComputer.current) {
+          targetLandmarksComputer.current = new TargetLandmarksComputer(currentTargetVowel);
+        } else {
+          // 기존 인스턴스가 있으면 targetVowel만 업데이트
+          targetLandmarksComputer.current.setTargetVowel(currentTargetVowel);
+        }
+
         await camera.start();
         setIsInitialized(true);
         setError(null);
@@ -311,12 +330,31 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     initializeCamera();
 
     return () => {
+      // 애니메이션 프레임 정리
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
+      
+      // 비디오 스트림 정리
+      if (videoStreamRef.current) {
+        videoStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+        videoStreamRef.current = null;
+      }
+      
+      // 비디오 요소 정리
+      if (videoRef.current) {
+        videoRef.current.srcObject = null;
+        videoRef.current.pause();
+      }
+      
+      // FaceLandmarker 정리
+      if (faceLandmarkerRef.current) {
+        faceLandmarkerRef.current.close();
+        faceLandmarkerRef.current = null;
+      }
     };
-  }, [onResults, vowels, TARGET_VOWEL]);
+  }, [onResults, vowels]);
 
   const canvasWidth = parseInt(width);
   const canvasHeight = parseInt(height);
