@@ -246,21 +246,20 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             ...flexColumn,
             alignItems: 'center',
             justifyContent: 'center',
-            minWidth: scaled(550),
+            minWidth: scaled(495), // 550 * 0.9
           }}
         >
           <div
             style={{
-              width: scaled(700),
-              height: scaled(449),
+              width: scaled(630), // CameraComponent와 동일한 너비
+              height: scaled((630 * 357) / 563), // 563:357 비율 유지
               position: 'relative',
               backgroundColor: COLORS.gray,
               borderRadius: BORDER_RADIUS.md,
             }}
           >
             <CameraComponent
-              width={scaled(700)}
-              height={scaled(449)}
+              width={scaled(630)}
               text={displayLine?.originalText ?? null}
               onResults={handleCameraResults}
             />
@@ -319,8 +318,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'center',
-            gap: scaled(30),
-            minWidth: scaled(400),
+            gap: scaled(27), // 30 * 0.9
+            minWidth: scaled(360), // 400 * 0.9
             position: 'relative',
           }}
         >
@@ -353,9 +352,9 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             style={{
               ...flexColumn,
               alignItems: 'center',
-              gap: scaled(20),
+              gap: scaled(18), // 20 * 0.9
               flex: 1,
-              maxWidth: scaled(600),
+              maxWidth: scaled(540), // 600 * 0.9
             }}
           >
             {/* 한글 가사 */}
@@ -445,13 +444,13 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       <div
         style={{
           alignSelf: 'stretch',
-          overflow: 'hidden',
+          overflow: 'visible',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: `0 ${scaled(193)}`,
+          padding: `${scaled(20)} ${scaled(193)}`,
           gap: scaled(80),
-          height: 'auto',
+          minHeight: scaled(120),
           zIndex: 3,
         }}
       >
@@ -463,14 +462,18 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             background: 'transparent',
             cursor: 'pointer',
             padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
           <BtnMic
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              borderRadius: '50%',
+              objectFit: 'contain',
+              display: 'block',
             }}
           />
         </button>
@@ -483,26 +486,45 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             background: 'transparent',
             cursor: 'pointer',
             padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
         >
           <BtnListenRecording
             style={{
               width: '100%',
               height: '100%',
-              objectFit: 'cover',
-              borderRadius: '50%',
+              objectFit: 'contain',
+              display: 'block',
             }}
           />
         </button>
 
-        <BtnTts
+        <button
           style={{
             width: scaled(80),
             height: scaled(80),
-            objectFit: 'cover',
-            borderRadius: '50%',
+            border: 'none',
+            background: 'transparent',
+            cursor: 'pointer',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
           }}
-        />
+        >
+          <BtnTts
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              display: 'block',
+            }}
+          />
+        </button>
       </div>
 
       <Footer />

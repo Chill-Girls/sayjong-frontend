@@ -40,10 +40,8 @@ interface CameraComponentProps {
     landmarks?: LandmarkPoint[];
     blendshapes?: Record<string, number>;
   }) => void;
-  /** 카메라 영역 너비 (기본값: '563px') */
+  /** 카메라 영역 너비 (기본값: '563px') - 높이는 자동으로 1.56:1 비율로 계산됨 */
   width?: string;
-  /** 카메라 영역 높이 (기본값: '357px') */
-  height?: string;
   /** 모음을 추출할 문장 */
   text?: string | null;
 }
@@ -51,9 +49,12 @@ interface CameraComponentProps {
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onResults,
   width = '563px',
-  height = '357px',
   text = null,
 }) => {
+  // 카메라 비율 563:357 (가로:세로) 고정
+  const widthValue = parseFloat(width.replace('px', ''));
+  const heightValue = (widthValue * 357) / 563;
+  const height = `${heightValue}px`;
   /** 비디오 엘리먼트 참조 */
   const videoRef = useRef<HTMLVideoElement>(null);
 
