@@ -3,7 +3,7 @@ import type { PronunciationAccuracyRequest } from './types';
 import { pronunciationAccuracyRequestSchema, pronunciationAccuracyResponseSchema } from './types';
 import { isAxiosError } from 'axios';
 
-const AI_SERVER_TIMEOUT = 15000;
+const AI_SERVER_TIMEOUT = 300000; //5분
 
 export async function getPronunciationAccuracy(data: PronunciationAccuracyRequest) {
   try {
