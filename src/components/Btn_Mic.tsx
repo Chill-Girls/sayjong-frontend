@@ -16,8 +16,16 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
     if (!isRecording) {
       // 녹음 시작
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        const mediaStreamConstraints = {
+          audio: {
+            channelCount: 1,
+            sampleRate: 48000,
+          },
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(mediaStreamConstraints);
         const mediaRecorder = new MediaRecorder(stream);
+
         mediaRecorderRef.current = mediaRecorder;
         audioChunksRef.current = [];
 
@@ -28,10 +36,10 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
         };
 
         mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
-          // 녹음 데이터를 Context에 저장
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg;' });
+
           setRecordedAudioBlob(audioBlob);
-          console.log('녹음 완료, temp 폴더에 저장됨 (메모리)');
+          console.log('녹음 완료, webm 데이터를 ogg로 라벨링하여 저장');
 
           // 스트림 정리
           stream.getTracks().forEach(track => track.stop());
@@ -39,7 +47,7 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
 
         mediaRecorder.start();
         setIsRecording(true);
-        console.log('녹음 시작');
+        console.log('녹음 시작 (브라우저 기본 포맷, Mono, 48kHz)');
       } catch (error) {
         console.error('마이크 접근 실패', error);
         alert('마이크를 사용할 수 없습니다. 권한을 확인해주세요.');

@@ -3,11 +3,20 @@ import { getPronunciationAccuracy } from '../api/pronunciation';
 import { useRecording } from '../constants/RecordingContext';
 
 function blobToBase64(blob: Blob): Promise<string> {
-  //TODO: 구현 예정
-  console.log('blobToBase64 호출됨. 목 데이터를 반환합니다:', blob);
-  return new Promise(resolve => {
-    const mockBase64Data = 'data:audio/ogg;base64,T2dn';
-    resolve(mockBase64Data);
+  const reader = new FileReader();
+
+  return new Promise((resolve, reject) => {
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('FileReader result is not a string'));
+      }
+    };
+    reader.onerror = () => {
+      reject(reader.error || new Error('Blob to Base64 conversion failed'));
+    };
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -34,7 +43,7 @@ export function usePronunciationCheck(titleToEvaluate: string) {
 
         try {
           const base64Audio = await blobToBase64(recordedAudioBlob);
-
+          console.log(base64Audio); //TODO: for debug! remove this
           const resultScore = await getPronunciationAccuracy({
             title: titleToEvaluate,
             language: 'ko',
