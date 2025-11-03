@@ -36,7 +36,7 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
         };
 
         mediaRecorder.onstop = () => {
-          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg;' });
+          const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/ogg' });
 
           setRecordedAudioBlob(audioBlob);
           console.log('녹음 완료, webm 데이터를 ogg로 라벨링하여 저장');
