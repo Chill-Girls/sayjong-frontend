@@ -83,12 +83,25 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const faceLandmarkerRef = useRef<any>(null);
   /** 비디오 스트림 참조 */
   const videoStreamRef = useRef<MediaStream | null>(null);
+  /** onResults 콜백을 ref로 관리 (의존성 변경 최소화) */
+  const onResultsRef = useRef(onResults);
+  useEffect(() => {
+    onResultsRef.current = onResults;
+  }, [onResults]);
 
   /** 모음 오버레이 렌더링 함수 */
   const { renderOverlay, currentVowel } = useVowelOverlay(text);
 
+  /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
+  const currentVowelRef = useRef<string | null>(null);
+  useEffect(() => {
+    currentVowelRef.current = currentVowel;
+  }, [currentVowel]);
+
   /** 유사도 점수 ref */
   const similarityScoreRef = useRef<number | null>(null);
+  /** 블렌드쉐이프 계산 throttling용 ref */
+  const lastBlendshapeCalcTimeRef = useRef<number>(0);
   /** 목표 블렌드쉐이프 캐시 */
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
 
@@ -124,9 +137,15 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const now = performance.now();
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
-        // 블렌드쉐이프 유사도 계산
+        // 블렌드쉐이프 유사도 계산 (throttling: 33ms마다, 약 30fps)
         let similarity: number | null = null;
-        if (results.faceBlendshapes?.[0]?.categories && currentVowel) {
+        if (
+          results.faceBlendshapes?.[0]?.categories &&
+          currentVowelRef.current &&
+          now - lastBlendshapeCalcTimeRef.current >= 33
+        ) {
+          lastBlendshapeCalcTimeRef.current = now;
+
           const blendshapeCategories = results.faceBlendshapes[0].categories;
           const currentBlendshapes: Record<string, number> = {};
 
@@ -138,12 +157,15 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           });
 
           const filteredBlendshapes = filterTargetBlendshapes(currentBlendshapes);
-          const targetBlendshapes = getTargetBlendshapes(currentVowel);
+          const targetBlendshapes = getTargetBlendshapes(currentVowelRef.current);
 
           if (targetBlendshapes) {
             similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
             similarityScoreRef.current = similarity;
           }
+        } else {
+          // 이전 계산 결과 재사용 (throttling 중)
+          similarity = similarityScoreRef.current;
         }
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
@@ -167,7 +189,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
       }
     },
-    [renderOverlay, currentVowel, getTargetBlendshapes],
+    [renderOverlay, getTargetBlendshapes],
   );
 
   /** 카메라 초기화 및 렌더링 설정 */
@@ -264,7 +286,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             }
 
             // 외부로 결과 전달
-            if (onResults && results) {
+            if (onResultsRef.current && results) {
               const processedResults = processedResultsRef.current;
               const hasFace = results.faceLandmarks && results.faceLandmarks.length > 0;
 
@@ -316,7 +338,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                 }
               }
 
-              onResults(processedResults);
+              onResultsRef.current(processedResults);
             }
           } catch (error) {
             console.error('Error detecting face:', error);
@@ -381,7 +403,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         faceLandmarkerRef.current = null;
       }
     };
-  }, [onResults, text]);
+  }, []); // 마운트 시 한 번만 실행
 
   return (
     <div style={{ position: 'relative', width, height }}>

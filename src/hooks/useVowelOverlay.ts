@@ -13,7 +13,7 @@ import type { LandmarkPoint } from '../constants/landmarks';
 
  */
 
-const intervalTime = 800;
+const intervalTime = 500;
 export function useVowelOverlay(text: string | null) {
   /*모음배열만들기*/
   const vowels = useMemo(() => {
