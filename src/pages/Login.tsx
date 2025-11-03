@@ -4,15 +4,12 @@ import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { login, signup } from '../api/auth';
 import SejongImage from '../assets/Sejong.png';
-import EyeOffIcon from '../assets/eye-off.svg';
+import InputField from '../components/InputField';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import {
   containerCentered,
   flexColumn,
   flexCenter,
-  inputField,
-  inputContainer,
-  inputLabel,
   buttonPrimary,
   buttonDisabled,
   logoSayJong,
@@ -104,7 +101,7 @@ const Login: FunctionComponent<LoginProps> = () => {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter') {
       handleSubmit();
     }
@@ -115,93 +112,6 @@ const Login: FunctionComponent<LoginProps> = () => {
     setError(null);
     setCredentials({ id: '', password: '', nickname: '' });
   };
-
-  // 재사용 가능한 입력 필드 컴포넌트
-  const InputField = ({
-    type,
-    value,
-    onChange,
-    label,
-  }: {
-    type: string;
-    value: string;
-    onChange: (value: string) => void;
-    label: string;
-  }) => (
-    <div
-      style={{
-        width: scaled(512),
-        ...flexColumn,
-      }}
-    >
-      <div style={inputContainer}>
-        <div
-          style={{
-            ...flexCenter,
-            alignSelf: 'stretch',
-            padding: `${scaled(type === 'password' ? 4 : 8)} 0 ${scaled(type === 'password' ? 4 : 8)} ${scaled(16)}`,
-          }}
-        >
-          <div
-            style={{
-              height: scaled(40),
-              flex: 1,
-              ...flexColumn,
-              justifyContent: 'center',
-              position: 'relative',
-            }}
-          >
-            <input
-              type={type}
-              value={value}
-              onChange={e => onChange(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder=""
-              disabled={isLoading}
-              style={{
-                ...inputField,
-                fontSize: FONT_SIZES.base,
-                position: 'relative',
-                zIndex: 2,
-              }}
-            />
-            <div
-              style={{
-                ...inputLabel,
-                top: scaled(-16),
-                left: scaled(-4),
-                padding: `0 ${scaled(4)}`,
-                fontSize: FONT_SIZES.sm,
-              }}
-            >
-              <div style={{ position: 'relative' }}>{label}</div>
-            </div>
-          </div>
-          {type === 'password' && (
-            <div
-              style={{
-                ...flexCenter,
-                height: scaled(48),
-                width: scaled(48),
-                padding: scaled(12),
-                boxSizing: 'border-box',
-                cursor: 'pointer',
-              }}
-            >
-              <img
-                src={EyeOffIcon}
-                alt="Toggle password visibility"
-                style={{
-                  width: scaled(24),
-                  height: scaled(24),
-                }}
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <div
@@ -220,24 +130,36 @@ const Login: FunctionComponent<LoginProps> = () => {
           width: '100%',
           display: 'flex',
           alignItems: 'center',
-          gap: scaled(18),
+          gap: scaled(60),
           minWidth: scaled(1100),
           maxWidth: scaled(1200),
           zIndex: 0,
           position: 'relative',
         }}
       >
-        {/* SayJong 로고 */}
+        {/* 세종대왕 이미지 */}
         <div
           style={{
-            ...logoSayJong,
-            position: 'absolute',
-            top: scaled(-80),
-            left: 0,
+            flex: 0.9662,
+            display: 'flex',
+            alignItems: 'flex-start',
+            padding: scaled(10),
+            marginLeft: scaled(-100),
+            marginTop: scaled(10),
           }}
         >
-          <span>Say</span>
-          <span style={{ color: COLORS.dark }}>Jong</span>
+          <img
+            src={SejongImage}
+            style={{
+              flex: 1,
+              position: 'relative',
+              maxWidth: '100%',
+              overflow: 'hidden',
+              maxHeight: '100%',
+              objectFit: 'cover',
+            }}
+            alt="Sejong"
+          />
         </div>
 
         {/* 폼 영역 */}
@@ -247,8 +169,22 @@ const Login: FunctionComponent<LoginProps> = () => {
             ...flexColumn,
             alignItems: 'flex-start',
             gap: scaled(70),
+            position: 'relative',
+            marginTop: scaled(40),
           }}
         >
+          {/* SayJong 로고 */}
+          <div
+            style={{
+              ...logoSayJong,
+              position: 'absolute',
+              top: scaled(-80),
+              left: 0,
+            }}
+          >
+            <span>SAY</span>
+            <span style={{ color: COLORS.dark }}>JONG</span>
+          </div>
           {/* 타이틀 */}
           <div
             style={{
@@ -265,7 +201,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                 fontSize: FONT_SIZES.xxl,
               }}
             >
-              {isSignUp ? 'SIGN UP' : 'LOGIN'}
+              {isSignUp ? 'SIGN UP' : ''}
             </div>
             <div
               style={{
@@ -305,23 +241,29 @@ const Login: FunctionComponent<LoginProps> = () => {
               <InputField
                 type="text"
                 value={credentials.id}
-                onChange={value => setCredentials({ ...credentials, id: value })}
+                onChange={value => setCredentials(prev => ({ ...prev, id: value }))}
+                onKeyDown={handleKeyDown}
                 label="ID"
+                disabled={isLoading}
               />
 
               <InputField
                 type="password"
                 value={credentials.password}
-                onChange={value => setCredentials({ ...credentials, password: value })}
+                onChange={value => setCredentials(prev => ({ ...prev, password: value }))}
+                onKeyDown={handleKeyDown}
                 label="Password"
+                disabled={isLoading}
               />
 
               {isSignUp && (
                 <InputField
                   type="text"
                   value={credentials.nickname || ''}
-                  onChange={value => setCredentials({ ...credentials, nickname: value })}
+                  onChange={value => setCredentials(prev => ({ ...prev, nickname: value }))}
+                  onKeyDown={handleKeyDown}
                   label="Nickname"
+                  disabled={isLoading}
                 />
               )}
             </div>
@@ -391,56 +333,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                 {isSignUp ? 'Login' : 'Sign up'}
               </button>
             </div>
-
-            {/* 구분선 */}
-            <div
-              style={{
-                alignSelf: 'stretch',
-                ...flexCenter,
-                gap: scaled(16),
-              }}
-            >
-              <div
-                style={{
-                  height: scaled(0.5),
-                  flex: 1,
-                  backgroundColor: COLORS.dark,
-                  opacity: 0.25,
-                }}
-              />
-              <div
-                style={{
-                  height: scaled(0.5),
-                  flex: 1,
-                  backgroundColor: COLORS.dark,
-                  opacity: 0.25,
-                }}
-              />
-            </div>
           </div>
-        </div>
-
-        {/* 세종대왕 이미지 */}
-        <div
-          style={{
-            flex: 0.9662,
-            display: 'flex',
-            alignItems: 'flex-start',
-            padding: scaled(10),
-          }}
-        >
-          <img
-            src={SejongImage}
-            style={{
-              flex: 1,
-              position: 'relative',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              maxHeight: '100%',
-              objectFit: 'cover',
-            }}
-            alt="Sejong"
-          />
         </div>
       </div>
     </div>
