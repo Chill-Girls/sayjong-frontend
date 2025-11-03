@@ -40,8 +40,8 @@ export function drawLiveMouthContours_red(
   landmarks: LandmarkPoint[],
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
-  const color = '#990000';
-  
+  const color = '#FF0000';
+
   // 외부 입술 윤곽선
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
@@ -89,7 +89,7 @@ export function drawLiveMouthContours_green(
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
   const color = '#00FF00';
-  
+
   // 외부 입술 윤곽선
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
@@ -137,7 +137,7 @@ export function drawLiveMouthContours_orange(
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
   const color = '#FF8C00';
-  
+
   // 외부 입술 윤곽선
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
@@ -172,9 +172,6 @@ export function drawLiveMouthContours_orange(
   ctx.closePath();
   ctx.stroke();
 }
-
-
-
 
 /**
  * 얼굴 및 입 랜드마크 점들을 그립니다

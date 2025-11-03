@@ -1,14 +1,14 @@
 /**
  * CameraComponent
- * 
+ *
  * 실시간 카메라 스트림을 받아 얼굴 랜드마크를 추적하고 모음 오버레이를 표시하는 컴포넌트
- * 
+ *
  * @features
  * - MediaPipe FaceLandmarker를 사용한 실시간 얼굴 추적
  * - 입 모양 랜드마크 추출 (40개 입 포인트)
  * - 블렌드쉐이프 분석 및 전달
  * - 모음 오버레이 표시 (useVowelOverlay 훅 사용)
- * 
+ *
  * @dependencies
  * - @mediapipe/tasks-vision: 얼굴 랜드마크 추출
  * - useVowelOverlay: 모음 오버레이 관리
@@ -16,8 +16,11 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { BlendshapeSmoother } from '../utils/blendshapeProcessor';
-import { drawLiveMouthContours } from '../utils/Draw';
+import {
+  drawLiveMouthContours_red,
+  drawLiveMouthContours_green,
+  drawLiveMouthContours_orange,
+} from '../utils/Draw';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import {
   filterTargetBlendshapes,
@@ -53,7 +56,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 }) => {
   /** 비디오 엘리먼트 참조 */
   const videoRef = useRef<HTMLVideoElement>(null);
-  
+
   /** 카메라 초기화 상태 */
   const [isInitialized, setIsInitialized] = useState(false);
   /** 에러 메시지 */
@@ -67,7 +70,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const shouldUpdateDisplayRef = useRef<boolean>(false);
   /** 마지막 비디오 시간 (중복 감지 방지) */
   const lastVideoTimeRef = useRef<number>(0);
-  
+
   /** 처리된 결과 데이터 (onResults 콜백용) */
   const processedResultsRef = useRef<{
     landmarks?: LandmarkPoint[];
@@ -81,9 +84,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   /** 비디오 스트림 참조 */
   const videoStreamRef = useRef<MediaStream | null>(null);
 
-  /** 블렌드쉐이프 평활화 유틸리티 */
-  const blendshapeSmoother = useRef(new BlendshapeSmoother(0.7));
-
   /** 모음 오버레이 렌더링 함수 */
   const { renderOverlay, currentVowel } = useVowelOverlay(text);
 
@@ -93,18 +93,21 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
 
   /** 목표 블렌드쉐이프 가져오기 */
-  const getTargetBlendshapes = useCallback((vowel: string | null): Record<string, number> | null => {
-    if (!vowel) return null;
-    if (targetBlendshapesCacheRef.current[vowel]) {
-      return targetBlendshapesCacheRef.current[vowel];
-    }
-    const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
-    if (target) {
-      targetBlendshapesCacheRef.current[vowel] = target;
-      return target;
-    }
-    return null;
-  }, []);
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      if (!vowel) return null;
+      if (targetBlendshapesCacheRef.current[vowel]) {
+        return targetBlendshapesCacheRef.current[vowel];
+      }
+      const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
+      if (target) {
+        targetBlendshapesCacheRef.current[vowel] = target;
+        return target;
+      }
+      return null;
+    },
+    [],
+  );
 
   /** 캔버스에 오버레이를 그리는 함수 */
   const handleDrawFrame = useCallback(
@@ -121,23 +124,12 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const now = performance.now();
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
-        // 실시간 입 모양 그리기
-        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
-
-        // 모음 정답 오버레이 
-        renderOverlay(
-          canvasCtx,
-          toCanvas,
-          allLandmarks,
-          cachedResultsRef,
-          timeSinceLastDetection,
-        );
-
-        // 블렌드쉐이프 유사도 계산 및 표시
+        // 블렌드쉐이프 유사도 계산
+        let similarity: number | null = null;
         if (results.faceBlendshapes?.[0]?.categories && currentVowel) {
           const blendshapeCategories = results.faceBlendshapes[0].categories;
           const currentBlendshapes: Record<string, number> = {};
-          
+
           // 블렌드쉐이프를 맵으로 변환
           blendshapeCategories.forEach((cat: any) => {
             if (TARGET_BLENDSHAPES.includes(cat.categoryName)) {
@@ -145,15 +137,34 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             }
           });
 
-          // 블렌드쉐이프 유사도 계산 (캔버스 표시 없음, 내부 계산만)
           const filteredBlendshapes = filterTargetBlendshapes(currentBlendshapes);
           const targetBlendshapes = getTargetBlendshapes(currentVowel);
-          
+
           if (targetBlendshapes) {
-            const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
+            similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
             similarityScoreRef.current = similarity;
           }
         }
+
+        // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
+        if (similarity !== null) {
+          if (similarity >= 0.8) {
+            // 유사도 >= 80%: 초록색
+            drawLiveMouthContours_green(canvasCtx, allLandmarks, toCanvas);
+          } else if (similarity >= 0.5) {
+            // 유사도 >= 50%: 주황색
+            drawLiveMouthContours_orange(canvasCtx, allLandmarks, toCanvas);
+          } else {
+            // 유사도 < 50%: 빨간색
+            drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
+          }
+        } else {
+          // 유사도 계산 불가 시 기본 색상 (빨간색)
+          drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
+        }
+
+        // 모음 정답 오버레이
+        renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
       }
     },
     [renderOverlay, currentVowel, getTargetBlendshapes],
@@ -307,7 +318,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 
               onResults(processedResults);
             }
-           
           } catch (error) {
             console.error('Error detecting face:', error);
           }

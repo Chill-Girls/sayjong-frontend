@@ -35,7 +35,7 @@ export interface LinePracticeData {
   tesxRomaja: string;
   textEng: string;
   startTime: number;
-  OrinialUrl: string;
+  OrinialUrl?: string; // 나중에 백엔드 연결 시 사용 예정
 } // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
 const LinePractice: React.FC<LinePracticeProps> = () => {
@@ -150,7 +150,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const totalLines = usableLines.length;
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
-
 
   const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
 
@@ -452,6 +451,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
           justifyContent: 'center',
           padding: `0 ${scaled(193)}`,
           gap: scaled(80),
+          height: 'auto',
           zIndex: 3,
         }}
       >

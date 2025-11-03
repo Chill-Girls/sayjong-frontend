@@ -14,5 +14,5 @@ function extractVowel(word: string) {
   if (!vowel) return null;
   if (vowel.length == 1) return vowel;
   const [v1, v2] = vowel.split('');
-  return combineVowels(v1, v2); // 이중모음 
+  return combineVowels(v1, v2); // 이중모음
 }

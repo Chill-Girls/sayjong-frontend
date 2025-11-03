@@ -1,6 +1,6 @@
 /**
  * Canvas Component
- * 
+ *
  * 비디오 프레임을 캔버스에 그리는 컴포넌트
  * video 엘리먼트의 프레임을 canvas에 렌더링하고 추가 오버레이를 그릴 수 있도록 함
  */
@@ -49,7 +49,7 @@ const Canvas: React.FC<CanvasProps> = ({ videoRef, onDrawFrame }) => {
       // 비디오 준비 상태 확인
       const videoWidth = videoRef.current.videoWidth;
       const videoHeight = videoRef.current.videoHeight;
-      
+
       if (videoWidth === 0 || videoHeight === 0) {
         animationFrameRef.current = requestAnimationFrame(renderFrame);
         return;
@@ -120,4 +120,3 @@ const Canvas: React.FC<CanvasProps> = ({ videoRef, onDrawFrame }) => {
 };
 
 export default Canvas;
-
