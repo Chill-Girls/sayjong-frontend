@@ -13,7 +13,8 @@ import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
-import { extractVowels } from '../utils/hangul';
+import { getAdaptiveFontSize } from '../utils/fontUtils';
+import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
@@ -34,6 +35,7 @@ export interface LinePracticeData {
   tesxRomaja: string;
   textEng: string;
   startTime: number;
+  OrinialUrl: string;
 } // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
 const LinePractice: React.FC<LinePracticeProps> = () => {
@@ -118,12 +120,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       startTime: 0,
     };
 
-  // 현재 표시중인 소절에서 모음 추출 — displayLine 변경 시 재계산
-  const vowels = React.useMemo(
-    () => extractVowels(displayLine?.originalText ?? ''),
-    [displayLine?.originalText],
-  );
-  const currentVowel = vowels[0] || null;
+  // 모음 추출 및 오버레이 관리 (CameraComponent와 동일한 로직 사용)
+  const { currentVowel } = useVowelOverlay(displayLine?.originalText ?? null);
 
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
@@ -153,25 +151,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
 
-  // 글자 수에 따라 폰트 크기를 조정하는 함수
-  const getAdaptiveFontSize = (
-    text: string,
-    baseSize: number,
-    maxSize: number,
-    minSize: number,
-  ) => {
-    // 한글은 2바이트, 영문은 1바이트로 계산
-    // 대략적인 비율: 한글 1자 ≈ 영문 1.5자
-    const approxChars =
-      text.replace(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g, '').length * 1 +
-      (text.match(/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/g) || []).length * 1.5;
-
-    if (approxChars > 20) {
-      const adjustedSize = Math.max(minSize, baseSize * (20 / approxChars));
-      return Math.min(maxSize, adjustedSize);
-    }
-    return Math.min(maxSize, baseSize);
-  };
 
   const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
 
@@ -283,7 +262,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             <CameraComponent
               width={scaled(700)}
               height={scaled(449)}
-              vowels={vowels}
+              text={displayLine?.originalText ?? null}
               onResults={handleCameraResults}
             />
             {displaySimilarity !== null && currentVowel && (
