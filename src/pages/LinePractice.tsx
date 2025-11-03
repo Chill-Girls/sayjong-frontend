@@ -14,12 +14,14 @@ import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { extractVowels } from '../utils/hangul';
+import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
   TARGET_BLENDSHAPES,
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import targetVowelsData from '../target_vowels.json';
+import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
@@ -41,6 +43,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
+  const { setRecordedAudioBlob } = useRecording();
 
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
   const usableLines = React.useMemo(() => {
@@ -170,13 +173,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     return Math.min(maxSize, baseSize);
   };
 
-  const handleMicClick = () => {
-    console.log('마이크 버튼 클릭');
-  };
-
-  const handleMyRecordingClick = () => {
-    console.log('내 녹음 듣기 버튼 클릭');
-  };
+  const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
 
   // 이전/다음 소절 이동 핸들러
   const handlePrevLine = () => {
@@ -185,6 +182,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx > 0) setSelected(usableLines[idx - 1]);
+    setRecordedAudioBlob(null);
   };
 
   const handleNextLine = () => {
@@ -193,6 +191,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
+    setRecordedAudioBlob(null);
   };
 
   if (!songId) {
@@ -445,6 +444,25 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         </div>
       </div>
 
+      {/* 임시: 발음 점수 표기 UI (TODO: 나중에 합쳐서 최종 점수로 나와야함, UI도 figma대로 변경해야함) */}
+      <div
+        style={{
+          alignSelf: 'stretch',
+          height: scaled(60), // 예시 높이
+          ...flexColumn,
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: scaled(24),
+          zIndex: 3,
+        }}
+      >
+        {isLoading && <p>채점 중...</p>}
+        {error && <p style={{ color: 'red' }}>오류: {error}</p>}
+        {!isLoading && !error && score !== null && (
+          <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
+        )}
+      </div>
+
       {/* 버튼 영역 */}
       <div
         style={{
@@ -459,7 +477,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         }}
       >
         <button
-          onClick={handleMicClick}
           style={{
             width: scaled(80),
             height: scaled(80),
@@ -480,7 +497,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         </button>
 
         <button
-          onClick={handleMyRecordingClick}
           style={{
             width: scaled(80),
             height: scaled(80),
