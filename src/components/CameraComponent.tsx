@@ -307,7 +307,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         // TARGET_VOWEL 업데이트
         const currentTargetVowel = vowels.length > 0 ? vowels[0] : null;
         targetVowelRef.current = currentTargetVowel;
-        
+
         // TargetLandmarksComputer 초기화 또는 업데이트
         if (!targetLandmarksComputer.current) {
           targetLandmarksComputer.current = new TargetLandmarksComputer(currentTargetVowel);
@@ -327,6 +327,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       }
     };
 
+    // cleanup 함수에서 사용할 현재 값들을 저장
+    const currentVideo = videoRef.current;
+    const currentVideoStream = videoStreamRef.current;
+    const currentFaceLandmarker = faceLandmarkerRef.current;
+
     initializeCamera();
 
     return () => {
@@ -335,22 +340,22 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         cancelAnimationFrame(animationFrameRef.current);
         animationFrameRef.current = null;
       }
-      
+
       // 비디오 스트림 정리
-      if (videoStreamRef.current) {
-        videoStreamRef.current.getTracks().forEach((track: MediaStreamTrack) => track.stop());
+      if (currentVideoStream) {
+        currentVideoStream.getTracks().forEach((track: MediaStreamTrack) => track.stop());
         videoStreamRef.current = null;
       }
-      
+
       // 비디오 요소 정리
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-        videoRef.current.pause();
+      if (currentVideo) {
+        currentVideo.srcObject = null;
+        currentVideo.pause();
       }
-      
+
       // FaceLandmarker 정리
-      if (faceLandmarkerRef.current) {
-        faceLandmarkerRef.current.close();
+      if (currentFaceLandmarker) {
+        currentFaceLandmarker.close();
         faceLandmarkerRef.current = null;
       }
     };
