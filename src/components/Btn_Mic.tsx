@@ -1,5 +1,6 @@
 import btnMic from '../assets/btn_mic.svg';
-import { useState, useRef } from 'react';
+import btnMicProcess from '../assets/btn_mic_process.svg';
+import { useRef } from 'react';
 import { useRecording } from '../constants/RecordingContext';
 
 interface BtnMicProps {
@@ -7,8 +8,7 @@ interface BtnMicProps {
 }
 
 const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
-  const { setRecordedAudioBlob } = useRecording();
-  const [isRecording, setIsRecording] = useState(false);
+  const { setRecordedAudioBlob, isRecording, setIsRecording } = useRecording();
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -43,6 +43,7 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
       } catch (error) {
         console.error('마이크 접근 실패', error);
         alert('마이크를 사용할 수 없습니다. 권한을 확인해주세요.');
+        setIsRecording(false);
       }
     } else {
       // 녹음 중지
@@ -53,8 +54,8 @@ const Btn_Mic: React.FC<BtnMicProps> = ({ style }) => {
       }
     }
   };
-
-  return <img src={btnMic} alt="mic" style={style} onClick={handleClick} />;
+  const iconSrc = isRecording ? btnMicProcess : btnMic;
+  return <img src={iconSrc} alt="mic" style={style} onClick={handleClick} />;
 };
 
 export default Btn_Mic;
