@@ -3,14 +3,19 @@ import { createContext, useContext, useState, type ReactNode } from 'react';
 interface RecordingContextValue {
   recordedAudioBlob: Blob | null;
   setRecordedAudioBlob: (blob: Blob | null) => void;
+  isRecording: boolean;
+  setIsRecording: (isRecording: boolean) => void;
 }
 
 const RecordingContext = createContext<RecordingContextValue | undefined>(undefined);
 
 export function RecordingProvider({ children }: { children: ReactNode }) {
   const [recordedAudioBlob, setRecordedAudioBlob] = useState<Blob | null>(null);
+  const [isRecording, setIsRecording] = useState<boolean>(false);
   return (
-    <RecordingContext.Provider value={{ recordedAudioBlob, setRecordedAudioBlob }}>
+    <RecordingContext.Provider
+      value={{ recordedAudioBlob, setRecordedAudioBlob, isRecording, setIsRecording }}
+    >
       {children}
     </RecordingContext.Provider>
   );
