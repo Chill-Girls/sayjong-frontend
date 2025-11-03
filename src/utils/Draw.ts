@@ -29,13 +29,21 @@ export function createCanvasCoordConverter(width: number, height: number) {
  * @param landmarks - 얼굴 랜드마크 배열
  * @param toCanvas - 캔버스 좌표 변환 함수
  */
-export function drawLiveMouthContours(
+/**
+ * 빨간색 입술 윤곽선 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @param toCanvas - 캔버스 좌표 변환 함수
+ */
+export function drawLiveMouthContours_red(
   ctx: CanvasRenderingContext2D,
   landmarks: LandmarkPoint[],
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
 ) {
-  // 외부 입술 윤곽선 - 부드럽고 자연스러운 형태
-  ctx.strokeStyle = '#f04299';
+  const color = '#FF0000';
+
+  // 외부 입술 윤곽선
+  ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -52,7 +60,104 @@ export function drawLiveMouthContours(
   ctx.closePath();
   ctx.stroke();
 
-  ctx.strokeStyle = '#f04299';
+  // 내부 입술 윤곽선
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
+    const index = INNER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
+/**
+ * 초록색 입술 윤곽선 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @param toCanvas - 캔버스 좌표 변환 함수
+ */
+export function drawLiveMouthContours_green(
+  ctx: CanvasRenderingContext2D,
+  landmarks: LandmarkPoint[],
+  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+) {
+  const color = '#00FF00';
+
+  // 외부 입술 윤곽선
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
+    const index = OUTER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // 내부 입술 윤곽선
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
+    const index = INNER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
+/**
+ * 주황색(오렌지색) 입술 윤곽선 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @param toCanvas - 캔버스 좌표 변환 함수
+ */
+export function drawLiveMouthContours_orange(
+  ctx: CanvasRenderingContext2D,
+  landmarks: LandmarkPoint[],
+  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+) {
+  const color = '#FF8C00';
+
+  // 외부 입술 윤곽선
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
+    const index = OUTER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // 내부 입술 윤곽선
+  ctx.strokeStyle = color;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
@@ -180,5 +285,66 @@ export function drawVowelLabel(
     ctx.fillStyle = 'rgba(0, 255, 100, 1)';
     ctx.fillText(vowel, 0, 0);
   }
+  ctx.restore();
+}
+
+/**
+ * 블렌드쉐이프 유사도 점수를 캔버스에 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param similarity - 유사도 점수 (0.0 ~ 1.0)
+ * @param width - 캔버스 너비
+ * @param height - 캔버스 높이
+ * @param vowel - 현재 모음 (선택적)
+ */
+export function drawSimilarityScore(
+  ctx: CanvasRenderingContext2D,
+  similarity: number | null,
+  width: number,
+  _height: number,
+  vowel: string | null = null,
+) {
+  if (similarity === null || similarity === undefined) return;
+
+  ctx.save();
+  ctx.scale(-1, 1); // 좌우 반전 (비디오와 맞추기 위해)
+
+  // 점수 위치 (좌상단, 반전된 좌표계에서)
+  const x = -width + 20;
+  const y = 20;
+
+  // 배경 박스
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(x, y - 30, 180, vowel ? 80 : 50);
+
+  // 모음 표시 (있는 경우)
+  if (vowel) {
+    ctx.font = 'bold 16px Arial';
+    ctx.fillStyle = '#FFFFFF';
+    ctx.textAlign = 'left';
+    ctx.fillText(`모음: ${vowel}`, x + 10, y - 10);
+  }
+
+  // 점수 색상 결정
+  let scoreColor: string;
+  if (similarity > 0.7) {
+    scoreColor = '#4CAF50'; // 초록색 (좋음)
+  } else if (similarity > 0.5) {
+    scoreColor = '#FFC107'; // 노란색 (보통)
+  } else {
+    scoreColor = '#F44336'; // 빨간색 (나쁨)
+  }
+
+  // 점수 텍스트
+  ctx.font = 'bold 24px Arial';
+  ctx.fillStyle = scoreColor;
+  ctx.textAlign = 'left';
+  const scoreText = `${(similarity * 100).toFixed(1)}%`;
+  ctx.fillText(scoreText, x + 10, vowel ? y + 20 : y + 10);
+
+  // 점수 라벨
+  ctx.font = '14px Arial';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillText('Similarity', x + 10, vowel ? y + 40 : y + 30);
+
   ctx.restore();
 }
