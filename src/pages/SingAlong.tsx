@@ -171,7 +171,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
           ...flexCenter,
         }}
       >
-        <CameraComponent width="803.25px" height="307.5px" />
+        <CameraComponent width="803.25px" />
       </div>
 
       {/* 카라오케 가사 */}
