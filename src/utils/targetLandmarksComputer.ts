@@ -65,14 +65,15 @@ export class TargetLandmarksComputer {
     }
     //*여기 무조건 vowel_calibration.json 기준으로 좌표계 만들어져야함.
     if (!this.personalCoordinateSystem) {
-
       // localStorage에서 'vowel_calibration' 데이터 로드
       const rawString = localStorage.getItem('vowel_calibration');
       if (!rawString) {
-        console.error('TargetLandmarksComputer: "vowel_calibration" 데이터가 localStorage에 없습니다. 캘이 필요합니다.');
+        console.error(
+          'TargetLandmarksComputer: "vowel_calibration" 데이터가 localStorage에 없습니다. 캘이 필요합니다.',
+        );
         return {}; // 보정 데이터 없이는 좌표계 생성 불가
       }
-      
+
       let calibData;
       try {
         calibData = JSON.parse(rawString);
@@ -82,12 +83,13 @@ export class TargetLandmarksComputer {
       }
 
       const neutral = calibData.neutral; // calibData에서 neutral 추출
-      
+
       if (!neutral || !neutral.landmarks) {
-        console.error('TargetLandmarksComputer: "neutral" 데이터가 캘리브레이션 데이터에 없습니다.');
+        console.error(
+          'TargetLandmarksComputer: "neutral" 데이터가 캘리브레이션 데이터에 없습니다.',
+        );
         return {}; // neutral 데이터는 필수
       }
-      
 
       // vowel_calibration.json의 neutral 데이터를 Point3D 배열로 변환
       // calibration 데이터도 인덱스 기반 배열로 변환해야 함

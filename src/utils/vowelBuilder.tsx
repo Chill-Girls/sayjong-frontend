@@ -50,7 +50,7 @@ function getCalibrationDataFromStorage(): any {
   try {
     return JSON.parse(rawString);
   } catch (e) {
-    console.error("vowelBuilder: localStorage 데이터 파싱 실패", e);
+    console.error('vowelBuilder: localStorage 데이터 파싱 실패', e);
     return null; // 파싱 실패 시 null 반환
   }
 }
@@ -71,7 +71,9 @@ export function buildTargetVowelShape(
 
   // 데이터가 없는 경우 빈 객체 반환
   if (!calibData || !calibData.neutral || !calibData.a || !calibData.u || !calibData.i) {
-    console.warn(`buildTargetVowelShape: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`);
+    console.warn(
+      `buildTargetVowelShape: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`,
+    );
     return {}; // 빈 객체 반환
   }
 
@@ -172,7 +174,9 @@ export function buildTargetVowelBlendshapes(
 
   // 데이터가 없는 경우 빈 객체 반환
   if (!calibData || !calibData.neutral || !calibData.a || !calibData.u || !calibData.i) {
-    console.warn(`buildTargetVowelBlendshapes: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`);
+    console.warn(
+      `buildTargetVowelBlendshapes: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`,
+    );
     return {}; // 빈 객체 반환
   }
 

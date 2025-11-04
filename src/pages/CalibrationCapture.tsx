@@ -196,7 +196,6 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const handleSaveClick = async () => {
-
     setIsSaving(true);
 
     try {
@@ -214,10 +213,10 @@ const CalibrationCapture: React.FC = () => {
       // saveTargetsToBackend 호출
       const response = await saveTargetsToBackend(
         precomputedTargets, // 최종 데이터
-        calibrationData,    // 원본 데이터
-        token
+        calibrationData, // 원본 데이터
+        token,
       );
-      
+
       const { vowelTargetsJson, rawCalibrationJson } = response.data;
 
       // 입모양 오버레이를 위해 localStorage에 저장
@@ -227,10 +226,8 @@ const CalibrationCapture: React.FC = () => {
 
       // 최종 성공 알림
       alert(
-        'Save Complete!\n\n' +
-        'Your calibration data has been successfully saved to the backend.'
+        'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
-
     } catch (error) {
       // axios 에러 처리
       console.error('서버 전송 또는 계산 실패:', error);

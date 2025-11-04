@@ -119,13 +119,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         setLoadedTargetVowels(parsedData);
         console.log("CameraComponent: 'target_vowels'를 localStorage에서 로드했습니다.");
       } catch (e) {
-        console.error("CameraComponent: localStorage 데이터 파싱 실패", e);
-        setError("캘리브레이션 데이터를 불러오는 데 실패했습니다.");
+        console.error('CameraComponent: localStorage 데이터 파싱 실패', e);
+        setError('캘리브레이션 데이터를 불러오는 데 실패했습니다.');
       }
     } else {
       // 캘리브레이션을 아직 안 한 사용자
       console.warn("CameraComponent: 'target_vowels' 데이터가 없습니다.");
-      setError("캘리브레이션이 필요합니다. 캘리브레이션 페이지로 이동해주세요.");
+      setError('캘리브레이션이 필요합니다. 캘리브레이션 페이지로 이동해주세요.');
     }
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
@@ -140,9 +140,9 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       if (targetBlendshapesCacheRef.current[vowel]) {
         return targetBlendshapesCacheRef.current[vowel];
       }
-      
+
       const target = loadedTargetVowels[vowel]?.blendshapes;
-      
+
       if (target) {
         targetBlendshapesCacheRef.current[vowel] = target;
         return target;
@@ -452,7 +452,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         muted
       />
       <Canvas videoRef={videoRef} onDrawFrame={handleDrawFrame} />
-      {((!isInitialized || isLoadingData) && !error)&& (
+      {(!isInitialized || isLoadingData) && !error && (
         <div
           style={{
             position: 'absolute',
@@ -477,8 +477,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             fontSize: '14px',
             textAlign: 'center',
             padding: '20px',
-            backgroundColor: 'rgba(255, 255, 255, 0.8)',  // 칼리브레이션이 필요하다는 경고 포함
-            borderRadius: '10px'
+            backgroundColor: 'rgba(255, 255, 255, 0.8)', // 칼리브레이션이 필요하다는 경고 포함
+            borderRadius: '10px',
           }}
         >
           {error}

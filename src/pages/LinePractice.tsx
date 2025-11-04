@@ -79,7 +79,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         setLoadedTargetVowels(parsedData);
         console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
       } catch (e) {
-        console.error("LinePractice: localStorage 데이터 파싱 실패", e);
+        console.error('LinePractice: localStorage 데이터 파싱 실패', e);
       }
     } else {
       console.warn("LinePractice: 'target_vowels' 데이터가 없습니다. 캘리브레이션이 필요합니다.");
@@ -96,10 +96,10 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       if (targetBlendshapesCacheRef.current[vowel]) {
         return targetBlendshapesCacheRef.current[vowel];
       }
-      
+
       // 'targetVowelsData' 대신 'loadedTargetVowels' state 사용
       const target = loadedTargetVowels[vowel]?.blendshapes;
-      
+
       if (target) {
         targetBlendshapesCacheRef.current[vowel] = target;
         return target;

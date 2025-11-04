@@ -26,7 +26,6 @@ function HistoryPage() {
 
 // eslint-disable-next-line react-refresh/only-export-components
 function AppRouter() {
-
   // 사용자 데이터 로딩 state 추가
   const [isUserDataLoading, setIsUserDataLoading] = useState(true);
 
@@ -46,7 +45,6 @@ function AppRouter() {
           localStorage.setItem('target_vowels', data.vowelTargetsJson);
           localStorage.setItem('vowel_calibration', data.rawCalibrationJson);
           console.log('캘리브레이션 데이터를 서버에서 localStorage로 로드했습니다.');
-
         } catch (error: any) {
           // [실패] 에러 처리
           if (error.response && error.response.status === 404) {

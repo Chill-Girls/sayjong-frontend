@@ -20,7 +20,6 @@ export async function loadMyCalibrationData(token: string): Promise<CalibrationD
 
     // 성공 시 { vowelTargetsJson, rawCalibrationJson } 객체 반환
     return response.data;
-
   } catch (error) {
     console.error('캘리브레이션 데이터 로드 API 호출 실패:', error);
     // 에러를 그대로 상위로 전달하여 컴포넌트가 처리하도록 함
