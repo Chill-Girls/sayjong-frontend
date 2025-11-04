@@ -4,7 +4,6 @@
  * 보정 데이터와 보간 계수를 이용하여 한국어 모음의 입술 형태 생성
  */
 
-import calibrationData from '../vowel_calibration.json';
 import type { Point3D } from './FindPoint';
 import { OUTER_LIP_LANDMARKS, INNER_LIP_LANDMARKS } from '../constants/landmarks';
 
@@ -41,6 +40,21 @@ const VOWEL_COEFFS_MONO: Record<string, VowelCoeffs> = {
   ㅕ: { open: 0.75, spread: 0.15, round: 0.5 }, // [jʌ] 정적 끝점 ≈ 더 펼쳐진 ㅓ
 };
 
+// localStorage에서 'vowel_calibration' 데이터를 로드하는 헬퍼 함수
+function getCalibrationDataFromStorage(): any {
+  const rawString = localStorage.getItem('vowel_calibration');
+  if (!rawString) {
+    console.error("vowelBuilder: 'vowel_calibration' 데이터가 localStorage에 없습니다.");
+    return null; // 데이터가 없으면 null 반환
+  }
+  try {
+    return JSON.parse(rawString);
+  } catch (e) {
+    console.error("vowelBuilder: localStorage 데이터 파싱 실패", e);
+    return null; // 파싱 실패 시 null 반환
+  }
+}
+
 /**
  * 목표 모음의 입술 형태 생성
  * 보정된 기본 모음(ㅏ, ㅜ, ㅣ)을 기반으로 다른 모음 형태를 선형 보간하여 생성
@@ -53,7 +67,13 @@ export function buildTargetVowelShape(
   customCalibrationData?: any,
 ): Record<number, Point3D> {
   // 커스텀 데이터가 제공되면 그것을 사용, 아니면 기본 import 사용
-  const calibData = customCalibrationData || calibrationData;
+  const calibData = customCalibrationData || getCalibrationDataFromStorage();
+
+  // 데이터가 없는 경우 빈 객체 반환
+  if (!calibData || !calibData.neutral || !calibData.a || !calibData.u || !calibData.i) {
+    console.warn(`buildTargetVowelShape: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`);
+    return {}; // 빈 객체 반환
+  }
 
   const allLipIds = [...OUTER_LIP_LANDMARKS, ...INNER_LIP_LANDMARKS];
 
@@ -67,6 +87,11 @@ export function buildTargetVowelShape(
       const calibratedKey =
         vowel === 'ㅏ' || vowel === 'ㅑ' ? 'a' : vowel === 'ㅜ' || vowel === 'ㅠ' ? 'u' : 'i';
       const coords = (calibData[calibratedKey].landmarks as any)[id.toString()];
+      // 데이터 null 체크
+      if (!coords) {
+        console.warn(`Landmark ${id} not found in calibData['${calibratedKey}']`);
+        return; // 이 랜드마크는 건너뜀
+      }
       targetShape[id] = { x: coords[0], y: coords[1], z: coords[2] };
     } else {
       // 계수를 이용한 보간
@@ -143,7 +168,13 @@ export function buildTargetVowelBlendshapes(
   customCalibrationData?: any,
 ): Record<string, number> {
   // 커스텀 데이터가 제공되면 그것을 사용, 아니면 기본 import 사용
-  const calibData = customCalibrationData || calibrationData;
+  const calibData = customCalibrationData || getCalibrationDataFromStorage();
+
+  // 데이터가 없는 경우 빈 객체 반환
+  if (!calibData || !calibData.neutral || !calibData.a || !calibData.u || !calibData.i) {
+    console.warn(`buildTargetVowelBlendshapes: '${vowel}' 계산을 위한 캘리브레이션 데이터가 불충분합니다.`);
+    return {}; // 빈 객체 반환
+  }
 
   const isCalibratedVowel =
     vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ' || vowel === 'ㅑ' || vowel === 'ㅠ';

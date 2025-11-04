@@ -137,7 +137,7 @@ export async function saveTargetsToBackend(
   precomputedData: PrecomputedTargets,
   rawData: CalibrationData,
   authToken: string,
-): Promise<void> {
+): Promise<any> {
   const API_ENDPOINT = '/api/calibration/targets'; // 백엔드 api 호출
 
   console.log('백엔드로 캘리브레이션 데이터(최종+원본) 전송 시작...');

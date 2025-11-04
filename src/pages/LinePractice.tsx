@@ -21,7 +21,6 @@ import {
   TARGET_BLENDSHAPES,
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
-import targetVowelsData from '../target_vowels.json';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 
 interface LinePracticeProps {
@@ -47,6 +46,11 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [selected, setSelected] = useState<LyricLine | null>(null);
   const { setRecordedAudioBlob } = useRecording();
 
+  // localStorage에서 로드한 캘리브레이션 데이터를 저장할 state
+  const [loadedTargetVowels, setLoadedTargetVowels] = useState<any>(null);
+  // 데이터 로딩 상태
+  const [isLoadingData, setIsLoadingData] = useState(true);
+
   // 마지막(빈) 소절을 제외한 실제 사용 가능한 소절 배열
   const usableLines = React.useMemo(() => {
     if (!lines || lines.length === 0) return [] as LyricLine[];
@@ -66,20 +70,43 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     return () => setMode(null);
   }, [setMode]);
 
+  // localStorage에서 캘리브레이션 데이터 로드
+  useEffect(() => {
+    const dataString = localStorage.getItem('target_vowels');
+    if (dataString) {
+      try {
+        const parsedData = JSON.parse(dataString);
+        setLoadedTargetVowels(parsedData);
+        console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
+      } catch (e) {
+        console.error("LinePractice: localStorage 데이터 파싱 실패", e);
+      }
+    } else {
+      console.warn("LinePractice: 'target_vowels' 데이터가 없습니다. 캘리브레이션이 필요합니다.");
+    }
+    setIsLoadingData(false); // 데이터 로드 시도 완료
+  }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
+
   const getTargetBlendshapes = useCallback(
     (vowel: string | null): Record<string, number> | null => {
-      if (!vowel) return null;
+      // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
+      if (!vowel || !loadedTargetVowels) return null;
+
+      // 캐시 확인 (동일)
       if (targetBlendshapesCacheRef.current[vowel]) {
         return targetBlendshapesCacheRef.current[vowel];
       }
-      const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
+      
+      // 'targetVowelsData' 대신 'loadedTargetVowels' state 사용
+      const target = loadedTargetVowels[vowel]?.blendshapes;
+      
       if (target) {
         targetBlendshapesCacheRef.current[vowel] = target;
         return target;
       }
       return null;
     },
-    [],
+    [loadedTargetVowels], // loadedTargetVowels에 의존
   );
 
   useEffect(() => {
@@ -174,6 +201,48 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
+  }
+
+  // 캘리브레이션 데이터 로딩 중 UI
+  if (isLoadingData) {
+    return (
+      <div
+        style={{
+          ...containerFullscreen,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Header />
+        <div>캘리브레이션 데이터를 불러오는 중입니다...</div>
+        <Footer />
+      </div>
+    );
+  }
+
+  // 캘리브레이션 데이터가 없는 경우 UI
+  if (!loadedTargetVowels) {
+    return (
+      <div
+        style={{
+          ...containerFullscreen,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: scaled(20),
+        }}
+      >
+        <Header />
+        <div style={{ textAlign: 'center', fontSize: scaled(24), color: COLORS.dark }}>
+          <p>캘리브레이션 데이터가 없습니다.</p>
+          <p>먼저 캘리브레이션 페이지에서 보정을 완료해주세요.</p>
+          {/* (선택) 캘리브레이션 페이지로 가는 버튼을 추가할 수 있습니다. */}
+        </div>
+        <Footer />
+      </div>
+    );
   }
 
   return (
