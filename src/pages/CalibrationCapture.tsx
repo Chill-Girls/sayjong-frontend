@@ -196,16 +196,6 @@ const CalibrationCapture: React.FC = () => {
   };
 
   const handleSaveClick = async () => {
-    const calibJson = JSON.stringify(calibrationData, null, 2);
-    const calibBlob = new Blob([calibJson], { type: 'application/json' });
-    const calibUrl = URL.createObjectURL(calibBlob);
-    const calibLink = document.createElement('a');
-    calibLink.href = calibUrl;
-    calibLink.download = 'vowel_calibration.json';
-    calibLink.click();
-    URL.revokeObjectURL(calibUrl);
-    console.log('캘리브레이션 백업 데이터 다운로드 완료');
-
     setIsSaving(true);
 
     try {
@@ -221,9 +211,20 @@ const CalibrationCapture: React.FC = () => {
       }
 
       // saveTargetsToBackend 호출
-      await saveTargetsToBackend(precomputedTargets, calibrationData, token);
+      const response = await saveTargetsToBackend(
+        precomputedTargets, // 최종 데이터
+        calibrationData, // 원본 데이터
+        token,
+      );
 
-      // 저장 성공
+      const { vowelTargetsJson, rawCalibrationJson } = response.data;
+
+      // 입모양 오버레이를 위해 localStorage에 저장
+      localStorage.setItem('target_vowels', vowelTargetsJson);
+      localStorage.setItem('vowel_calibration', rawCalibrationJson);
+      console.log('캘리브레이션 데이터를 localStorage에 저장했습니다.');
+
+      // 최종 성공 알림
       alert(
         'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
@@ -253,7 +254,6 @@ const CalibrationCapture: React.FC = () => {
       setIsSaving(false);
     }
   };
-
   const vowelInstructions = {
     neutral: '😐 Neutral face - Relax your mouth\n  ',
     a: '😮 Say "ㅏ" (ah) - Open mouth wide\n  ',

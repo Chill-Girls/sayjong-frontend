@@ -27,7 +27,6 @@ import {
   calculateBlendshapeSimilarity,
   TARGET_BLENDSHAPES,
 } from '../utils/blendshapeProcessor';
-import targetVowelsData from '../target_vowels.json';
 import Canvas from './Canvas';
 import type { LandmarkPoint } from '../constants/landmarks';
 
@@ -62,6 +61,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [isInitialized, setIsInitialized] = useState(false);
   /** 에러 메시지 */
   const [error, setError] = useState<string | null>(null);
+
+  // localStorage에서 로드한 데이터를 저장할 state
+  const [loadedTargetVowels, setLoadedTargetVowels] = useState<any>(null);
+  // 데이터 로딩 상태
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
   /** 애니메이션 프레임 ID */
   const animationFrameRef = useRef<number | null>(null);
@@ -106,21 +110,46 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   /** 목표 블렌드쉐이프 캐시 */
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
 
+  // localStorage에서 캘리브레이션 데이터 로드
+  useEffect(() => {
+    const dataString = localStorage.getItem('target_vowels');
+    if (dataString) {
+      try {
+        const parsedData = JSON.parse(dataString);
+        setLoadedTargetVowels(parsedData);
+        console.log("CameraComponent: 'target_vowels'를 localStorage에서 로드했습니다.");
+      } catch (e) {
+        console.error('CameraComponent: localStorage 데이터 파싱 실패', e);
+        setError('캘리브레이션 데이터를 불러오는 데 실패했습니다.');
+      }
+    } else {
+      // 캘리브레이션을 아직 안 한 사용자
+      console.warn("CameraComponent: 'target_vowels' 데이터가 없습니다.");
+      setError('캘리브레이션이 필요합니다. 캘리브레이션 페이지로 이동해주세요.');
+    }
+    setIsLoadingData(false); // 데이터 로드 시도 완료
+  }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
+
   /** 목표 블렌드쉐이프 가져오기 */
   const getTargetBlendshapes = useCallback(
     (vowel: string | null): Record<string, number> | null => {
-      if (!vowel) return null;
+      // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
+      if (!vowel || !loadedTargetVowels) return null;
+
+      // 캐시 확인
       if (targetBlendshapesCacheRef.current[vowel]) {
         return targetBlendshapesCacheRef.current[vowel];
       }
-      const target = (targetVowelsData.vowels as any)[vowel]?.blendshapes;
+
+      const target = loadedTargetVowels[vowel]?.blendshapes;
+
       if (target) {
         targetBlendshapesCacheRef.current[vowel] = target;
         return target;
       }
       return null;
     },
-    [],
+    [loadedTargetVowels], // loadedTargetVowels에 의존
   );
 
   /** 캔버스에 오버레이를 그리는 함수 */
@@ -423,7 +452,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         muted
       />
       <Canvas videoRef={videoRef} onDrawFrame={handleDrawFrame} />
-      {!isInitialized && !error && (
+      {(!isInitialized || isLoadingData) && !error && (
         <div
           style={{
             position: 'absolute',
@@ -434,7 +463,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             fontSize: '16px',
           }}
         >
-          Initializing camera...
+          {isLoadingData ? 'Loading calibration data...' : 'Initializing camera...'}
         </div>
       )}
       {error && (
@@ -448,6 +477,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             fontSize: '14px',
             textAlign: 'center',
             padding: '20px',
+            backgroundColor: 'rgba(255, 255, 255, 0.8)', // 칼리브레이션이 필요하다는 경고 포함
+            borderRadius: '10px',
           }}
         >
           {error}
