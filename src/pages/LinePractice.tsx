@@ -22,7 +22,6 @@ import {
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
-import { ttsMarksExample } from '../temp/ttsMarksExample';
 import VowelFeedback from '../components/VowelFeedback';
 
 interface LinePracticeProps {
@@ -212,7 +211,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     }
 
     const currentTime = audioRef.current.currentTime;
-    const ttsMarks = ttsMarksExample; // TODO: 실제 마크 데이터 사용
+    const ttsMarks = displayLine.syllableTimings || [];
     let activeMark = null;
 
     for (let i = ttsMarks.length - 1; i >= 0; i--) {
@@ -227,7 +226,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
     // 다음 프레임에 이 함수를 다시 실행하도록 예약
     animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
-  }, []);
+  }, [displayLine.syllableTimings]);
 
   const stopTts = useCallback(() => {
     // 애니메이션 프레임 루프 중지
@@ -274,7 +273,9 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   // TTS 재생 핸들러
   const handlePlayTts = useCallback(() => {
     stopTts();
-    const ttsAudioUrl = 'https://storage.googleapis.com/sayjong/tts/output-pron-slow.mp3'; // TODO: change url
+    const ttsAudioUrl = displayLine.nativeAudioUrl;
+
+    if (!ttsAudioUrl) return;
 
     const audio = new Audio(ttsAudioUrl);
     audioRef.current = audio;
@@ -293,7 +294,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         console.error('TTS 재생 오류:', e);
         stopTts();
       });
-  }, [stopTts, checkTimeLoop]);
+  }, [stopTts, checkTimeLoop, displayLine.nativeAudioUrl]);
 
   useEffect(() => {
     return () => {
@@ -715,6 +716,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
           <button
             onClick={handlePlayTts}
+            disabled={!displayLine.nativeAudioUrl}
             style={{
               width: scaled(80),
               height: scaled(80),
