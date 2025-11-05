@@ -168,7 +168,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   );
 
   // TTS에 맞추어 딜레이 없이 빠르게 overlay를 업데이트
-  const checkTimeLoop = () => {
+  const checkTimeLoop = useCallback(() => {
     if (!audioRef.current || audioRef.current.paused) {
       setCurrentTtsVowel(null);
       if (animationFrameRef.current) {
@@ -194,9 +194,9 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
     // 다음 프레임에 이 함수를 다시 실행하도록 예약
     animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
-  };
+  }, []);
 
-  const stopTts = () => {
+  const stopTts = useCallback(() => {
     // 애니메이션 프레임 루프 중지
     if (animationFrameRef.current) {
       cancelAnimationFrame(animationFrameRef.current);
@@ -210,7 +210,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       audioRef.current = null;
     }
     setCurrentTtsVowel(null); // 모음 오버레이 제거
-  };
+  }, []);
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
   const totalLines = usableLines.length;
@@ -260,13 +260,13 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         console.error('TTS 재생 오류:', e);
         stopTts();
       });
-  }, [displayLine]);
+  }, [stopTts, checkTimeLoop]);
 
   useEffect(() => {
     return () => {
       stopTts();
     };
-  }, []);
+  }, [stopTts]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
