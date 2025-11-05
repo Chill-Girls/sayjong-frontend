@@ -1,5 +1,5 @@
 import type { FunctionComponent } from 'react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import LessonCard from '../components/LessonCard';
@@ -7,8 +7,7 @@ import WordIcon from '../assets/Word.svg';
 import LyricLinesIcon from '../assets/Lyric Lines.svg';
 import ArtistIcon from '../assets/artist.svg';
 import ArrowLeftIcon from '../assets/arrow_left.svg';
-import type { Song } from '../api/songs/types';
-import { getSong } from '../api/songs';
+import { useSong } from '../hooks/useSongs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { containerFullscreen, flexColumn, flexCenter, cardLesson, scaled } from '../styles/mixins';
 
@@ -45,25 +44,9 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
 
   const navigate = useNavigate();
   const { songId } = useParams();
-
-  const [song, setSong] = useState<Song | null>(null);
-  const [loading, setLoading] = useState(true);
+  const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
+  const { song, loading } = useSong(songIdNum);
   const [hoverButton, setHoverButton] = useState(false);
-
-  useEffect(() => {
-    if (songId) {
-      setLoading(true);
-      getSong(Number(songId))
-        .then(data => {
-          setSong(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error('Failed to fetch song:', err);
-          setLoading(false);
-        });
-    }
-  }, [songId]);
 
   const handleStartLesson = (lessonType: 'syllable' | 'line' | 'singalong') => {
     if (!songId) return;
