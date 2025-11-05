@@ -1,6 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import Feedback from './Feedback';
-import { calculateBlendshapeSimilarity, filterTargetBlendshapes, TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
+import {
+  calculateBlendshapeSimilarity,
+  filterTargetBlendshapes,
+  TARGET_BLENDSHAPES,
+} from '../utils/blendshapeProcessor';
 
 interface VowelFeedbackProps {
   activeVowel: string | null;
@@ -20,7 +24,11 @@ interface FeedbackItem {
 const ROUNDED_VOWELS = new Set(['ㅜ', 'ㅠ', 'ㅗ', 'ㅛ']);
 const OPEN_VOWELS = new Set(['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ']);
 
-export const VowelFeedback: React.FC<VowelFeedbackProps> = ({ activeVowel, currentBlendshapes, resetKey }) => {
+export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
+  activeVowel,
+  currentBlendshapes,
+  resetKey,
+}) => {
   const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
   const [totalSegments, setTotalSegments] = useState<number>(0);
   const [correctSegments, setCorrectSegments] = useState<number>(0);
@@ -41,10 +49,13 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({ activeVowel, curre
     }
   }, []);
 
-  const getTargetBlendshapes = (vowel: string | null): Record<string, number> | null => {
-    if (!vowel || !targetVowels) return null;
-    return targetVowels[vowel]?.blendshapes ?? null;
-  };
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      if (!vowel || !targetVowels) return null;
+      return targetVowels[vowel]?.blendshapes ?? null;
+    },
+    [targetVowels],
+  );
 
   // Reset feedback on lyric line change
   useEffect(() => {
@@ -128,7 +139,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({ activeVowel, curre
     }
 
     prevVowelRef.current = activeVowel;
-  }, [activeVowel, currentBlendshapes]);
+  }, [activeVowel, currentBlendshapes, getTargetBlendshapes]);
 
   return (
     <div>
@@ -141,8 +152,8 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({ activeVowel, curre
         ) : null}
       </div>
       {feedbackList.map(item => (
-        <Feedback key={item.id} text={item.text} message={item.message} />)
-      )}
+        <Feedback key={item.id} text={item.text} message={item.message} />
+      ))}
     </div>
   );
 };
@@ -182,13 +193,17 @@ function buildFeedbackForVowel(
 
   // Over-opening when rounding is needed
   if (needRound && openRatio > 1.15) {
-    return { title: `${vowel} pronunciation`, message: 'Your mouth is too open. Reduce opening slightly.' };
+    return {
+      title: `${vowel} pronunciation`,
+      message: 'Your mouth is too open. Reduce opening slightly.',
+    };
   }
 
   // Generic guidance
-  return { title: `${vowel} pronunciation`, message: 'Keep the mouth shape more consistent and defined.' };
+  return {
+    title: `${vowel} pronunciation`,
+    message: 'Keep the mouth shape more consistent and defined.',
+  };
 }
 
 export default VowelFeedback;
-
-
