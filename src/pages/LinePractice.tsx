@@ -22,7 +22,6 @@ import {
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
-import tempTtsAudioFile from '../temp/output-pron-slow.mp3';
 import { ttsMarksExample } from '../temp/ttsMarksExample';
 
 interface LinePracticeProps {
@@ -241,7 +240,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   // TTS 재생 핸들러
   const handlePlayTts = useCallback(() => {
     stopTts();
-    const ttsAudioUrl = tempTtsAudioFile;
+    const ttsAudioUrl = 'https://storage.googleapis.com/sayjong/tts/output-pron-slow.mp3'; // TODO: change url
 
     const audio = new Audio(ttsAudioUrl);
     audioRef.current = audio;
