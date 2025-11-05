@@ -41,14 +41,14 @@ interface CameraComponentProps {
   }) => void;
   /** 카메라 영역 너비 (기본값: '563px') - 높이는 자동으로 1.56:1 비율로 계산됨 */
   width?: string;
-  /** 모음을 추출할 문장 */
-  text?: string | null;
+  /** LinePractice에서 전달받는, 현재 활성화된 모음 */
+  activeVowel?: string | null;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onResults,
   width = '563px',
-  text = null,
+  activeVowel = null,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -95,7 +95,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   }, [onResults]);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel } = useVowelOverlay(text);
+  const { renderOverlay, currentVowel } = useVowelOverlay(activeVowel);
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);

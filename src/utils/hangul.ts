@@ -7,7 +7,7 @@ export function extractVowels(sentence: string) {
     .map(extractVowel);
 }
 
-function extractVowel(word: string) {
+export function extractVowel(word: string) {
   const disassembled = disassembleCompleteCharacter(word);
   if (!disassembled) return null;
   const vowel = disassembled.jungseong;
