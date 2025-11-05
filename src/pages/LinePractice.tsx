@@ -35,11 +35,15 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const { setRecordedAudioBlob } = useRecording();
 
   // songId를 number로 변환
-  const songId = songIdParam ? (Number.isNaN(Number(songIdParam)) ? null : Number(songIdParam)) : null;
-  
+  const songId = songIdParam
+    ? Number.isNaN(Number(songIdParam))
+      ? null
+      : Number(songIdParam)
+    : null;
+
   // useSongLyricLines 훅 사용
   const { lyricData, error: lyricError } = useSongLyricLines(songId);
-  
+
   const [lines, setLines] = useState<LyricLine[]>([]);
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
@@ -84,12 +88,12 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
     // 초기 크기 설정
     updateCameraWidth();
-    
+
     // ResizeObserver로 크기 변경 감지
     const resizeObserver = new ResizeObserver(() => {
       updateCameraWidth();
     });
-    
+
     if (cameraContainerRef.current) {
       resizeObserver.observe(cameraContainerRef.current);
     }
@@ -426,205 +430,205 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             margin: '0 auto', // 양쪽 마진 균등
           }}
         >
-        {/* 카메라 영역 */}
-        <div
-          style={{
-            flex: '0 0 auto', // 고정 크기로 비율 유지
-            ...flexColumn,
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: scaled(600), // 고정 너비
-          }}
-        >
-          <div
-            ref={cameraContainerRef}
-            style={{
-              width: '100%',
-              aspectRatio: '1 / 1.58', // 가로:세로 비율 1:1.58
-              position: 'relative',
-              backgroundColor: 'transparent', // 회색 배경 제거
-              borderRadius: BORDER_RADIUS.lg, // 더 둥근 모서리
-              overflow: 'hidden', // 넘치는 부분 숨김
-            }}
-          >
-            <CameraComponent
-              width={cameraWidth}
-              onResults={handleCameraResults}
-              activeVowel={currentTtsVowel}
-            />
-            {displaySimilarity !== null && currentTtsVowel && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: scaled(10),
-                  right: scaled(10),
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  color: COLORS.white,
-                  padding: `${scaled(12)} ${scaled(16)}`,
-                  borderRadius: scaled(8),
-                  fontSize: scaled(16),
-                  fontFamily: FONTS.primary,
-                  zIndex: 10,
-                  minWidth: scaled(200),
-                }}
-              >
-                <div style={{ fontWeight: FONT_WEIGHTS.semibold, marginBottom: scaled(4) }}>
-                  Similarity Score (임시)
-                </div>
-                <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>
-                  모음: {currentTtsVowel}
-                </div>
-                <div
-                  style={{
-                    fontSize: scaled(24),
-                    fontWeight: FONT_WEIGHTS.bold,
-                    color:
-                      displaySimilarity > 0.7
-                        ? '#4CAF50'
-                        : displaySimilarity > 0.5
-                          ? '#FFC107'
-                          : '#F44336',
-                  }}
-                >
-                  {(displaySimilarity * 100).toFixed(1)}%
-                </div>
-                <div style={{ fontSize: scaled(12), marginTop: scaled(8), opacity: 0.8 }}>
-                  {TARGET_BLENDSHAPES.map(name => (
-                    <div key={name} style={{ marginTop: scaled(2) }}>
-                      {name}: {displayBlendshapes[name]?.toFixed(3) ?? 'N/A'}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 가사 영역 */}
-        <div
-          style={{
-            flex: 1, // 남은 공간을 차지하도록
-            display: 'flex',
-            alignItems: 'flex-start', // 상단 정렬로 카메라와 일치
-            justifyContent: 'center',
-            gap: scaled(27), // 30 * 0.9
-            minWidth: scaled(540), // 최소 너비
-            maxWidth: scaled(800), // 최대 너비
-            height: '100%', // 전체 높이 사용
-            overflowY: 'auto', // 스크롤바를 가사 영역 외부에 표시
-            overflowX: 'hidden',
-            position: 'relative',
-          }}
-        >
-          {/* 이전 버튼 */}
-
-          <button
-            onClick={handlePrevLine}
-            style={{
-              width: scaled(100),
-              height: scaled(100),
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 0,
-              marginTop: scaled(40),
-              flexShrink: 0,
-            }}
-            aria-label="Previous line"
-          >
-            <BtnPrev
-              style={{
-                width: '100%',
-                height: '100%',
-                filter: 'brightness(0.5)',
-              }}
-            />
-          </button>
-
-          {/* 가사 콘텐츠 */}
+          {/* 카메라 영역 */}
           <div
             style={{
+              flex: '0 0 auto', // 고정 크기로 비율 유지
               ...flexColumn,
               alignItems: 'center',
-              gap: scaled(18), // 20 * 0.9
-              flex: 1,
-              maxWidth: scaled(540), // 600 * 0.9
-              paddingBottom: scaled(20),
-              paddingTop: scaled(20),
+              justifyContent: 'center',
+              width: scaled(600), // 고정 너비
             }}
           >
-            {/* 한글 가사 */}
             <div
+              ref={cameraContainerRef}
               style={{
-                fontSize: scaled(getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40)),
-                fontWeight: FONT_WEIGHTS.semibold,
-                letterSpacing: '0.05em',
-                color: COLORS.dark,
-                textAlign: 'center',
+                width: '100%',
+                aspectRatio: '1 / 1.58', // 가로:세로 비율 1:1.58
+                position: 'relative',
+                backgroundColor: 'transparent', // 회색 배경 제거
+                borderRadius: BORDER_RADIUS.lg, // 더 둥근 모서리
+                overflow: 'hidden', // 넘치는 부분 숨김
               }}
             >
-              {displayLine.originalText}
-            </div>
-
-            {/* 영어 가사 */}
-            <div
-              style={{
-                fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24)),
-                fontWeight: FONT_WEIGHTS.light,
-                color: COLORS.textSecondary,
-                textAlign: 'center',
-              }}
-            >
-              {displayLine.textEng}
-            </div>
-
-            {/* 로마자 가사 */}
-            <div
-              style={{
-                fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28)),
-                fontWeight: FONT_WEIGHTS.semibold,
-                color: COLORS.textSecondary,
-                textAlign: 'center',
-              }}
-            >
-              {displayLine.textRomaja}
-            </div>
-
-            {/* 모음 피드백 - 가사 아래에 여백과 함께 배치 */}
-            <div style={{ marginTop: scaled(24), width: '100%' }}>
-              <VowelFeedback
+              <CameraComponent
+                width={cameraWidth}
+                onResults={handleCameraResults}
                 activeVowel={currentTtsVowel}
-                currentBlendshapes={displayBlendshapes}
-                resetKey={selected?.lyricLineId}
               />
+              {displaySimilarity !== null && currentTtsVowel && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: scaled(10),
+                    right: scaled(10),
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    color: COLORS.white,
+                    padding: `${scaled(12)} ${scaled(16)}`,
+                    borderRadius: scaled(8),
+                    fontSize: scaled(16),
+                    fontFamily: FONTS.primary,
+                    zIndex: 10,
+                    minWidth: scaled(200),
+                  }}
+                >
+                  <div style={{ fontWeight: FONT_WEIGHTS.semibold, marginBottom: scaled(4) }}>
+                    Similarity Score (임시)
+                  </div>
+                  <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>
+                    모음: {currentTtsVowel}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: scaled(24),
+                      fontWeight: FONT_WEIGHTS.bold,
+                      color:
+                        displaySimilarity > 0.7
+                          ? '#4CAF50'
+                          : displaySimilarity > 0.5
+                            ? '#FFC107'
+                            : '#F44336',
+                    }}
+                  >
+                    {(displaySimilarity * 100).toFixed(1)}%
+                  </div>
+                  <div style={{ fontSize: scaled(12), marginTop: scaled(8), opacity: 0.8 }}>
+                    {TARGET_BLENDSHAPES.map(name => (
+                      <div key={name} style={{ marginTop: scaled(2) }}>
+                        {name}: {displayBlendshapes[name]?.toFixed(3) ?? 'N/A'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* 다음 버튼 */}
-
-          <button
-            onClick={handleNextLine}
+          {/* 가사 영역 */}
+          <div
             style={{
-              width: scaled(100),
-              height: scaled(100),
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 0,
-              marginTop: scaled(40),
-              flexShrink: 0,
+              flex: 1, // 남은 공간을 차지하도록
+              display: 'flex',
+              alignItems: 'flex-start', // 상단 정렬로 카메라와 일치
+              justifyContent: 'center',
+              gap: scaled(27), // 30 * 0.9
+              minWidth: scaled(540), // 최소 너비
+              maxWidth: scaled(800), // 최대 너비
+              height: '100%', // 전체 높이 사용
+              overflowY: 'auto', // 스크롤바를 가사 영역 외부에 표시
+              overflowX: 'hidden',
+              position: 'relative',
             }}
-            aria-label="Next line"
           >
-            <BtnNext
+            {/* 이전 버튼 */}
+
+            <button
+              onClick={handlePrevLine}
               style={{
-                width: '100%',
-                height: '100%',
-                filter: 'brightness(0.5)',
+                width: scaled(100),
+                height: scaled(100),
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                marginTop: scaled(40),
+                flexShrink: 0,
               }}
-            />
-          </button>
-        </div>
+              aria-label="Previous line"
+            >
+              <BtnPrev
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  filter: 'brightness(0.5)',
+                }}
+              />
+            </button>
+
+            {/* 가사 콘텐츠 */}
+            <div
+              style={{
+                ...flexColumn,
+                alignItems: 'center',
+                gap: scaled(18), // 20 * 0.9
+                flex: 1,
+                maxWidth: scaled(540), // 600 * 0.9
+                paddingBottom: scaled(20),
+                paddingTop: scaled(20),
+              }}
+            >
+              {/* 한글 가사 */}
+              <div
+                style={{
+                  fontSize: scaled(getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40)),
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  letterSpacing: '0.05em',
+                  color: COLORS.dark,
+                  textAlign: 'center',
+                }}
+              >
+                {displayLine.originalText}
+              </div>
+
+              {/* 영어 가사 */}
+              <div
+                style={{
+                  fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24)),
+                  fontWeight: FONT_WEIGHTS.light,
+                  color: COLORS.textSecondary,
+                  textAlign: 'center',
+                }}
+              >
+                {displayLine.textEng}
+              </div>
+
+              {/* 로마자 가사 */}
+              <div
+                style={{
+                  fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28)),
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  color: COLORS.textSecondary,
+                  textAlign: 'center',
+                }}
+              >
+                {displayLine.textRomaja}
+              </div>
+
+              {/* 모음 피드백 - 가사 아래에 여백과 함께 배치 */}
+              <div style={{ marginTop: scaled(24), width: '100%' }}>
+                <VowelFeedback
+                  activeVowel={currentTtsVowel}
+                  currentBlendshapes={displayBlendshapes}
+                  resetKey={selected?.lyricLineId}
+                />
+              </div>
+            </div>
+
+            {/* 다음 버튼 */}
+
+            <button
+              onClick={handleNextLine}
+              style={{
+                width: scaled(100),
+                height: scaled(100),
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                marginTop: scaled(40),
+                flexShrink: 0,
+              }}
+              aria-label="Next line"
+            >
+              <BtnNext
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  filter: 'brightness(0.5)',
+                }}
+              />
+            </button>
+          </div>
         </div>
 
         {/* 임시: 발음 점수 표기 UI (TODO: 나중에 합쳐서 최종 점수로 나와야함, UI도 figma대로 변경해야함) */}
@@ -661,78 +665,78 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             zIndex: 3,
           }}
         >
-        <button
-          style={{
-            width: scaled(80),
-            height: scaled(80),
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <BtnMic
+          <button
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
+              width: scaled(80),
+              height: scaled(80),
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
-          />
-        </button>
+          >
+            <BtnMic
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </button>
 
-        <button
-          style={{
-            width: scaled(80),
-            height: scaled(80),
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <BtnListenRecording
+          <button
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
+              width: scaled(80),
+              height: scaled(80),
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
-          />
-        </button>
+          >
+            <BtnListenRecording
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </button>
 
-        <button
-          onClick={handlePlayTts}
-          style={{
-            width: scaled(80),
-            height: scaled(80),
-            border: 'none',
-            background: 'transparent',
-            cursor: 'pointer',
-            padding: 0,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <BtnTts
+          <button
+            onClick={handlePlayTts}
             style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'contain',
-              display: 'block',
+              width: scaled(80),
+              height: scaled(80),
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              padding: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
             }}
-          />
-        </button>
+          >
+            <BtnTts
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
+          </button>
         </div>
       </div>
 

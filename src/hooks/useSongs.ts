@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getSongs, getSong, getSongLyricLines } from '../api/songs';
-import type { Song, SongList, SongWithLyrics } from '../api/songs/types';
+import type { Song, /* SongList, */ SongWithLyrics } from '../api/songs/types';
 
 /**
  * 노래 목록을 가져오는 훅
@@ -98,4 +98,3 @@ export function useSongLyricLines(songId: number | null) {
 
   return { lyricData, loading, error };
 }
-

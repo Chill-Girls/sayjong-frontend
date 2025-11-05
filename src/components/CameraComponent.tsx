@@ -436,7 +436,9 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   }, []); // 마운트 시 한 번만 실행
 
   return (
-    <div style={{ position: 'relative', width, height, borderRadius: 'inherit', overflow: 'hidden' }}>
+    <div
+      style={{ position: 'relative', width, height, borderRadius: 'inherit', overflow: 'hidden' }}
+    >
       <video
         ref={videoRef}
         style={{

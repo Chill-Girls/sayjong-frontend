@@ -18,11 +18,11 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
     setMode('singalong');
     return () => setMode(null);
   }, [setMode]);
-  
+
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
   const { song, loading } = useSong(songIdNum);
-  
+
   const [currentTime, setCurrentTime] = useState(0);
 
   // 테스트용 가사 데이터
@@ -38,7 +38,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
       { text: '맘', start: 3.5, end: 4.5 },
     ],
   };
-
 
   // 자동 타이머
   useEffect(() => {

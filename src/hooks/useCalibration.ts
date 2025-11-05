@@ -55,4 +55,3 @@ export function useCalibrationData() {
 
   return { data, loading, error };
 }
-
