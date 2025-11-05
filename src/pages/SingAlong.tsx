@@ -1,12 +1,11 @@
 import type { FunctionComponent } from 'react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
 import KaraokeLine from '../components/KaraokeLine';
-import type { Song } from '../api/songs/types';
-import { getSong } from '../api/songs';
+import { useSong } from '../hooks/useSongs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
 import { containerFullscreen, flexColumn, flexCenter, scaled } from '../styles/mixins';
@@ -19,9 +18,11 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
     setMode('singalong');
     return () => setMode(null);
   }, [setMode]);
+  
   const { songId } = useParams();
-  const [song, setSong] = useState<Song | null>(null);
-  const [loading, setLoading] = useState(true);
+  const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
+  const { song, loading } = useSong(songIdNum);
+  
   const [currentTime, setCurrentTime] = useState(0);
 
   // 테스트용 가사 데이터
@@ -38,21 +39,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
     ],
   };
 
-  // 곡 정보 로드
-  useEffect(() => {
-    if (songId) {
-      setLoading(true);
-      getSong(Number(songId))
-        .then(data => {
-          setSong(data);
-          setLoading(false);
-        })
-        .catch(err => {
-          console.error('Failed to fetch song:', err);
-          setLoading(false);
-        });
-    }
-  }, [songId]);
 
   // 자동 타이머
   useEffect(() => {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { getSongLyricLines } from '../api/songs';
+import { useSongLyricLines } from '../hooks/useSongs';
 import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
@@ -29,13 +29,20 @@ interface LinePracticeProps {
 }
 
 const LinePractice: React.FC<LinePracticeProps> = () => {
-  const { songId } = useParams<{ songId: string }>();
+  const { songId: songIdParam } = useParams<{ songId: string }>();
   const { setMode } = useMode();
+  const { setRecordedAudioBlob } = useRecording();
+
+  // songId를 number로 변환
+  const songId = songIdParam ? (Number.isNaN(Number(songIdParam)) ? null : Number(songIdParam)) : null;
+  
+  // useSongLyricLines 훅 사용
+  const { lyricData, error: lyricError } = useSongLyricLines(songId);
+  
   const [lines, setLines] = useState<LyricLine[]>([]);
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
-  const { setRecordedAudioBlob } = useRecording();
 
   // TTS 오디오 관리
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -105,32 +112,20 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     [loadedTargetVowels], // loadedTargetVowels에 의존
   );
 
+  // lyricData가 변경되면 상태 업데이트
   useEffect(() => {
-    if (!songId) return;
-    const id = Number(songId);
-    if (Number.isNaN(id)) {
+    if (lyricData) {
+      setLines(lyricData.lyrics ?? []);
+      setSongTitle(lyricData.title ?? '');
+      setSinger(lyricData.singer ?? '');
+      setSelected(lyricData.lyrics && lyricData.lyrics.length > 0 ? lyricData.lyrics[0] : null);
+    } else if (lyricError || !songId) {
       setSelected(null);
-      return;
+      setLines([]);
+      setSongTitle('');
+      setSinger('');
     }
-
-    const fetchLines = async () => {
-      try {
-        const res = await getSongLyricLines(id);
-        setLines(res.lyrics ?? []);
-        setSongTitle(res.title ?? '');
-        setSinger(res.singer ?? '');
-        setSelected(res.lyrics && res.lyrics.length > 0 ? res.lyrics[0] : null);
-      } catch (err) {
-        console.error('getSongLyricLines error', err);
-        setSelected(null);
-        setLines([]);
-        setSongTitle('');
-        setSinger('');
-      }
-    };
-
-    fetchLines();
-  }, [songId]);
+  }, [lyricData, lyricError, songId]);
 
   // 화면에 보여줄 소절 선택
   const displayLine = selected ??

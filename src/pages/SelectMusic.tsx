@@ -1,10 +1,8 @@
 import type { FunctionComponent } from 'react';
-import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
 import MusicCard from '../components/MusicCard';
-import { getSongs } from '../api/songs';
-import type { Song } from '../api/songs/types';
+import { useSongs } from '../hooks/useSongs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 
@@ -12,26 +10,7 @@ type SelectMusicProps = Record<string, never>;
 
 const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
   const navigate = useNavigate();
-  const [songs, setSongs] = useState<Song[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSongs = async () => {
-      try {
-        setLoading(true);
-        const data = await getSongs();
-        setSongs(data);
-        setError(null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSongs();
-  }, []);
+  const { songs, loading, error } = useSongs();
 
   if (loading) {
     return (

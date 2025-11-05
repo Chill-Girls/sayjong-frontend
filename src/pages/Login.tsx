@@ -1,8 +1,7 @@
 import type { FunctionComponent } from 'react';
 import { useState } from 'react';
-import toast from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { login, signup } from '../api/auth';
+import { useAuth } from '../hooks/useAuth';
 import SejongImage from '../assets/Sejong.png';
 import InputField from '../components/InputField';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
@@ -24,80 +23,43 @@ interface LoginCredentials {
   nickname?: string;
 }
 
-function setTokens(accessToken: string, refreshToken: string) {
-  localStorage.setItem('accessToken', accessToken);
-  localStorage.setItem('refreshToken', refreshToken); //TODO: BE와 cookie로 작업
-}
-
 const Login: FunctionComponent<LoginProps> = () => {
   const navigate = useNavigate();
+  const { handleLogin, handleSignUp, isLoading, error } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     id: '',
     password: '',
     nickname: '',
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const handleLogin = async () => {
-    if (!credentials.id || !credentials.password) {
-      setError('Please enter your ID and password.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const tokenInfo = await login({
-        loginId: credentials.id,
-        userPassword: credentials.password,
-      });
-      setTokens(tokenInfo.accessToken, tokenInfo.refreshToken);
-      toast.success('Login successful! Welcome back!');
+  const onLogin = async () => {
+    const result = await handleLogin({
+      loginId: credentials.id,
+      userPassword: credentials.password,
+    });
+    if (result.success) {
       navigate('/calibration');
-    } catch (err) {
-      console.error('Login error:', err);
-      setError(err instanceof Error ? err.message : 'Login failed.');
-      toast.error(err instanceof Error ? err.message : 'Login failed.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
-  const handleSignUp = async () => {
-    if (!credentials.id || !credentials.password || !credentials.nickname) {
-      setError('Please fill in all fields.');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await signup({
-        loginId: credentials.id,
-        userPassword: credentials.password,
-        nickname: credentials.nickname,
-      });
-      toast.success('Sign up successful! Please log in now.');
+  const onSignUp = async () => {
+    const result = await handleSignUp({
+      loginId: credentials.id,
+      userPassword: credentials.password,
+      nickname: credentials.nickname || '',
+    });
+    if (result.success) {
       setIsSignUp(false);
       setCredentials({ id: '', password: '', nickname: '' });
-    } catch (err) {
-      console.error('Signup error:', err);
-      setError(err instanceof Error ? err.message : 'Sign up failed.');
-      toast.error(err instanceof Error ? err.message : 'Sign up failed.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const handleSubmit = () => {
     if (isSignUp) {
-      handleSignUp();
+      onSignUp();
     } else {
-      handleLogin();
+      onLogin();
     }
   };
 
@@ -109,7 +71,6 @@ const Login: FunctionComponent<LoginProps> = () => {
 
   const toggleMode = () => {
     setIsSignUp(!isSignUp);
-    setError(null);
     setCredentials({ id: '', password: '', nickname: '' });
   };
 
