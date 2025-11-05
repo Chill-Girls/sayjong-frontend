@@ -6,6 +6,7 @@
  */
 
 import { useRef, useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaceLandmarker, FilesetResolver } from '@mediapipe/tasks-vision';
 import { ALL_TRACKED_LANDMARKS } from '../constants/landmarks';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
@@ -33,6 +34,7 @@ interface CapturedFrame {
 }
 
 const CalibrationCapture: React.FC = () => {
+  const navigate = useNavigate();
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
@@ -228,6 +230,9 @@ const CalibrationCapture: React.FC = () => {
       alert(
         'Save Complete!\n\n' + 'Your calibration data has been successfully saved to the backend.',
       );
+
+      // 홈으로 리다이렉트
+      navigate('/home');
     } catch (error) {
       // axios 에러 처리
       console.error('서버 전송 또는 계산 실패:', error);

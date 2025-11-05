@@ -21,9 +21,11 @@
 **위치**: `src/hooks/useAuth.ts`
 
 **반환값**:
+
 ```typescript
 {
-  handleLogin: (credentials: LoginRequest) => Promise<{ success: boolean; tokenInfo?: Token; error?: string }>;
+  handleLogin: (credentials: LoginRequest) =>
+    Promise<{ success: boolean; tokenInfo?: Token; error?: string }>;
   handleSignUp: (credentials: SignupRequest) => Promise<{ success: boolean; error?: string }>;
   isLoading: boolean;
   error: string | null;
@@ -31,24 +33,25 @@
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useAuth } from '../hooks/useAuth';
 
 function LoginComponent() {
   const { handleLogin, handleSignUp, isLoading, error } = useAuth();
-  
+
   const onLogin = async () => {
     const result = await handleLogin({
       loginId: 'user123',
       userPassword: 'password123'
     });
-    
+
     if (result.success) {
       // 로그인 성공 처리
       navigate('/dashboard');
     }
   };
-  
+
   return (
     <div>
       {error && <div>{error}</div>}
@@ -61,6 +64,7 @@ function LoginComponent() {
 ```
 
 **주요 기능**:
+
 - 로그인 처리 (`handleLogin`)
 - 회원가입 처리 (`handleSignUp`)
 - 자동 토큰 저장 (localStorage)
@@ -78,6 +82,7 @@ function LoginComponent() {
 **위치**: `src/hooks/useSongs.ts`
 
 **반환값**:
+
 ```typescript
 {
   songs: Song[];
@@ -87,15 +92,16 @@ function LoginComponent() {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useSongs } from '../hooks/useSongs';
 
 function SongList() {
   const { songs, loading, error } = useSongs();
-  
+
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>에러: {error}</div>;
-  
+
   return (
     <div>
       {songs.map(song => (
@@ -113,9 +119,11 @@ function SongList() {
 **위치**: `src/hooks/useSongs.ts`
 
 **파라미터**:
+
 - `songId: number | null` - 노래 ID
 
 **반환값**:
+
 ```typescript
 {
   song: Song | null;
@@ -125,16 +133,17 @@ function SongList() {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useSong } from '../hooks/useSongs';
 
 function SongDetail({ songId }: { songId: number }) {
   const { song, loading, error } = useSong(songId);
-  
+
   if (loading) return <div>로딩 중...</div>;
   if (error) return <div>에러: {error}</div>;
   if (!song) return <div>노래를 찾을 수 없습니다.</div>;
-  
+
   return (
     <div>
       <h1>{song.title}</h1>
@@ -151,9 +160,11 @@ function SongDetail({ songId }: { songId: number }) {
 **위치**: `src/hooks/useSongs.ts`
 
 **파라미터**:
+
 - `songId: number | null` - 노래 ID
 
 **반환값**:
+
 ```typescript
 {
   lyricData: SongWithLyrics | null;
@@ -163,15 +174,16 @@ function SongDetail({ songId }: { songId: number }) {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useSongLyricLines } from '../hooks/useSongs';
 
 function LyricPractice({ songId }: { songId: number }) {
   const { lyricData, loading, error } = useSongLyricLines(songId);
-  
+
   if (loading) return <div>가사 로딩 중...</div>;
   if (error) return <div>에러: {error}</div>;
-  
+
   return (
     <div>
       <h2>{lyricData?.title}</h2>
@@ -194,6 +206,7 @@ function LyricPractice({ songId }: { songId: number }) {
 **위치**: `src/hooks/useCalibration.ts`
 
 **반환값**:
+
 ```typescript
 {
   data: CalibrationDataResponse | null;
@@ -203,21 +216,23 @@ function LyricPractice({ songId }: { songId: number }) {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useCalibrationData } from '../hooks/useCalibration';
 
 function AppRouter() {
   const { loading } = useCalibrationData();
-  
+
   if (loading) {
     return <div>사용자 데이터 로딩 중...</div>;
   }
-  
+
   return <Routes>...</Routes>;
 }
 ```
 
 **주요 기능**:
+
 - 앱 시작 시 자동으로 캘리브레이션 데이터 로드
 - localStorage에 자동 저장 (`target_vowels`, `vowel_calibration`)
 - 404 에러는 정상 처리 (캘리브레이션 데이터가 없는 경우)
@@ -234,9 +249,11 @@ function AppRouter() {
 **위치**: `src/hooks/usePronunciationCheck.ts`
 
 **파라미터**:
+
 - `titleToEvaluate: string` - 평가할 텍스트 (제목)
 
 **반환값**:
+
 ```typescript
 {
   isLoading: boolean;
@@ -246,12 +263,13 @@ function AppRouter() {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 
 function PracticeComponent() {
   const { isLoading, score, error } = usePronunciationCheck('안녕하세요');
-  
+
   return (
     <div>
       {isLoading && <div>평가 중...</div>}
@@ -265,6 +283,7 @@ function PracticeComponent() {
 ```
 
 **주요 기능**:
+
 - `RecordingContext`의 `recordedAudioBlob`을 자동으로 감지
 - 오디오를 Base64로 변환하여 API에 전송
 - 발음 정확도 점수 반환 (0.0 ~ 1.0)
@@ -272,6 +291,7 @@ function PracticeComponent() {
 - 평가할 텍스트 변경 시 자동으로 점수 초기화
 
 **의존성**:
+
 - `RecordingContext`에서 `recordedAudioBlob`, `isRecording` 사용
 
 ---
@@ -285,9 +305,11 @@ function PracticeComponent() {
 **위치**: `src/hooks/useVowelOverlay.ts`
 
 **파라미터**:
+
 - `currentVowel: string | null` - 현재 표시할 모음
 
 **반환값**:
+
 ```typescript
 {
   renderOverlay: (
@@ -302,6 +324,7 @@ function PracticeComponent() {
 ```
 
 **사용 예시**:
+
 ```typescript
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 
@@ -309,15 +332,15 @@ function CameraComponent() {
   const { renderOverlay, currentVowel } = useVowelOverlay('ㅏ');
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cachedResultsRef = useRef<any>({});
-  
+
   const drawFrame = () => {
     const ctx = canvasRef.current?.getContext('2d');
     if (!ctx) return;
-    
+
     // 랜드마크 감지 후...
     const allLandmarks = detectLandmarks();
     const timeSinceLastDetection = performance.now() - lastDetectionTime;
-    
+
     renderOverlay(
       ctx,
       (p) => ({ x: p.x, y: p.y }),
@@ -326,18 +349,20 @@ function CameraComponent() {
       timeSinceLastDetection
     );
   };
-  
+
   return <canvas ref={canvasRef} />;
 }
 ```
 
 **주요 기능**:
+
 - 목표 모음의 입술 랜드마크 계산
 - 캔버스에 입술 윤곽선 그리기
 - 캔버스에 모음 라벨 그리기
 - 성능 최적화를 위한 캐싱 (8ms 이상 경과 시에만 재계산)
 
 **내부 동작**:
+
 1. `TargetLandmarksComputer`를 사용하여 목표 랜드마크 계산
 2. `drawTargetMouthContours`로 입술 윤곽선 그리기
 3. `drawVowelLabel`로 모음 라벨 텍스트 그리기
@@ -352,10 +377,11 @@ function CameraComponent() {
 API 호출이 필요한 경우, 직접 API 함수를 호출하지 말고 해당하는 커스텀 훅을 사용하세요.
 
 **❌ 나쁜 예**:
+
 ```typescript
 function Component() {
   const [songs, setSongs] = useState([]);
-  
+
   useEffect(() => {
     getSongs().then(setSongs);
   }, []);
@@ -363,6 +389,7 @@ function Component() {
 ```
 
 **✅ 좋은 예**:
+
 ```typescript
 function Component() {
   const { songs, loading, error } = useSongs();
@@ -402,10 +429,11 @@ return <SongList songs={songs} />;
 5. **문서화**: JSDoc 주석을 추가하여 사용법을 명확히 하세요.
 
 **훅 템플릿**:
+
 ```typescript
 /**
  * 훅 설명
- * 
+ *
  * @param param - 파라미터 설명
  * @returns 반환값 설명
  */
@@ -429,4 +457,3 @@ export function useCustomHook(param: ParamType) {
 - API 함수: `src/api/`
 - 타입 정의: 각 API 디렉토리의 `types.ts`
 - 사용 예시: `src/pages/` 디렉토리의 컴포넌트들
-
