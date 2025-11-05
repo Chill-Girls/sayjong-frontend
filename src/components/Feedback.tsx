@@ -1,6 +1,6 @@
 import React from 'react';
-import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
-import { flexColumn, scaled } from '../styles/mixins';
+import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
+import { scaled } from '../styles/mixins';
 
 interface FeedbackProps {
   text: string;
@@ -11,30 +11,38 @@ const Feedback: React.FC<FeedbackProps> = ({ text, message }) => {
   return (
     <div
       style={{
-        ...flexColumn,
-        gap: scaled(16),
+        display: 'flex',
+        flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: scaled(20),
+        gap: scaled(20),
+        padding: `${scaled(16)} ${scaled(20)}`,
+        backgroundColor: COLORS.lightPink,
+        borderRadius: BORDER_RADIUS.lg,
+        width: '100%',
+        marginBottom: scaled(12),
       }}
     >
+      {/* 왼쪽: 큰 빨간색 글자 */}
       <div
         style={{
-          fontSize: FONT_SIZES.lg,
-          fontWeight: FONT_WEIGHTS.semibold,
-          color: COLORS.dark,
+          fontSize: scaled(64),
+          fontWeight: FONT_WEIGHTS.bold,
+          color: '#F44336', // 빨간색
           fontFamily: FONTS.primary,
+          lineHeight: 1,
+          flexShrink: 0,
         }}
       >
         {text}
       </div>
+      {/* 오른쪽: 영어 피드백 텍스트 */}
       <div
         style={{
-          fontSize: FONT_SIZES.base,
+          fontSize: FONT_SIZES.md,
           fontWeight: FONT_WEIGHTS.normal,
-          color: COLORS.textSecondary,
+          color: COLORS.dark,
           fontFamily: FONTS.primary,
-          textAlign: 'center',
+          flex: 1,
         }}
       >
         {message}

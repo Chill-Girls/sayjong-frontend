@@ -114,6 +114,7 @@ const Canvas: React.FC<CanvasProps> = ({ videoRef, onDrawFrame }) => {
         width: '100%',
         height: '100%',
         transform: 'scaleX(-1)',
+        borderRadius: 'inherit', // 부모의 borderRadius 상속
       }}
     />
   );

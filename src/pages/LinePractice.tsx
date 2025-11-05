@@ -23,6 +23,7 @@ import {
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { ttsMarksExample } from '../temp/ttsMarksExample';
+import VowelFeedback from '../components/VowelFeedback';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
@@ -67,6 +68,40 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
   const [displaySimilarity, setDisplaySimilarity] = useState<number | null>(null);
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
+  const cameraContainerRef = useRef<HTMLDivElement>(null);
+  const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
+
+  // 카메라 컨테이너 크기에 맞춰 CameraComponent 너비 업데이트
+  useEffect(() => {
+    const updateCameraWidth = () => {
+      if (cameraContainerRef.current) {
+        const rect = cameraContainerRef.current.getBoundingClientRect();
+        const width = rect.width;
+        // px 단위로 변환하여 CameraComponent에 전달
+        setCameraWidth(`${width}px`);
+      }
+    };
+
+    // 초기 크기 설정
+    updateCameraWidth();
+    
+    // ResizeObserver로 크기 변경 감지
+    const resizeObserver = new ResizeObserver(() => {
+      updateCameraWidth();
+    });
+    
+    if (cameraContainerRef.current) {
+      resizeObserver.observe(cameraContainerRef.current);
+    }
+
+    // window resize 이벤트도 감지 (브라우저 zoom 포함)
+    window.addEventListener('resize', updateCameraWidth);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('resize', updateCameraWidth);
+    };
+  }, []);
 
   useEffect(() => {
     setMode('line');
@@ -363,35 +398,57 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
           width: '100%',
           backgroundColor: COLORS.background,
           overflow: 'hidden',
-          display: 'flex',
+          ...flexColumn,
           alignItems: 'center',
-          justifyContent: 'center',
-          gap: scaled(40),
-          padding: `0 ${scaled(50)}`,
+          justifyContent: 'center', // 세로 중앙 정렬
+          gap: scaled(20),
+          paddingLeft: scaled(50), // 좌측 마진
+          paddingRight: scaled(50), // 우측 마진
+          paddingTop: 0,
+          paddingBottom: 0,
           zIndex: 2,
+          flex: 1,
+          minHeight: 0,
+          height: 'calc(100vh - 380px)', // 버튼 영역 근처까지 확장
         }}
       >
+        {/* 카메라와 가사 영역 */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: scaled(1600), // 전체를 감싸는 컨테이너에 maxWidth를 주어 중앙 정렬 명확히
+            display: 'flex',
+            alignItems: 'flex-start', // 상단 정렬로 일관성 유지
+            justifyContent: 'center', // 가운데 정렬
+            gap: scaled(200), // 카메라와 가사 사이 간격 증가
+            flex: 1,
+            minHeight: 0,
+            margin: '0 auto', // 양쪽 마진 균등
+          }}
+        >
         {/* 카메라 영역 */}
         <div
           style={{
-            flex: 1,
+            flex: '0 0 auto', // 고정 크기로 비율 유지
             ...flexColumn,
             alignItems: 'center',
             justifyContent: 'center',
-            minWidth: scaled(495), // 550 * 0.9
+            width: scaled(600), // 고정 너비
           }}
         >
           <div
+            ref={cameraContainerRef}
             style={{
-              width: scaled(630), // CameraComponent와 동일한 너비
-              height: scaled((630 * 357) / 563), // 563:357 비율 유지
+              width: '100%',
+              aspectRatio: '1 / 1.58', // 가로:세로 비율 1:1.58
               position: 'relative',
-              backgroundColor: COLORS.gray,
-              borderRadius: BORDER_RADIUS.md,
+              backgroundColor: 'transparent', // 회색 배경 제거
+              borderRadius: BORDER_RADIUS.lg, // 더 둥근 모서리
+              overflow: 'hidden', // 넘치는 부분 숨김
             }}
           >
             <CameraComponent
-              width={scaled(630)}
+              width={cameraWidth}
               onResults={handleCameraResults}
               activeVowel={currentTtsVowel}
             />
@@ -446,12 +503,16 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         {/* 가사 영역 */}
         <div
           style={{
-            flex: 1,
+            flex: 1, // 남은 공간을 차지하도록
             display: 'flex',
-            alignItems: 'flex-start',
+            alignItems: 'flex-start', // 상단 정렬로 카메라와 일치
             justifyContent: 'center',
             gap: scaled(27), // 30 * 0.9
-            minWidth: scaled(360), // 400 * 0.9
+            minWidth: scaled(540), // 최소 너비
+            maxWidth: scaled(800), // 최대 너비
+            height: '100%', // 전체 높이 사용
+            overflowY: 'auto', // 스크롤바를 가사 영역 외부에 표시
+            overflowX: 'hidden',
             position: 'relative',
           }}
         >
@@ -467,6 +528,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
               cursor: 'pointer',
               padding: 0,
               marginTop: scaled(40),
+              flexShrink: 0,
             }}
             aria-label="Previous line"
           >
@@ -487,6 +549,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
               gap: scaled(18), // 20 * 0.9
               flex: 1,
               maxWidth: scaled(540), // 600 * 0.9
+              paddingBottom: scaled(20),
+              paddingTop: scaled(20),
             }}
           >
             {/* 한글 가사 */}
@@ -525,6 +589,15 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             >
               {displayLine.textRomaja}
             </div>
+
+            {/* 모음 피드백 - 가사 아래에 여백과 함께 배치 */}
+            <div style={{ marginTop: scaled(24), width: '100%' }}>
+              <VowelFeedback
+                activeVowel={currentTtsVowel}
+                currentBlendshapes={displayBlendshapes}
+                resetKey={selected?.lyricLineId}
+              />
+            </div>
           </div>
 
           {/* 다음 버튼 */}
@@ -539,6 +612,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
               cursor: 'pointer',
               padding: 0,
               marginTop: scaled(40),
+              flexShrink: 0,
             }}
             aria-label="Next line"
           >
@@ -551,41 +625,42 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             />
           </button>
         </div>
-      </div>
+        </div>
 
-      {/* 임시: 발음 점수 표기 UI (TODO: 나중에 합쳐서 최종 점수로 나와야함, UI도 figma대로 변경해야함) */}
-      <div
-        style={{
-          alignSelf: 'stretch',
-          height: scaled(60), // 예시 높이
-          ...flexColumn,
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: scaled(24),
-          zIndex: 3,
-        }}
-      >
-        {isLoading && <p>채점 중...</p>}
-        {error && <p style={{ color: 'red' }}>오류: {error}</p>}
-        {!isLoading && !error && score !== null && (
-          <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
-        )}
-      </div>
+        {/* 임시: 발음 점수 표기 UI (TODO: 나중에 합쳐서 최종 점수로 나와야함, UI도 figma대로 변경해야함) */}
+        <div
+          style={{
+            width: '100%',
+            height: scaled(60), // 예시 높이
+            ...flexColumn,
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: scaled(24),
+            zIndex: 3,
+            padding: '0', // 패딩 제거
+          }}
+        >
+          {isLoading && <p>채점 중...</p>}
+          {error && <p style={{ color: 'red' }}>오류: {error}</p>}
+          {!isLoading && !error && score !== null && (
+            <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
+          )}
+        </div>
 
-      {/* 버튼 영역 */}
-      <div
-        style={{
-          alignSelf: 'stretch',
-          overflow: 'visible',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: `${scaled(20)} ${scaled(193)}`,
-          gap: scaled(80),
-          minHeight: scaled(120),
-          zIndex: 3,
-        }}
-      >
+        {/* 버튼 영역 */}
+        <div
+          style={{
+            width: '100%',
+            overflow: 'visible',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: `${scaled(20)} 0`, // 좌우 패딩 제거
+            gap: scaled(80),
+            minHeight: scaled(120),
+            zIndex: 3,
+          }}
+        >
         <button
           style={{
             width: scaled(80),
@@ -658,6 +733,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             }}
           />
         </button>
+        </div>
       </div>
 
       <Footer />
