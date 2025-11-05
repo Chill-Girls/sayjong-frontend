@@ -14,7 +14,7 @@ import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { getAdaptiveFontSize } from '../utils/fontUtils';
-import { useVowelOverlay } from '../hooks/useVowelOverlay';
+import { extractVowel } from '../utils/hangul';
 import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
@@ -22,20 +22,12 @@ import {
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
+import tempTtsAudioFile from '../temp/output-pron-slow.mp3';
+import { ttsMarksExample } from '../temp/ttsMarksExample';
 
 interface LinePracticeProps {
   modeButtons?: React.ReactNode;
 }
-
-export interface LinePracticeData {
-  songId: number;
-  lyricLineId: number;
-  originalText: string;
-  tesxRomaja: string;
-  textEng: string;
-  startTime: number;
-  OrinialUrl?: string; // 나중에 백엔드 연결 시 사용 예정
-} // 노래 제목, 가수도 받아와야 할 거 같음. constansg/exampleLinePracticeData 참고
 
 const LinePractice: React.FC<LinePracticeProps> = () => {
   const { songId } = useParams<{ songId: string }>();
@@ -45,6 +37,11 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
   const { setRecordedAudioBlob } = useRecording();
+
+  // TTS 오디오 관리
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [currentTtsVowel, setCurrentTtsVowel] = useState<string | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   // localStorage에서 로드한 캘리브레이션 데이터를 저장할 state
   const [loadedTargetVowels, setLoadedTargetVowels] = useState<any>(null);
@@ -147,9 +144,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       startTime: 0,
     };
 
-  // 모음 추출 및 오버레이 관리 (CameraComponent와 동일한 로직 사용)
-  const { currentVowel } = useVowelOverlay(displayLine?.originalText ?? null);
-
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
       if (!results.blendshapes) return;
@@ -157,7 +151,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
       currentBlendshapesRef.current = filteredBlendshapes;
 
-      const targetBlendshapes = getTargetBlendshapes(currentVowel);
+      const targetBlendshapes = getTargetBlendshapes(currentTtsVowel);
       if (targetBlendshapes) {
         const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
         similarityScoreRef.current = similarity;
@@ -170,8 +164,53 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         setDisplaySimilarity(similarityScoreRef.current);
       }
     },
-    [currentVowel, getTargetBlendshapes],
+    [currentTtsVowel, getTargetBlendshapes],
   );
+
+  // TTS에 맞추어 딜레이 없이 빠르게 overlay를 업데이트
+  const checkTimeLoop = () => {
+    if (!audioRef.current || audioRef.current.paused) {
+      setCurrentTtsVowel(null);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+      return;
+    }
+
+    const currentTime = audioRef.current.currentTime;
+    const ttsMarks = ttsMarksExample; // TODO: 실제 마크 데이터 사용
+    let activeMark = null;
+
+    for (let i = ttsMarks.length - 1; i >= 0; i--) {
+      if (currentTime >= ttsMarks[i].timeSeconds) {
+        activeMark = ttsMarks[i];
+        break;
+      }
+    }
+
+    const vowel = activeMark ? extractVowel(activeMark.markName) : null;
+    setCurrentTtsVowel(prevVowel => (prevVowel !== vowel ? vowel : prevVowel));
+
+    // 다음 프레임에 이 함수를 다시 실행하도록 예약
+    animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
+  };
+
+  const stopTts = () => {
+    // 애니메이션 프레임 루프 중지
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    // 기존 오디오 정지 로직
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.onended = null;
+      audioRef.current = null;
+    }
+    setCurrentTtsVowel(null); // 모음 오버레이 제거
+  };
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
   const totalLines = usableLines.length;
@@ -198,6 +237,36 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
     setRecordedAudioBlob(null);
   };
+
+  // TTS 재생 핸들러
+  const handlePlayTts = useCallback(() => {
+    stopTts();
+    const ttsAudioUrl = tempTtsAudioFile;
+
+    const audio = new Audio(ttsAudioUrl);
+    audioRef.current = audio;
+
+    const onEnded = () => {
+      stopTts(); // stopTts가 루프와 오디오를 모두 정리
+    };
+    audio.addEventListener('ended', onEnded);
+
+    audio
+      .play()
+      .then(() => {
+        animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
+      })
+      .catch(e => {
+        console.error('TTS 재생 오류:', e);
+        stopTts();
+      });
+  }, [displayLine]);
+
+  useEffect(() => {
+    return () => {
+      stopTts();
+    };
+  }, []);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
@@ -329,10 +398,10 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
           >
             <CameraComponent
               width={scaled(630)}
-              text={displayLine?.originalText ?? null}
               onResults={handleCameraResults}
+              activeVowel={currentTtsVowel}
             />
-            {displaySimilarity !== null && currentVowel && (
+            {displaySimilarity !== null && currentTtsVowel && (
               <div
                 style={{
                   position: 'absolute',
@@ -352,7 +421,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
                   Similarity Score (임시)
                 </div>
                 <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>
-                  모음: {currentVowel}
+                  모음: {currentTtsVowel}
                 </div>
                 <div
                   style={{
@@ -572,6 +641,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
         </button>
 
         <button
+          onClick={handlePlayTts}
           style={{
             width: scaled(80),
             height: scaled(80),
