@@ -12,6 +12,8 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const clearError = () => setError(null);
+
   const handleLogin = async (credentials: LoginRequest) => {
     if (!credentials.loginId || !credentials.userPassword) {
       const errorMsg = 'Please enter your ID and password.';
@@ -64,5 +66,6 @@ export function useAuth() {
     handleSignUp,
     isLoading,
     error,
+    clearError,
   };
 }
