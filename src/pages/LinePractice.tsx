@@ -31,7 +31,7 @@ interface LinePracticeProps {
 const LinePractice: React.FC<LinePracticeProps> = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
   const { setMode } = useMode();
-  const { setRecordedAudioBlob } = useRecording();
+  const { setRecordedAudioBlob, setIsRecording } = useRecording();
 
   // songId를 number로 변환
   const songId = songIdParam
@@ -172,7 +172,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     };
 
   // TTS hook 사용
-  const { currentVowel: currentTtsVowel, playTts, playOverlayOnly } = useTts({
+  const { currentVowel: currentTtsVowel, playTts, playOverlayOnly, stop: stopTts } = useTts({
     syllableTimings: displayLine.syllableTimings || [],
     audioUrl: displayLine.nativeAudioUrl,
   });
@@ -207,23 +207,30 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
   const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
 
+  // 모든 버튼 상태 리셋 함수
+  const resetAllButtons = useCallback(() => {
+    stopTts(); // TTS 및 오버레이 정지
+    setIsRecording(false); // 마이크 녹음 정지
+    setRecordedAudioBlob(null); // 녹음된 오디오 초기화
+  }, [stopTts, setIsRecording, setRecordedAudioBlob]);
+
   // 이전/다음 소절 이동 핸들러
   const handlePrevLine = () => {
+    resetAllButtons(); // 모든 버튼 상태 리셋
     if (!usableLines || usableLines.length === 0) return;
     const idx = usableLines.findIndex(
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx > 0) setSelected(usableLines[idx - 1]);
-    setRecordedAudioBlob(null);
   };
 
   const handleNextLine = () => {
+    resetAllButtons(); // 모든 버튼 상태 리셋
     if (!usableLines || usableLines.length === 0) return;
     const idx = usableLines.findIndex(
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
-    setRecordedAudioBlob(null);
   };
 
   // 마이크 버튼 클릭 핸들러 - 타임스탬프만 사용한 오버레이
@@ -635,6 +642,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             }}
           >
             <BtnListenRecording
+              key={displayLine.lyricLineId}
               style={{
                 width: '100%',
                 height: '100%',
