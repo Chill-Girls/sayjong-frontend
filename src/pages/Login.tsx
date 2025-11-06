@@ -157,7 +157,6 @@ const Login: FunctionComponent<LoginProps> = () => {
               gap: scaled(20),
             }}
           >
-            
             <div
               style={{
                 position: 'relative',
@@ -223,86 +222,86 @@ const Login: FunctionComponent<LoginProps> = () => {
               />
             </div>
 
-          {/* Remember me (login only) */}
-          {!isSignUp && (
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                gap: scaled(8),
-                fontSize: FONT_SIZES.sm,
-                color: COLORS.dark,
-                fontFamily: FONTS.primary,
-              }}
-            >
+            {/* Remember me (login only) */}
+            {!isSignUp && (
               <div
-                role="checkbox"
-                aria-checked={rememberMe}
-                tabIndex={0}
-                onKeyDown={e => {
-                  if (isLoading) return;
-                  if (e.key === ' ' || e.key === 'Enter') {
-                    e.preventDefault();
-                    setRememberMe(!rememberMe);
-                  }
-                }}
-                onClick={() => {
-                  if (isLoading) return;
-                  setRememberMe(!rememberMe);
-                }}
                 style={{
-                  width: scaled(16),
-                  height: scaled(16),
-                  border: `1px solid ${COLORS.border}`,
-                  backgroundColor: COLORS.white,
-                  borderRadius: '3px',
-                  display: 'inline-flex',
+                  width: '100%',
+                  display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
-                  outline: 'none',
-                }}
-              >
-                {rememberMe ? (
-                  <span
-                    aria-hidden="true"
-                    style={{
-                      color: COLORS.primary,
-                      fontSize: '12px',
-                      lineHeight: 1,
-                      transform: 'translateY(-1px)',
-                      userSelect: 'none',
-                    }}
-                  >
-                    ✓
-                  </span>
-                ) : null}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (isLoading) return;
-                  setRememberMe(!rememberMe);
-                }}
-                disabled={isLoading}
-                style={{
-                  opacity: 0.8,
-                  background: 'none',
-                  border: 'none',
-                  padding: 0,
-                  margin: 0,
-                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  gap: scaled(8),
+                  fontSize: FONT_SIZES.sm,
                   color: COLORS.dark,
                   fontFamily: FONTS.primary,
-                  fontSize: FONT_SIZES.sm,
-                  outline: 'none',
                 }}
               >
-                Remember me
-              </button>
-            </div>
-          )}
+                <div
+                  role="checkbox"
+                  aria-checked={rememberMe}
+                  tabIndex={0}
+                  onKeyDown={e => {
+                    if (isLoading) return;
+                    if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      setRememberMe(!rememberMe);
+                    }
+                  }}
+                  onClick={() => {
+                    if (isLoading) return;
+                    setRememberMe(!rememberMe);
+                  }}
+                  style={{
+                    width: scaled(16),
+                    height: scaled(16),
+                    border: `1px solid ${COLORS.border}`,
+                    backgroundColor: COLORS.white,
+                    borderRadius: '3px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    outline: 'none',
+                  }}
+                >
+                  {rememberMe ? (
+                    <span
+                      aria-hidden="true"
+                      style={{
+                        color: COLORS.primary,
+                        fontSize: '12px',
+                        lineHeight: 1,
+                        transform: 'translateY(-1px)',
+                        userSelect: 'none',
+                      }}
+                    >
+                      ✓
+                    </span>
+                  ) : null}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isLoading) return;
+                    setRememberMe(!rememberMe);
+                  }}
+                  disabled={isLoading}
+                  style={{
+                    opacity: 0.8,
+                    background: 'none',
+                    border: 'none',
+                    padding: 0,
+                    margin: 0,
+                    cursor: isLoading ? 'not-allowed' : 'pointer',
+                    color: COLORS.dark,
+                    fontFamily: FONTS.primary,
+                    fontSize: FONT_SIZES.sm,
+                    outline: 'none',
+                  }}
+                >
+                  Remember me
+                </button>
+              </div>
+            )}
 
             {/* 에러 메시지 */}
             {error && (

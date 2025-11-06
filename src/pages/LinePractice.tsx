@@ -14,7 +14,6 @@ import BtnNext from '../components/Btn_next';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { getAdaptiveFontSize } from '../utils/fontUtils';
-import { extractVowel } from '../utils/hangul';
 import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
@@ -22,6 +21,7 @@ import {
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
+import { useTts } from '../hooks/useTts';
 import VowelFeedback from '../components/VowelFeedback';
 
 interface LinePracticeProps {
@@ -31,7 +31,7 @@ interface LinePracticeProps {
 const LinePractice: React.FC<LinePracticeProps> = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
   const { setMode } = useMode();
-  const { setRecordedAudioBlob } = useRecording();
+  const { setRecordedAudioBlob, setIsRecording } = useRecording();
 
   // songId를 number로 변환
   const songId = songIdParam
@@ -47,11 +47,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const [songTitle, setSongTitle] = useState<string>('');
   const [singer, setSinger] = useState<string>('');
   const [selected, setSelected] = useState<LyricLine | null>(null);
-
-  // TTS 오디오 관리
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [currentTtsVowel, setCurrentTtsVowel] = useState<string | null>(null);
-  const animationFrameRef = useRef<number | null>(null);
 
   // localStorage에서 로드한 캘리브레이션 데이터를 저장할 state
   const [loadedTargetVowels, setLoadedTargetVowels] = useState<any>(null);
@@ -176,6 +171,17 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       startTime: 0,
     };
 
+  // TTS hook 사용
+  const {
+    currentVowel: currentTtsVowel,
+    playTts,
+    playOverlayOnly,
+    stop: stopTts,
+  } = useTts({
+    syllableTimings: displayLine.syllableTimings || [],
+    audioUrl: displayLine.nativeAudioUrl,
+  });
+
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
       if (!results.blendshapes) return;
@@ -199,51 +205,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     [currentTtsVowel, getTargetBlendshapes],
   );
 
-  // TTS에 맞추어 딜레이 없이 빠르게 overlay를 업데이트
-  const checkTimeLoop = useCallback(() => {
-    if (!audioRef.current || audioRef.current.paused) {
-      setCurrentTtsVowel(null);
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
-        animationFrameRef.current = null;
-      }
-      return;
-    }
-
-    const currentTime = audioRef.current.currentTime;
-    const ttsMarks = displayLine.syllableTimings || [];
-    let activeMark = null;
-
-    for (let i = ttsMarks.length - 1; i >= 0; i--) {
-      if (currentTime >= ttsMarks[i].timeSeconds) {
-        activeMark = ttsMarks[i];
-        break;
-      }
-    }
-
-    const vowel = activeMark ? extractVowel(activeMark.markName) : null;
-    setCurrentTtsVowel(prevVowel => (prevVowel !== vowel ? vowel : prevVowel));
-
-    // 다음 프레임에 이 함수를 다시 실행하도록 예약
-    animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
-  }, [displayLine.syllableTimings]);
-
-  const stopTts = useCallback(() => {
-    // 애니메이션 프레임 루프 중지
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current);
-      animationFrameRef.current = null;
-    }
-
-    // 기존 오디오 정지 로직
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.onended = null;
-      audioRef.current = null;
-    }
-    setCurrentTtsVowel(null); // 모음 오버레이 제거
-  }, []);
-
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
   const totalLines = usableLines.length;
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
@@ -251,56 +212,36 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
 
   const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
 
+  // 모든 버튼 상태 리셋 함수
+  const resetAllButtons = useCallback(() => {
+    stopTts(); // TTS 및 오버레이 정지
+    setIsRecording(false); // 마이크 녹음 정지
+    setRecordedAudioBlob(null); // 녹음된 오디오 초기화
+  }, [stopTts, setIsRecording, setRecordedAudioBlob]);
+
   // 이전/다음 소절 이동 핸들러
   const handlePrevLine = () => {
+    resetAllButtons(); // 모든 버튼 상태 리셋
     if (!usableLines || usableLines.length === 0) return;
     const idx = usableLines.findIndex(
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx > 0) setSelected(usableLines[idx - 1]);
-    setRecordedAudioBlob(null);
   };
 
   const handleNextLine = () => {
+    resetAllButtons(); // 모든 버튼 상태 리셋
     if (!usableLines || usableLines.length === 0) return;
     const idx = usableLines.findIndex(
       l => l.lyricLineId === (selected?.lyricLineId ?? usableLines[0].lyricLineId),
     );
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
-    setRecordedAudioBlob(null);
   };
 
-  // TTS 재생 핸들러
-  const handlePlayTts = useCallback(() => {
-    stopTts();
-    const ttsAudioUrl = displayLine.nativeAudioUrl;
-
-    if (!ttsAudioUrl) return;
-
-    const audio = new Audio(ttsAudioUrl);
-    audioRef.current = audio;
-
-    const onEnded = () => {
-      stopTts(); // stopTts가 루프와 오디오를 모두 정리
-    };
-    audio.addEventListener('ended', onEnded);
-
-    audio
-      .play()
-      .then(() => {
-        animationFrameRef.current = requestAnimationFrame(checkTimeLoop);
-      })
-      .catch(e => {
-        console.error('TTS 재생 오류:', e);
-        stopTts();
-      });
-  }, [stopTts, checkTimeLoop, displayLine.nativeAudioUrl]);
-
-  useEffect(() => {
-    return () => {
-      stopTts();
-    };
-  }, [stopTts]);
+  // 마이크 버튼 클릭 핸들러 - 타임스탬프만 사용한 오버레이
+  const handleMicClick = useCallback(() => {
+    playOverlayOnly();
+  }, [playOverlayOnly]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
@@ -667,6 +608,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
           }}
         >
           <button
+            onClick={handleMicClick}
             style={{
               width: scaled(80),
               height: scaled(80),
@@ -705,6 +647,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
             }}
           >
             <BtnListenRecording
+              key={displayLine.lyricLineId}
               style={{
                 width: '100%',
                 height: '100%',
@@ -715,7 +658,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
           </button>
 
           <button
-            onClick={handlePlayTts}
+            onClick={playTts}
             disabled={!displayLine.nativeAudioUrl}
             style={{
               width: scaled(80),

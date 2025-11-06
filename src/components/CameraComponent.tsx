@@ -16,17 +16,9 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import {
-  drawLiveMouthContours_red,
-  drawLiveMouthContours_green,
-  drawLiveMouthContours_orange,
-} from '../utils/Draw';
+import { drawCountdown } from '../utils/Draw';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
-import {
-  filterTargetBlendshapes,
-  calculateBlendshapeSimilarity,
-  TARGET_BLENDSHAPES,
-} from '../utils/blendshapeProcessor';
+import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import Canvas from './Canvas';
 import type { LandmarkPoint } from '../constants/landmarks';
 
@@ -43,12 +35,15 @@ interface CameraComponentProps {
   width?: string;
   /** LinePractice에서 전달받는, 현재 활성화된 모음 */
   activeVowel?: string | null;
+  /** 카운트다운 숫자 (3, 2, 1) - canvas에 렌더링됨 */
+  countdown?: number | null;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onResults,
   width = '563px',
   activeVowel = null,
+  countdown = null,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -94,8 +89,37 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     onResultsRef.current = onResults;
   }, [onResults]);
 
+  /** 목표 블렌드쉐이프 가져오기 */
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
+      if (!vowel || !loadedTargetVowels) return null;
+
+      // 캐시 확인
+      if (targetBlendshapesCacheRef.current[vowel]) {
+        return targetBlendshapesCacheRef.current[vowel];
+      }
+
+      const target = loadedTargetVowels[vowel]?.blendshapes;
+
+      if (target) {
+        targetBlendshapesCacheRef.current[vowel] = target;
+        return target;
+      }
+      return null;
+    },
+    [loadedTargetVowels], // loadedTargetVowels에 의존
+  );
+
+  /** 현재 블렌드쉐이프 상태 */
+  const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
+
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel } = useVowelOverlay(activeVowel);
+  const { renderOverlay, currentVowel } = useVowelOverlay({
+    currentVowel: activeVowel,
+    getTargetBlendshapes,
+    currentBlendshapes,
+  });
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);
@@ -103,10 +127,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     currentVowelRef.current = currentVowel;
   }, [currentVowel]);
 
-  /** 유사도 점수 ref */
-  const similarityScoreRef = useRef<number | null>(null);
-  /** 블렌드쉐이프 계산 throttling용 ref */
-  const lastBlendshapeCalcTimeRef = useRef<number>(0);
   /** 목표 블렌드쉐이프 캐시 */
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
 
@@ -130,34 +150,18 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
 
-  /** 목표 블렌드쉐이프 가져오기 */
-  const getTargetBlendshapes = useCallback(
-    (vowel: string | null): Record<string, number> | null => {
-      // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
-      if (!vowel || !loadedTargetVowels) return null;
-
-      // 캐시 확인
-      if (targetBlendshapesCacheRef.current[vowel]) {
-        return targetBlendshapesCacheRef.current[vowel];
-      }
-
-      const target = loadedTargetVowels[vowel]?.blendshapes;
-
-      if (target) {
-        targetBlendshapesCacheRef.current[vowel] = target;
-        return target;
-      }
-      return null;
-    },
-    [loadedTargetVowels], // loadedTargetVowels에 의존
-  );
-
   /** 캔버스에 오버레이를 그리는 함수 */
   const handleDrawFrame = useCallback(
     (
       canvasCtx: CanvasRenderingContext2D,
       toCanvas: (p: LandmarkPoint) => { x: number; y: number },
     ) => {
+      // 카운트다운이 있으면 canvas에 그리기
+      if (countdown !== null) {
+        drawCountdown(canvasCtx, countdown);
+        return; // 카운트다운 중에는 다른 오버레이 그리지 않음
+      }
+
       const results = cachedResultsRef.current;
       if (!results) return;
 
@@ -167,59 +171,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const now = performance.now();
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
-        // 블렌드쉐이프 유사도 계산 (throttling: 33ms마다, 약 30fps)
-        let similarity: number | null = null;
-        if (
-          results.faceBlendshapes?.[0]?.categories &&
-          currentVowelRef.current &&
-          now - lastBlendshapeCalcTimeRef.current >= 33
-        ) {
-          lastBlendshapeCalcTimeRef.current = now;
-
-          const blendshapeCategories = results.faceBlendshapes[0].categories;
-          const currentBlendshapes: Record<string, number> = {};
-
-          // 블렌드쉐이프를 맵으로 변환
-          blendshapeCategories.forEach((cat: any) => {
-            if (TARGET_BLENDSHAPES.includes(cat.categoryName)) {
-              currentBlendshapes[cat.categoryName] = cat.score || 0;
-            }
-          });
-
-          const filteredBlendshapes = filterTargetBlendshapes(currentBlendshapes);
-          const targetBlendshapes = getTargetBlendshapes(currentVowelRef.current);
-
-          if (targetBlendshapes) {
-            similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
-            similarityScoreRef.current = similarity;
-          }
-        } else {
-          // 이전 계산 결과 재사용 (throttling 중)
-          similarity = similarityScoreRef.current;
-        }
-
-        // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
-        if (similarity !== null) {
-          if (similarity >= 0.8) {
-            // 유사도 >= 80%: 초록색
-            drawLiveMouthContours_green(canvasCtx, allLandmarks, toCanvas);
-          } else if (similarity >= 0.5) {
-            // 유사도 >= 50%: 주황색
-            drawLiveMouthContours_orange(canvasCtx, allLandmarks, toCanvas);
-          } else {
-            // 유사도 < 50%: 빨간색
-            drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-          }
-        } else {
-          // 유사도 계산 불가 시 기본 색상 (빨간색)
-          drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-        }
-
-        // 모음 정답 오버레이
+        // 모음 오버레이 렌더링 (실시간 입술 윤곽선 + 목표 모음 오버레이)
         renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
       }
     },
-    [renderOverlay, getTargetBlendshapes],
+    [renderOverlay, countdown],
   );
 
   /** 카메라 초기화 및 렌더링 설정 */
@@ -362,10 +318,15 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 
                 // 타겟 블렌드쉐이프만 추출
                 const targetCount = TARGET_BLENDSHAPES.length;
+                const currentBlendshapeMap: Record<string, number> = {};
                 for (let i = 0; i < targetCount; i++) {
                   const key = TARGET_BLENDSHAPES[i];
-                  processedResults.blendshapes![key] = blendshapeMap.get(key) ?? 0;
+                  const value = blendshapeMap.get(key) ?? 0;
+                  processedResults.blendshapes![key] = value;
+                  currentBlendshapeMap[key] = value;
                 }
+                // 현재 블렌드쉐이프 상태 업데이트
+                setCurrentBlendshapes(currentBlendshapeMap);
               }
 
               onResultsRef.current(processedResults);
