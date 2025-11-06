@@ -174,6 +174,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   // TTS hook 사용
   const {
     currentVowel: currentTtsVowel,
+    isPlaying: isTtsPlaying,
     playTts,
     playOverlayOnly,
     stop: stopTts,
@@ -238,10 +239,16 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
   };
 
-  // 마이크 버튼 클릭 핸들러 - 타임스탬프만 사용한 오버레이
+  // 마이크 버튼 클릭 핸들러 - 타임스탬프만 사용한 오버레이 (토글)
   const handleMicClick = useCallback(() => {
-    playOverlayOnly();
-  }, [playOverlayOnly]);
+    if (isTtsPlaying) {
+      // 재생 중이면 정지
+      stopTts();
+    } else {
+      // 재생 중이 아니면 시작
+      playOverlayOnly();
+    }
+  }, [isTtsPlaying, playOverlayOnly, stopTts]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
