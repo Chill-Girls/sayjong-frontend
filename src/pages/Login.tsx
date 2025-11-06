@@ -335,7 +335,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                   outline: 'none',
                 }}
               >
-                {isLoading ? 'loading...' : isSignUp ? 'Sign Up' : 'Login'}
+                {isLoading ? 'Loading...' : isSignUp ? 'Sign Up' : 'Login'}
               </button>
             </div>
 
