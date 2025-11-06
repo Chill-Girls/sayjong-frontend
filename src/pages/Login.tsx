@@ -4,11 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import SejongImage from '../assets/Sejong.png';
 import InputField from '../components/InputField';
+import FooterCopyright from '../components/FooterCopyright';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import {
   containerCentered,
   flexColumn,
-  flexCenter,
   buttonPrimary,
   buttonDisabled,
   logoSayJong,
@@ -32,6 +32,7 @@ const Login: FunctionComponent<LoginProps> = () => {
     password: '',
     nickname: '',
   });
+  const [rememberMe, setRememberMe] = useState(false);
 
   const onLogin = async () => {
     const result = await handleLogin({
@@ -129,9 +130,9 @@ const Login: FunctionComponent<LoginProps> = () => {
             flex: 1,
             ...flexColumn,
             alignItems: 'flex-start',
-            gap: scaled(70),
+            gap: scaled(50),
             position: 'relative',
-            marginTop: scaled(40),
+            marginTop: scaled(90),
           }}
         >
           {/* SayJong 로고 */}
@@ -152,7 +153,7 @@ const Login: FunctionComponent<LoginProps> = () => {
               alignSelf: 'stretch',
               ...flexColumn,
               alignItems: 'flex-start',
-              gap: scaled(16),
+              gap: scaled(20),
             }}
           >
             <div
@@ -185,7 +186,7 @@ const Login: FunctionComponent<LoginProps> = () => {
               alignSelf: 'stretch',
               ...flexColumn,
               alignItems: 'flex-start',
-              gap: scaled(40),
+              gap: scaled(30),
               fontSize: FONT_SIZES.base,
               color: COLORS.textLight,
               fontFamily: FONTS.secondary,
@@ -196,7 +197,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                 alignSelf: 'stretch',
                 ...flexColumn,
                 alignItems: 'flex-start',
-                gap: scaled(24),
+                gap: scaled(25),
               }}
             >
               <InputField
@@ -227,6 +228,84 @@ const Login: FunctionComponent<LoginProps> = () => {
                   disabled={isLoading}
                 />
               )}
+            </div>
+
+            {/* Remember me */}
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                gap: scaled(8),
+                fontSize: FONT_SIZES.sm,
+                color: COLORS.dark,
+                fontFamily: FONTS.primary,
+              }}
+            >
+              <div
+                role="checkbox"
+                aria-checked={rememberMe}
+                tabIndex={0}
+                onKeyDown={e => {
+                  if (isLoading) return;
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    setRememberMe(!rememberMe);
+                  }
+                }}
+                onClick={() => {
+                  if (isLoading) return;
+                  setRememberMe(!rememberMe);
+                }}
+                style={{
+                  width: scaled(16),
+                  height: scaled(16),
+                  border: `1px solid ${COLORS.border}`,
+                  backgroundColor: COLORS.white,
+                  borderRadius: '3px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  outline: 'none',
+                }}
+              >
+                {rememberMe ? (
+                  <span
+                    aria-hidden="true"
+                    style={{
+                      color: COLORS.primary,
+                      fontSize: '12px',
+                      lineHeight: 1,
+                      transform: 'translateY(-1px)',
+                      userSelect: 'none',
+                    }}
+                  >
+                    ✓
+                  </span>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  if (isLoading) return;
+                  setRememberMe(!rememberMe);
+                }}
+                disabled={isLoading}
+                style={{
+                  opacity: 0.8,
+                  background: 'none',
+                  border: 'none',
+                  padding: 0,
+                  margin: 0,
+                  cursor: isLoading ? 'not-allowed' : 'pointer',
+                  color: COLORS.dark,
+                  fontFamily: FONTS.primary,
+                  fontSize: FONT_SIZES.sm,
+                }}
+              >
+                Remember me
+              </button>
             </div>
 
             {/* 에러 메시지 */}
@@ -267,20 +346,18 @@ const Login: FunctionComponent<LoginProps> = () => {
             <div
               style={{
                 width: scaled(512),
-                ...flexCenter,
                 fontSize: FONT_SIZES.sm,
                 color: COLORS.dark,
                 fontFamily: FONTS.primary,
               }}
             >
-              <span style={{ opacity: 0.75 }}>
+              <span style={{ opacity: 0.9 }}>
                 {isSignUp ? 'Already have an account?' : "Don't have an account?"}
               </span>
               <button
                 onClick={toggleMode}
                 disabled={isLoading}
                 style={{
-                  marginLeft: scaled(8),
                   background: 'none',
                   border: 'none',
                   color: COLORS.primary,
@@ -297,6 +374,7 @@ const Login: FunctionComponent<LoginProps> = () => {
           </div>
         </div>
       </div>
+      <FooterCopyright />
     </div>
   );
 };
