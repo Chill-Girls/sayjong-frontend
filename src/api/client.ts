@@ -27,7 +27,11 @@ apiClient.interceptors.response.use(
 
       // 간단하게 로그인 페이지로 이동
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        // 로그인 페이지에서 발생한 401은 리다이렉트하지 않음 (에러 표시 위해)
+        const currentPath = window.location?.pathname || '';
+        if (currentPath !== '/login') {
+          window.location.href = '/login';
+        }
       }
       return Promise.reject(error);
     }

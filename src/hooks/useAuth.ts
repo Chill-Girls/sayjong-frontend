@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { login, signup } from '../api/auth';
 import type { LoginRequest, SignupRequest } from '../api/auth/types';
-import { toast } from 'react-hot-toast';
 
 function setTokens(accessToken: string, refreshToken: string) {
   localStorage.setItem('accessToken', accessToken);
@@ -26,13 +25,11 @@ export function useAuth() {
     try {
       const tokenInfo = await login(credentials);
       setTokens(tokenInfo.accessToken, tokenInfo.refreshToken);
-      toast.success('Login successful! Welcome back!');
       return { success: true, tokenInfo };
     } catch (err) {
       console.error('Login error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Login failed.';
       setError(errorMsg);
-      toast.error(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
       setIsLoading(false);
@@ -51,13 +48,11 @@ export function useAuth() {
 
     try {
       await signup(credentials);
-      toast.success('Sign up successful! Please log in now.');
       return { success: true };
     } catch (err) {
       console.error('Signup error:', err);
       const errorMsg = err instanceof Error ? err.message : 'Sign up failed.';
       setError(errorMsg);
-      toast.error(errorMsg);
       return { success: false, error: errorMsg };
     } finally {
       setIsLoading(false);
