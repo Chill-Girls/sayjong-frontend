@@ -289,6 +289,47 @@ export function drawVowelLabel(
 }
 
 /**
+ * 카운트다운을 캔버스에 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param countdown - 카운트다운 숫자 (3, 2, 1)
+ */
+export function drawCountdown(
+  ctx: CanvasRenderingContext2D,
+  countdown: number,
+) {
+  const canvas = ctx.canvas;
+  const centerX = canvas.width / 2;
+  const centerY = canvas.height / 2;
+
+  // 배경 반투명 처리
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // 카운트다운 숫자 그리기
+  ctx.save();
+  ctx.translate(centerX, centerY);
+  ctx.scale(-1, 1); // 비디오와 동일하게 좌우 반전
+
+  // 큰 초록색 글자
+  ctx.font = 'bold 120px Arial';
+  ctx.fillStyle = '#00FF00';
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
+  ctx.lineWidth = 8;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  // 텍스트 그림자 효과
+  ctx.shadowColor = 'rgba(0, 255, 0, 0.8)';
+  ctx.shadowBlur = 20;
+
+  const countdownText = countdown.toString();
+  ctx.strokeText(countdownText, 0, 0);
+  ctx.fillText(countdownText, 0, 0);
+
+  ctx.restore();
+}
+
+/**
  * 블렌드쉐이프 유사도 점수를 캔버스에 그리기
  * @param ctx - 캔버스 렌더링 컨텍스트
  * @param similarity - 유사도 점수 (0.0 ~ 1.0)
