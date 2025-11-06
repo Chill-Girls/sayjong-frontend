@@ -25,7 +25,7 @@ interface LoginCredentials {
 
 const Login: FunctionComponent<LoginProps> = () => {
   const navigate = useNavigate();
-  const { handleLogin, handleSignUp, isLoading, error } = useAuth();
+  const { handleLogin, handleSignUp, isLoading, error, clearError } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [credentials, setCredentials] = useState<LoginCredentials>({
     id: '',
@@ -71,6 +71,7 @@ const Login: FunctionComponent<LoginProps> = () => {
   };
 
   const toggleMode = () => {
+    clearError();
     setIsSignUp(!isSignUp);
     setCredentials({ id: '', password: '', nickname: '' });
   };
@@ -156,15 +157,7 @@ const Login: FunctionComponent<LoginProps> = () => {
               gap: scaled(20),
             }}
           >
-            <div
-              style={{
-                position: 'relative',
-                fontWeight: FONT_WEIGHTS.semibold,
-                fontSize: FONT_SIZES.xxl,
-              }}
-            >
-              {isSignUp ? 'SIGN UP' : ''}
-            </div>
+            
             <div
               style={{
                 position: 'relative',
@@ -209,15 +202,6 @@ const Login: FunctionComponent<LoginProps> = () => {
                 disabled={isLoading}
               />
 
-              <InputField
-                type="password"
-                value={credentials.password}
-                onChange={value => setCredentials(prev => ({ ...prev, password: value }))}
-                onKeyDown={handleKeyDown}
-                label="Password"
-                disabled={isLoading}
-              />
-
               {isSignUp && (
                 <InputField
                   type="text"
@@ -228,9 +212,19 @@ const Login: FunctionComponent<LoginProps> = () => {
                   disabled={isLoading}
                 />
               )}
+
+              <InputField
+                type="password"
+                value={credentials.password}
+                onChange={value => setCredentials(prev => ({ ...prev, password: value }))}
+                onKeyDown={handleKeyDown}
+                label="Password"
+                disabled={isLoading}
+              />
             </div>
 
-            {/* Remember me */}
+          {/* Remember me (login only) */}
+          {!isSignUp && (
             <div
               style={{
                 width: '100%',
@@ -302,11 +296,13 @@ const Login: FunctionComponent<LoginProps> = () => {
                   color: COLORS.dark,
                   fontFamily: FONTS.primary,
                   fontSize: FONT_SIZES.sm,
+                  outline: 'none',
                 }}
               >
                 Remember me
               </button>
             </div>
+          )}
 
             {/* 에러 메시지 */}
             {error && (
@@ -336,6 +332,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                   height: scaled(48),
                   padding: `${scaled(8)} ${scaled(16)}`,
                   fontSize: FONT_SIZES.md,
+                  outline: 'none',
                 }}
               >
                 {isLoading ? 'loading...' : isSignUp ? 'Sign Up' : 'Login'}
@@ -366,6 +363,7 @@ const Login: FunctionComponent<LoginProps> = () => {
                   fontSize: FONT_SIZES.sm,
                   fontFamily: FONTS.primary,
                   textDecoration: 'underline',
+                  outline: 'none',
                 }}
               >
                 {isSignUp ? 'Login' : 'Sign up'}
