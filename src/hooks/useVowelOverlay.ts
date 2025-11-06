@@ -13,8 +13,6 @@ import {
 } from '../utils/blendshapeProcessor';
 import type { LandmarkPoint } from '../constants/landmarks';
 
-
-
 interface UseVowelOverlayProps {
   currentVowel: string | null;
   /** 목표 블렌드쉐이프를 가져오는 함수 */
@@ -50,60 +48,63 @@ export function useVowelOverlay({
   }, [currentVowel]);
 
   // AR 오버레이 시작/멈춤 토글 (카운트다운 포함)
-  const startAROverlay = useCallback(async (vowel: string | null) => {
-    // 이미 AR 오버레이가 표시 중이면 멈춤
-    if (showAROverlay) {
+  const startAROverlay = useCallback(
+    async (vowel: string | null) => {
+      // 이미 AR 오버레이가 표시 중이면 멈춤
+      if (showAROverlay) {
+        setShowAROverlay(false);
+        setArVowel(null);
+        setCountdown(null);
+        isCountdownCancelledRef.current = false;
+        return;
+      }
+
+      // 카운트다운 중이면 취소
+      if (countdown !== null) {
+        isCountdownCancelledRef.current = true;
+        setCountdown(null);
+        setShowAROverlay(false);
+        setArVowel(null);
+        return;
+      }
+
+      // AR 오버레이가 꺼져있으면 카운트다운 후 시작
       setShowAROverlay(false);
       setArVowel(null);
-      setCountdown(null);
       isCountdownCancelledRef.current = false;
-      return;
-    }
 
-    // 카운트다운 중이면 취소
-    if (countdown !== null) {
-      isCountdownCancelledRef.current = true;
-      setCountdown(null);
-      setShowAROverlay(false);
-      setArVowel(null);
-      return;
-    }
+      // 카운트다운
+      for (let i = 3; i > 0; i--) {
+        // 취소되었는지 확인
+        if (isCountdownCancelledRef.current) {
+          setCountdown(null);
+          return;
+        }
 
-    // AR 오버레이가 꺼져있으면 카운트다운 후 시작
-    setShowAROverlay(false);
-    setArVowel(null);
-    isCountdownCancelledRef.current = false;
+        setCountdown(i);
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // 카운트다운
-    for (let i = 3; i > 0; i--) {
+        // 취소되었는지 확인
+        if (isCountdownCancelledRef.current) {
+          setCountdown(null);
+          return;
+        }
+      }
+
       // 취소되었는지 확인
       if (isCountdownCancelledRef.current) {
         setCountdown(null);
         return;
       }
 
-      setCountdown(i);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // 취소되었는지 확인
-      if (isCountdownCancelledRef.current) {
-        setCountdown(null);
-        return;
-      }
-    }
-
-    // 취소되었는지 확인
-    if (isCountdownCancelledRef.current) {
       setCountdown(null);
-      return;
-    }
 
-    setCountdown(null);
-
-    // AR 오버레이 표시 시작
-    setArVowel(vowel);
-    setShowAROverlay(true);
-  }, [showAROverlay, countdown]);
+      // AR 오버레이 표시 시작
+      setArVowel(vowel);
+      setShowAROverlay(true);
+    },
+    [showAROverlay, countdown],
+  );
 
   /**
    * 오버레이를 캔버스에 그리는 함수

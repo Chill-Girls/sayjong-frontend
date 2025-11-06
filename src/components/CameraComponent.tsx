@@ -150,7 +150,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
 
-
   /** 캔버스에 오버레이를 그리는 함수 */
   const handleDrawFrame = useCallback(
     (
@@ -173,13 +172,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
         // 모음 오버레이 렌더링 (실시간 입술 윤곽선 + 목표 모음 오버레이)
-        renderOverlay(
-          canvasCtx,
-          toCanvas,
-          allLandmarks,
-          cachedResultsRef,
-          timeSinceLastDetection,
-        );
+        renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
       }
     },
     [renderOverlay, countdown],

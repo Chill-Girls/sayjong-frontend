@@ -293,10 +293,7 @@ export function drawVowelLabel(
  * @param ctx - 캔버스 렌더링 컨텍스트
  * @param countdown - 카운트다운 숫자 (3, 2, 1)
  */
-export function drawCountdown(
-  ctx: CanvasRenderingContext2D,
-  countdown: number,
-) {
+export function drawCountdown(ctx: CanvasRenderingContext2D, countdown: number) {
   const canvas = ctx.canvas;
   const centerX = canvas.width / 2;
   const centerY = canvas.height / 2;

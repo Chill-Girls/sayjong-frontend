@@ -33,6 +33,9 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   const [isPlaying, setIsPlaying] = useState(false);
   const [playAudio, setPlayAudio] = useState(false); // 오디오 재생 여부
 
+  // 정지 함수 (ref로 관리하여 순환 의존성 문제 해결)
+  const stopRef = useRef<() => void>(() => {});
+
   // 타임스탬프 기반 오버레이 업데이트 루프
   const updateOverlay = useCallback(() => {
     let currentTime: number;
@@ -71,7 +74,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
       const lastMark = syllableTimings[syllableTimings.length - 1];
       if (lastMark && currentTime >= lastMark.timeSeconds) {
         // 마지막 타임스탬프를 지나면 정지
-        stop();
+        stopRef.current();
         return;
       }
     }
@@ -101,6 +104,11 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     setPlayAudio(false);
     startTimeRef.current = null;
   }, []);
+
+  // stop 함수를 ref에 저장
+  useEffect(() => {
+    stopRef.current = stop;
+  }, [stop]);
 
   // TTS 재생 (오디오 + 오버레이)
   const playTts = useCallback(() => {
@@ -163,4 +171,3 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     stop,
   };
 }
-

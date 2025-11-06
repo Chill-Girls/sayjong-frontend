@@ -172,7 +172,12 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     };
 
   // TTS hook 사용
-  const { currentVowel: currentTtsVowel, playTts, playOverlayOnly, stop: stopTts } = useTts({
+  const {
+    currentVowel: currentTtsVowel,
+    playTts,
+    playOverlayOnly,
+    stop: stopTts,
+  } = useTts({
     syllableTimings: displayLine.syllableTimings || [],
     audioUrl: displayLine.nativeAudioUrl,
   });
