@@ -1,5 +1,6 @@
 import React from 'react';
 import EyeOffIcon from '../assets/eye-off.svg';
+import EyeOnIcon from '../assets/eye-on.svg';
 import { FONT_SIZES } from '../styles/theme';
 import {
   flexColumn,
@@ -27,6 +28,7 @@ const InputField: React.FC<InputFieldProps> = ({
   onKeyDown,
   disabled = false,
 }) => {
+  const [showPassword, setShowPassword] = React.useState(false);
   return (
     <div
       style={{
@@ -52,7 +54,7 @@ const InputField: React.FC<InputFieldProps> = ({
             }}
           >
             <input
-              type={type}
+              type={type === 'password' ? (showPassword ? 'text' : 'password') : type}
               value={value}
               onChange={e => {
                 const newValue = e.target.value;
@@ -94,15 +96,33 @@ const InputField: React.FC<InputFieldProps> = ({
                 boxSizing: 'border-box',
                 cursor: 'pointer',
               }}
+              role="button"
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-pressed={showPassword}
+              onClick={() => {
+                if (disabled) return;
+                setShowPassword(prev => !prev);
+              }}
             >
-              <img
-                src={EyeOffIcon}
-                alt="Toggle password visibility"
-                style={{
-                  width: scaled(24),
-                  height: scaled(24),
-                }}
-              />
+              {showPassword ? (
+                <img
+                  src={EyeOnIcon}
+                  alt="Hide password"
+                  style={{
+                    width: scaled(24),
+                    height: scaled(24),
+                  }}
+                />
+              ) : (
+                <img
+                  src={EyeOffIcon}
+                  alt="Show password"
+                  style={{
+                    width: scaled(24),
+                    height: scaled(24),
+                  }}
+                />
+              )}
             </div>
           )}
         </div>
