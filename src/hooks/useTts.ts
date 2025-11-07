@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import type { TtsMark } from '../api/songs/types';
-import { extractVowel } from '../utils/hangul';
+import { extractSyllable, extractVowels } from '../utils/hangul';
 
 interface UseTtsOptions {
   /** TTS 타임스탬프 배열 */
@@ -10,6 +10,8 @@ interface UseTtsOptions {
 }
 
 interface UseTtsReturn {
+  /** 현재 활성 음절 */
+  currentSyllable: string | null;
   /** 현재 활성 모음 */
   currentVowel: string | null;
   /** TTS 재생 중 여부 */
@@ -29,6 +31,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
+  const [currentSyllable, setCurrentSyllable] = useState<string | null>(null);
   const [currentVowel, setCurrentVowel] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playAudio, setPlayAudio] = useState(false); // 오디오 재생 여부
@@ -48,6 +51,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
       currentTime = (performance.now() - startTimeRef.current) / 1000;
     } else {
       // 둘 다 아니면 정지
+      setCurrentSyllable(null);
       setCurrentVowel(null);
       setIsPlaying(false);
       if (animationFrameRef.current) {
@@ -66,14 +70,25 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
       }
     }
 
-    const vowel = activeMark ? extractVowel(activeMark.markName) : null;
-    setCurrentVowel(prevVowel => (prevVowel !== vowel ? vowel : prevVowel));
+    const rawMark = activeMark?.markName ?? null;
+    const extracted = rawMark ? extractSyllable(rawMark) : null;
+    const displaySyllable = extracted ?? (rawMark && rawMark.trim().length ? rawMark.trim().slice(-1) : null);
+    // 모음 추출 (이중모음 지원: extractVowels()[0] 사용)
+    const vowel = rawMark ? (extractVowels(rawMark)[0] ?? null) : null;
+
+    // 음절은 항상 표시되게 폴백 (DEV 로깅 포함)
+    if (import.meta.env.DEV && activeMark) {
+      // console.debug('[useTts] mark:', activeMark.markName, '=> syllable:', displaySyllable, 'vowel:', vowel);
+    }
+
+    setCurrentSyllable(prev => (prev !== displaySyllable ? displaySyllable : prev));
+    setCurrentVowel(prev => (prev !== vowel ? vowel : prev));
 
     // 오버레이만 재생 중이고 타임스탬프가 끝났는지 확인
     if (!playAudio && startTimeRef.current !== null) {
       const lastMark = syllableTimings[syllableTimings.length - 1];
-      if (lastMark && currentTime >= lastMark.timeSeconds) {
-        // 마지막 타임스탬프를 지나면 정지
+      // 마지막 음절 이후 0.8초 더 표시 후 정지
+      if (lastMark && currentTime >= lastMark.timeSeconds + 0.8) {
         stopRef.current();
         return;
       }
@@ -99,6 +114,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     }
 
     // 상태 초기화
+    setCurrentSyllable(null);
     setCurrentVowel(null);
     setIsPlaying(false);
     setPlayAudio(false);
@@ -164,6 +180,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   }, [stop]);
 
   return {
+    currentSyllable,
     currentVowel,
     isPlaying,
     playTts,

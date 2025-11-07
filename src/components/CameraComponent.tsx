@@ -33,6 +33,8 @@ interface CameraComponentProps {
   }) => void;
   /** 카메라 영역 너비 (기본값: '563px') - 높이는 자동으로 1.56:1 비율로 계산됨 */
   width?: string;
+  /** 현재 발음할 음절 (예: "사", "랑") */
+  activeSyllable?: string | null;
   /** LinePractice에서 전달받는, 현재 활성화된 모음 */
   activeVowel?: string | null;
   /** 카운트다운 숫자 (3, 2, 1) - canvas에 렌더링됨 */
@@ -42,6 +44,7 @@ interface CameraComponentProps {
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onResults,
   width = '563px',
+  activeSyllable = null,
   activeVowel = null,
   countdown = null,
 }) => {
@@ -156,10 +159,9 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       canvasCtx: CanvasRenderingContext2D,
       toCanvas: (p: LandmarkPoint) => { x: number; y: number },
     ) => {
-      // 카운트다운이 있으면 canvas에 그리기
       if (countdown !== null) {
         drawCountdown(canvasCtx, countdown);
-        return; // 카운트다운 중에는 다른 오버레이 그리지 않음
+        return;
       }
 
       const results = cachedResultsRef.current;
@@ -171,11 +173,34 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const now = performance.now();
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
-        // 모음 오버레이 렌더링 (실시간 입술 윤곽선 + 목표 모음 오버레이)
         renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
+
+        // 음절 표시 (입모양 오버레이 오른쪽, 사용자 움직임과 같이 움직이도록)
+        if (activeSyllable) {
+          // 입 중심 좌표 계산 (landmark 13: 입 중심)
+          const mouthCenter = allLandmarks[13];
+          const mouthCanvasPos = toCanvas(mouthCenter);
+
+          canvasCtx.save();
+          // 텍스트만 좌우 반전해서 정상으로 보이게 함
+          canvasCtx.translate(mouthCanvasPos.x + 80, mouthCanvasPos.y);
+          canvasCtx.scale(-1, 1);
+          
+          canvasCtx.font = 'bold 48px sans-serif';
+          canvasCtx.fillStyle = '#FF69B4'; // 분홍색
+          canvasCtx.strokeStyle = '#000000';
+          canvasCtx.lineWidth = 3;
+          canvasCtx.textAlign = 'center';
+          canvasCtx.textBaseline = 'middle';
+          const text = activeSyllable;
+          // 변환 기준점이 이미 (mouthCanvasPos.x + 80, mouthCanvasPos.y)이므로 (0, 0)에 그림
+          canvasCtx.strokeText(text, 0, 0);
+          canvasCtx.fillText(text, 0, 0);
+          canvasCtx.restore();
+        }
       }
     },
-    [renderOverlay, countdown],
+    [renderOverlay, countdown, activeSyllable],
   );
 
   /** 카메라 초기화 및 렌더링 설정 */
