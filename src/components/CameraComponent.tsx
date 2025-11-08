@@ -120,11 +120,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay({
-    currentVowel: activeVowel,
-    getTargetBlendshapes,
-    currentBlendshapes,
-  });
+  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay(
+    {
+      currentVowel: activeVowel,
+      getTargetBlendshapes,
+      currentBlendshapes,
+    },
+  );
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);
@@ -186,7 +188,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           // 텍스트만 좌우 반전해서 정상으로 보이게 함
           canvasCtx.translate(mouthCanvasPos.x + 80, mouthCanvasPos.y);
           canvasCtx.scale(-1, 1);
-          
+
           canvasCtx.font = 'bold 48px sans-serif';
           canvasCtx.fillStyle = '#FF69B4'; // 분홍색
           canvasCtx.strokeStyle = '#000000';

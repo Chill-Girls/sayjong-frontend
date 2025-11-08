@@ -5,7 +5,7 @@ import { scaled } from '../styles/mixins';
 interface FeedbackProps {
   text: string;
   message: string;
-} 
+}
 const Feedback: React.FC<FeedbackProps> = ({ text, message }) => {
   return (
     <div

@@ -215,14 +215,6 @@ const LinePractice: React.FC = () => {
     [highlightMap, showFeedback],
   );
 
-  const failedSyllables = useMemo(
-    () =>
-      highlightMap
-        .filter(({ isHighlighted, char }) => isHighlighted && char.trim().length > 0)
-        .map(({ char }) => char),
-    [highlightMap],
-  );
-
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
       if (!results.blendshapes) return;
@@ -264,14 +256,7 @@ const LinePractice: React.FC = () => {
         setDisplayBlendshapes({ ...filteredBlendshapes });
       }
     },
-    [
-      currentTtsIndex,
-      displayVowel,
-      getTargetBlendshapes,
-      isRecording,
-      isTtsPlaying,
-      lyricChars,
-    ],
+    [currentTtsIndex, displayVowel, getTargetBlendshapes, isRecording, isTtsPlaying, lyricChars],
   );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준

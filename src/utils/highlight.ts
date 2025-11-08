@@ -12,4 +12,3 @@ export function mapCharsWithMask(chars: string[], mask: number[]): HighlightedCh
     isHighlighted: !!mask[index] && char.trim().length > 0,
   }));
 }
-

@@ -1,10 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import {
-  drawTargetMouthContours,
-  drawVowelLabel,
-  drawLiveMouthContours,
-} from '../utils/Draw';
+import { drawTargetMouthContours, drawVowelLabel, drawLiveMouthContours } from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -143,7 +139,9 @@ export function useVowelOverlay({
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
-      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
+      if (showAROverlay) {
+        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
+      }
 
       // 목표 모음 오버레이 그리기
       // currentTargetVowel이 없으면 오버레이를 그리지 않음 (하지만 실시간 입술 윤곽선은 그려야 함)
