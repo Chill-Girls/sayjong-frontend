@@ -36,6 +36,10 @@ interface CameraComponentProps {
   activeSyllable?: string | null;
   /** LinePractice에서 전달받는, 현재 활성화된 모음 */
   activeVowel?: string | null;
+  /** 외부에서 카운트다운 시작을 요청하는지 여부 */
+  shouldStartOverlay?: boolean;
+  /** 카운트다운이 끝난 뒤 호출되는 콜백 */
+  onCountdownComplete?: () => void;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -43,6 +47,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   width = '563px',
   activeSyllable = null,
   activeVowel = null,
+  shouldStartOverlay = false,
+  onCountdownComplete,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -198,13 +204,24 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     [renderOverlay, countdown, activeSyllable],
   );
 
+  const prevShouldStartRef = useRef<boolean>(false);
   useEffect(() => {
-    if (activeVowel && countdown === null && !showAROverlay) {
-      startAROverlay(activeVowel);
-    } else if (!activeVowel && countdown === null && showAROverlay) {
+    const prev = prevShouldStartRef.current;
+    if (shouldStartOverlay && !prev) {
+      startAROverlay(currentVowelRef.current);
+    } else if (!shouldStartOverlay && prev) {
       startAROverlay(null);
     }
-  }, [activeVowel, countdown, showAROverlay, startAROverlay]);
+    prevShouldStartRef.current = shouldStartOverlay;
+  }, [shouldStartOverlay, startAROverlay]);
+
+  const prevShowOverlayRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (!prevShowOverlayRef.current && showAROverlay) {
+      onCountdownComplete?.();
+    }
+    prevShowOverlayRef.current = showAROverlay;
+  }, [showAROverlay, onCountdownComplete]);
 
   /** 카메라 초기화 및 렌더링 설정 */
   useEffect(() => {

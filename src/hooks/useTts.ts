@@ -14,6 +14,8 @@ interface UseTtsReturn {
   currentSyllable: string | null;
   /** 현재 활성 모음 */
   currentVowel: string | null;
+  /** 현재 활성 음절의 인덱스 - 비트 마스킹 할려고 만듦 */
+  currentIndex: number | null;
   /** TTS 재생 중 여부 */
   isPlaying: boolean;
   /** TTS 재생 (오디오 + 오버레이) */
@@ -33,6 +35,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   const startTimeRef = useRef<number | null>(null);
   const [currentSyllable, setCurrentSyllable] = useState<string | null>(null);
   const [currentVowel, setCurrentVowel] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playAudio, setPlayAudio] = useState(false); // 오디오 재생 여부
 
@@ -63,17 +66,19 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
 
     // 타임스탬프에서 현재 활성 모음 찾기
     let activeMark: TtsMark | null = null;
+    let activeIndex = -1;
     for (let i = syllableTimings.length - 1; i >= 0; i--) {
       if (currentTime >= syllableTimings[i].timeSeconds) {
         activeMark = syllableTimings[i];
+        activeIndex = i;
         break;
       }
     }
 
     const rawMark = activeMark?.markName ?? null;
-    const extracted = rawMark ? extractVowel(rawMark) : null;
-    const displaySyllable = extracted ?? (rawMark && rawMark.trim().length ? rawMark.trim().slice(-1) : null);
-    const vowel = extracted;
+    const trimmedMark = rawMark ? rawMark.trim() : null;
+    const displaySyllable = trimmedMark && trimmedMark.length ? trimmedMark : null;
+    const vowel = rawMark ? extractVowel(rawMark) : null;
 
     // 음절은 항상 표시되게 폴백 (DEV 로깅 포함)
     if (import.meta.env.DEV && activeMark) {
@@ -82,6 +87,8 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
 
     setCurrentSyllable(prev => (prev !== displaySyllable ? displaySyllable : prev));
     setCurrentVowel(prev => (prev !== vowel ? vowel : prev));
+    const nextIndex = activeIndex >= 0 ? activeIndex : null;
+    setCurrentIndex(prev => (prev !== nextIndex ? nextIndex : prev));
 
     // 오버레이만 재생 중이고 타임스탬프가 끝났는지 확인
     if (!playAudio && startTimeRef.current !== null) {
@@ -115,6 +122,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     // 상태 초기화
     setCurrentSyllable(null);
     setCurrentVowel(null);
+    setCurrentIndex(null);
     setIsPlaying(false);
     setPlayAudio(false);
     startTimeRef.current = null;
@@ -181,6 +189,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   return {
     currentSyllable,
     currentVowel,
+    currentIndex,
     isPlaying,
     playTts,
     playOverlayOnly,

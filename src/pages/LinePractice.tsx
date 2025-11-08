@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSongLyricLines } from '../hooks/useSongs';
 import type { LyricLine } from '../api/songs/types';
@@ -17,12 +17,14 @@ import { getAdaptiveFontSize } from '../utils/fontUtils';
 import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
-  TARGET_BLENDSHAPES,
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { useTts } from '../hooks/useTts';
 import VowelFeedback from '../components/VowelFeedback';
+import { mapCharsWithMask } from '../utils/highlight';
+
+const HIGHLIGHT_COLOR = '#F04455';
 
 const LinePractice: React.FC = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
@@ -60,7 +62,8 @@ const LinePractice: React.FC = () => {
   const similarityScoreRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
   const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
-  const [displaySimilarity, setDisplaySimilarity] = useState<number | null>(null);
+  const [failedMask, setFailedMask] = useState<number[]>([]);
+  const [lyricChars, setLyricChars] = useState<string[]>([]);
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
@@ -171,6 +174,7 @@ const LinePractice: React.FC = () => {
   const {
     currentSyllable: currentTtsSyllable,
     currentVowel: currentTtsVowel,
+    currentIndex: currentTtsIndex,
     isPlaying: isTtsPlaying,
     playTts,
     playOverlayOnly,
@@ -183,6 +187,40 @@ const LinePractice: React.FC = () => {
   // 오버레이 모음은 녹음 중이고 TTS 진행 중일 때만 활성
   const displayVowel = isRecording && isTtsPlaying ? currentTtsVowel : null;
 
+  useEffect(() => {
+    const chars = Array.from(displayLine.originalText ?? '');
+    setLyricChars(chars);
+    setFailedMask(chars.map(() => 0));
+  }, [displayLine.lyricLineId, displayLine.originalText]);
+
+  const highlightMap = useMemo(
+    () => mapCharsWithMask(lyricChars, failedMask),
+    [lyricChars, failedMask],
+  );
+
+  const highlightedLyric = useMemo(
+    () =>
+      highlightMap.map(({ char, isHighlighted }, index) => (
+        <span
+          key={`${char}-${index}`}
+          style={{
+            color: isHighlighted ? HIGHLIGHT_COLOR : COLORS.dark,
+          }}
+        >
+          {char}
+        </span>
+      )),
+    [highlightMap],
+  );
+
+  const failedSyllables = useMemo(
+    () =>
+      highlightMap
+        .filter(({ isHighlighted, char }) => isHighlighted && char.trim().length > 0)
+        .map(({ char }) => char),
+    [highlightMap],
+  );
+
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
       if (!results.blendshapes) return;
@@ -190,23 +228,48 @@ const LinePractice: React.FC = () => {
       const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
       currentBlendshapesRef.current = filteredBlendshapes;
 
+      let similarity: number | null = null;
       // 녹음 중일 때만 유사도 계산
       if (isRecording) {
         const targetBlendshapes = getTargetBlendshapes(displayVowel);
         if (targetBlendshapes) {
-          const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
+          similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
           similarityScoreRef.current = similarity;
         }
+      }
+
+      if (
+        similarity !== null &&
+        similarity < 0.85 &&
+        isRecording &&
+        isTtsPlaying &&
+        currentTtsIndex !== null
+      ) {
+        setFailedMask(prev => {
+          if (currentTtsIndex < 0 || currentTtsIndex >= prev.length) return prev;
+          if (prev[currentTtsIndex] === 1) return prev;
+          const targetChar = lyricChars[currentTtsIndex];
+          if (!targetChar || targetChar.trim().length === 0) return prev;
+          const next = [...prev];
+          next[currentTtsIndex] = 1;
+          return next;
+        });
       }
 
       const now = performance.now();
       if (now - lastUpdateTimeRef.current >= 33) {
         lastUpdateTimeRef.current = now;
         setDisplayBlendshapes({ ...filteredBlendshapes });
-        setDisplaySimilarity(similarityScoreRef.current);
       }
     },
-    [displayVowel, getTargetBlendshapes, isRecording],
+    [
+      currentTtsIndex,
+      displayVowel,
+      getTargetBlendshapes,
+      isRecording,
+      isTtsPlaying,
+      lyricChars,
+    ],
   );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
@@ -251,9 +314,12 @@ const LinePractice: React.FC = () => {
     } else {
       // 녹음 시작
       setIsRecording(true);
-      playOverlayOnly(); // 오버레이 시작
     }
-  }, [isRecording, setIsRecording, playOverlayOnly, stopTts]);
+  }, [isRecording, setIsRecording, stopTts]);
+
+  const handleCountdownComplete = useCallback(() => {
+    playOverlayOnly();
+  }, [playOverlayOnly]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
@@ -411,8 +477,10 @@ const LinePractice: React.FC = () => {
                 // 녹음 중 AND TTS 진행 중일 때만 오버레이 표시
                 activeSyllable={isRecording && isTtsPlaying ? currentTtsSyllable : null}
                 activeVowel={isRecording && isTtsPlaying ? currentTtsVowel : null}
+                shouldStartOverlay={isRecording}
+                onCountdownComplete={handleCountdownComplete}
               />
-              {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
+              {/* {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
                 <div
                   style={{
                     position: 'absolute',
@@ -456,7 +524,7 @@ const LinePractice: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -523,7 +591,7 @@ const LinePractice: React.FC = () => {
                   textAlign: 'center',
                 }}
               >
-                {displayLine.originalText}
+                {highlightedLyric}
               </div>
 
               {/* 영어 가사 */}

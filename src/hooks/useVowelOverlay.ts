@@ -185,8 +185,8 @@ export function useVowelOverlay({
   return {
     renderOverlay,
     currentVowel: showAROverlay ? arVowel : currentVowel, // AR 오버레이가 활성화되면 arVowel 사용
-    startAROverlay, // AR 오버레이 시작 함수
+    startAROverlay, // AR 오버레이 시작 함수 (카운트다운 포함)
     countdown, // 카운트다운 상태
-    showAROverlay, // AR 오버레이 표시 여부
+    showAROverlay, // AR 오버레이 표시 여부 (flag)
   };
 }
