@@ -22,7 +22,8 @@ interface FeedbackItem {
 
 /** 휴리스틱을 위한 단순 모음 그룹 */
 const ROUNDED_VOWELS = new Set(['ㅜ', 'ㅠ', 'ㅗ', 'ㅛ']);
-const OPEN_VOWELS = new Set(['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ']);
+const OPEN_VOWELS = new Set(['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅘ', 'ㅝ']);
+const SPREAD_VOWELS = new Set(['ㅣ', 'ㅒ', 'ㅖ', 'ㅛ', 'ㅚ', 'ㅙ', 'ㅚ', 'ㅟ', 'ㅞ', 'ㅢ']);
 
 export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   activeVowel,
@@ -76,8 +77,8 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
           ? similarities.reduce((a, b) => a + b, 0) / similarities.length
           : 0;
 
-        // 임계값: 0.90 기준값, 다음 모음이 둥글게/열리게 하면 0.05 완화
-        let threshold = 0.9;
+        // 임계값: 0.80 기준값, 다음 모음이 둥글게/열리게 하면 0.05 완화
+        let threshold = 0.8;
         const nextVowel = activeVowel; // 새로운 현재가 완료할 세그먼트의 "다음" 모음
         if (nextVowel && (ROUNDED_VOWELS.has(nextVowel) || OPEN_VOWELS.has(nextVowel))) {
           threshold -= 0.05;
@@ -155,12 +156,19 @@ function buildFeedbackForVowel(
   const puckerTarget = target['mouthPucker'] ?? 0;
   const funnel = avg['mouthFunnel'] ?? 0;
   const funnelTarget = target['mouthFunnel'] ?? 0;
+  const smileLeft = avg['mouthSmileLeft'] ?? 0;
+  const smileRight = avg['mouthSmileRight'] ?? 0;
+  const smileLeftTarget = target['mouthSmileLeft'] ?? 0;
+  const smileRightTarget = target['mouthSmileRight'] ?? 0;
 
   // 주요 오류를 결정하기 위해 목표값과 비율 비교
   const ratio = (v: number, t: number) => (t > 0 ? v / t : 1);
   const openRatio = ratio(jawOpen, jawOpenTarget);
   const puckerRatio = ratio(pucker, puckerTarget);
   const funnelRatio = ratio(funnel, funnelTarget);
+  const smileLeftRatio = ratio(smileLeft, smileLeftTarget);
+  const smileRightRatio = ratio(smileRight, smileRightTarget);
+  const smileRatio = Math.min(smileLeftRatio, smileRightRatio);
 
   // 우선순위: 모음이 열림이 필요하면 -> jawOpen 확인; 둥글림이 필요하면 -> pucker/funnel 확인
   if (needOpen && openRatio < 0.9) {
@@ -171,6 +179,12 @@ function buildFeedbackForVowel(
   }
   if (needRound && funnelRatio < 0.9) {
     return { title: `${vowel} pronunciation`, message: 'Purse your lips a bit more.' };
+  }
+  if (SPREAD_VOWELS.has(vowel) && smileRatio < 0.9) {
+    return { title: `${vowel} pronunciation`, message: 'Spread your lips a bit more.' };
+  }
+  if (SPREAD_VOWELS.has(vowel) && puckerRatio > 1.1) {
+    return { title: `${vowel} pronunciation`, message: 'Relax and reduce lip rounding slightly.' };
   }
 
   // 둥글림이 필요한데 입을 너무 벌린 경우
