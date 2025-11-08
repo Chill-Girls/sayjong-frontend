@@ -64,6 +64,7 @@ const LinePractice: React.FC = () => {
   const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
   const [failedMask, setFailedMask] = useState<number[]>([]);
   const [lyricChars, setLyricChars] = useState<string[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
@@ -184,13 +185,14 @@ const LinePractice: React.FC = () => {
     audioUrl: displayLine.nativeAudioUrl,
   });
 
-  // 오버레이 모음은 녹음 중이고 TTS 진행 중일 때만 활성
+  // 오버레이 모음은 녹음 중(버튼 누름)이고 TTS 진행 중일 때만 활성
   const displayVowel = isRecording && isTtsPlaying ? currentTtsVowel : null;
 
   useEffect(() => {
     const chars = Array.from(displayLine.originalText ?? '');
     setLyricChars(chars);
     setFailedMask(chars.map(() => 0));
+    setShowFeedback(false);
   }, [displayLine.lyricLineId, displayLine.originalText]);
 
   const highlightMap = useMemo(
@@ -204,13 +206,13 @@ const LinePractice: React.FC = () => {
         <span
           key={`${char}-${index}`}
           style={{
-            color: isHighlighted ? HIGHLIGHT_COLOR : COLORS.dark,
+            color: showFeedback && isHighlighted ? HIGHLIGHT_COLOR : COLORS.dark,
           }}
         >
           {char}
         </span>
       )),
-    [highlightMap],
+    [highlightMap, showFeedback],
   );
 
   const failedSyllables = useMemo(
@@ -284,6 +286,8 @@ const LinePractice: React.FC = () => {
     stopTts(); // TTS 및 오버레이 정지
     setIsRecording(false); // 마이크 녹음 정지
     setRecordedAudioBlob(null); // 녹음된 오디오 초기화
+    setShowFeedback(false);
+    setFailedMask(prev => prev.map(() => 0));
   }, [stopTts, setIsRecording, setRecordedAudioBlob]);
 
   // 이전/다음 소절 이동 핸들러
@@ -305,15 +309,17 @@ const LinePractice: React.FC = () => {
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
   };
 
-  // 마이크 버튼 클릭 핸들러 수정 - 녹음과 오버레이 연동
+  // 마이크 버튼 클릭 & 녹음과 오버레이 연동
   const handleMicClick = useCallback(() => {
     if (isRecording) {
-      // 녹음 중이면 정지
       setIsRecording(false);
-      stopTts(); // 오버레이 정지
+      stopTts();
+      setShowFeedback(true);
     } else {
       // 녹음 시작
       setIsRecording(true);
+      setShowFeedback(false);
+      setFailedMask(prev => prev.map(() => 0));
     }
   }, [isRecording, setIsRecording, stopTts]);
 
