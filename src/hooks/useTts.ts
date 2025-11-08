@@ -1,6 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from 'react';
 import type { TtsMark } from '../api/songs/types';
-import { extractSyllable, extractVowels } from '../utils/hangul';
+import { extractVowel } from '../utils/hangul';
 
 interface UseTtsOptions {
   /** TTS 타임스탬프 배열 */
@@ -71,10 +71,9 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     }
 
     const rawMark = activeMark?.markName ?? null;
-    const extracted = rawMark ? extractSyllable(rawMark) : null;
+    const extracted = rawMark ? extractVowel(rawMark) : null;
     const displaySyllable = extracted ?? (rawMark && rawMark.trim().length ? rawMark.trim().slice(-1) : null);
-    // 모음 추출 (이중모음 지원: extractVowels()[0] 사용)
-    const vowel = rawMark ? (extractVowels(rawMark)[0] ?? null) : null;
+    const vowel = extracted;
 
     // 음절은 항상 표시되게 폴백 (DEV 로깅 포함)
     if (import.meta.env.DEV && activeMark) {

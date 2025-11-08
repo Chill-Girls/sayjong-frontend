@@ -16,7 +16,6 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { drawCountdown } from '../utils/Draw';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import Canvas from './Canvas';
@@ -37,8 +36,6 @@ interface CameraComponentProps {
   activeSyllable?: string | null;
   /** LinePractice에서 전달받는, 현재 활성화된 모음 */
   activeVowel?: string | null;
-  /** 카운트다운 숫자 (3, 2, 1) - canvas에 렌더링됨 */
-  countdown?: number | null;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -46,7 +43,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   width = '563px',
   activeSyllable = null,
   activeVowel = null,
-  countdown = null,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -118,7 +114,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel } = useVowelOverlay({
+  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay({
     currentVowel: activeVowel,
     getTargetBlendshapes,
     currentBlendshapes,
@@ -160,7 +156,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       toCanvas: (p: LandmarkPoint) => { x: number; y: number },
     ) => {
       if (countdown !== null) {
-        drawCountdown(canvasCtx, countdown);
         return;
       }
 
@@ -202,6 +197,14 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     },
     [renderOverlay, countdown, activeSyllable],
   );
+
+  useEffect(() => {
+    if (activeVowel && countdown === null && !showAROverlay) {
+      startAROverlay(activeVowel);
+    } else if (!activeVowel && countdown === null && showAROverlay) {
+      startAROverlay(null);
+    }
+  }, [activeVowel, countdown, showAROverlay, startAROverlay]);
 
   /** 카메라 초기화 및 렌더링 설정 */
   useEffect(() => {
@@ -441,6 +444,24 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         muted
       />
       <Canvas videoRef={videoRef} onDrawFrame={handleDrawFrame} />
+      {countdown !== null && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '6rem',
+            fontWeight: 700,
+            color: '#00FF00',
+            textShadow: '0 0 20px rgba(207, 65, 164, 0.8)',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          {countdown}
+        </div>
+      )}
       {(!isInitialized || isLoadingData) && !error && (
         <div
           style={{

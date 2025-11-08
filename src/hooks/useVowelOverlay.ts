@@ -3,14 +3,14 @@ import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
 import {
   drawTargetMouthContours,
   drawVowelLabel,
-  drawLiveMouthContours_red,
-  drawLiveMouthContours_green,
-  drawLiveMouthContours_orange,
+  drawLiveMouthContours,
 } from '../utils/Draw';
+
 import {
   filterTargetBlendshapes,
   calculateBlendshapeSimilarity,
 } from '../utils/blendshapeProcessor';
+
 import type { LandmarkPoint } from '../constants/landmarks';
 
 interface UseVowelOverlayProps {
@@ -142,22 +142,8 @@ export function useVowelOverlay({
         }
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
-        if (similarity !== null) {
-          if (similarity >= 0.8) {
-            // 유사도 >= 80%: 초록색
-            drawLiveMouthContours_green(canvasCtx, allLandmarks, toCanvas);
-          } else if (similarity >= 0.5) {
-            // 유사도 >= 50%: 주황색
-            drawLiveMouthContours_orange(canvasCtx, allLandmarks, toCanvas);
-          } else {
-            // 유사도 < 50%: 빨간색
-            drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-          }
-        } else {
-          // 유사도 계산 불가 시 기본 색상 (빨간색)
-          drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-        }
       }
+      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
 
       // 목표 모음 오버레이 그리기
       // currentTargetVowel이 없으면 오버레이를 그리지 않음 (하지만 실시간 입술 윤곽선은 그려야 함)

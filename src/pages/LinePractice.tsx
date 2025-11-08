@@ -23,19 +23,11 @@ import {
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { useTts } from '../hooks/useTts';
 import VowelFeedback from '../components/VowelFeedback';
-import { extractVowels } from '../utils/hangul';
 
-interface LinePracticeProps {
-  // 필요 시 props 추가
-}
-
-const LinePractice: React.FC<LinePracticeProps> = () => {
+const LinePractice: React.FC = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
   const { setMode } = useMode();
   const { isRecording, setRecordedAudioBlob, setIsRecording } = useRecording();
-
-  // 현재 발음 중인 음절 인덱스 상태
-  const [currentSyllableIndex, setCurrentSyllableIndex] = useState(0);
 
   // songId를 number로 변환
   const songId = songIdParam
@@ -188,22 +180,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     audioUrl: displayLine.nativeAudioUrl,
   });
 
-  // 현재 줄의 모든 음절 추출 (공백 제거)
-  const syllables = React.useMemo(() => {
-    const text = displayLine?.originalText ?? '';
-    return Array.from(text).filter(char => char.trim() !== '');
-  }, [displayLine?.originalText]);
-
-  // 오버레이는 TTS가 진행 중일 때만 보여줌 (끝나면 빈화면)
-  const activeSyllable = isTtsPlaying ? currentTtsSyllable : null;
-
-  // 현재 음절에서 모음 추출
-  const activeVowel = React.useMemo(() => {
-    if (!activeSyllable) return null;
-    const vowels = extractVowels(activeSyllable);
-    return vowels[0] ?? null;
-  }, [activeSyllable]);
-
   // 오버레이 모음은 녹음 중이고 TTS 진행 중일 때만 활성
   const displayVowel = isRecording && isTtsPlaying ? currentTtsVowel : null;
 
@@ -278,11 +254,6 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       playOverlayOnly(); // 오버레이 시작
     }
   }, [isRecording, setIsRecording, playOverlayOnly, stopTts]);
-
-  // 줄이 바뀌면 음절 인덱스 리셋
-  React.useEffect(() => {
-    setCurrentSyllableIndex(0);
-  }, [displayLine?.lyricLineId]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
