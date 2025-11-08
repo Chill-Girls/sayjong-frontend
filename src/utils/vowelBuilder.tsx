@@ -34,10 +34,17 @@ const VOWEL_COEFFS_MONO: Record<string, VowelCoeffs> = {
   ㅓ: { open: 0.75, spread: 0.15, round: 0.5 }, // [ʌ] 중저 후설 비원순
   ㅔ: { open: 0.4, spread: 0.7, round: 0.0 }, // [e̞] 중 전설 비원순
   ㅐ: { open: 0.4, spread: 0.7, round: 0.0 }, // [ɛ] → [e̞] (대부분 화자에서 ㅔ와 병합)
+  ㅒ: { open: 0.45, spread: 0.75, round: 0.0 }, // [jɛ] 종단, ㅑ에서 시작해 ㅐ로 이행
+  ㅖ: { open: 0.4, spread: 0.8, round: 0.0 }, // [je] ㅕ에서 시작해 ㅔ로 이행
   ㅗ: { open: 0.35, spread: -0.15, round: 0.85 }, // [o] 중고 후설 원순
   ㅛ: { open: 0.35, spread: -0.15, round: 0.85 }, // [jo] 정적 끝점 ≈ ㅗ
   ㅡ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɯ] 고 후설 비원순
   ㅕ: { open: 0.75, spread: 0.15, round: 0.5 }, // [jʌ] 정적 끝점 ≈ 더 펼쳐진 ㅓ
+  ㅙ: { open: 0.4, spread: 0.7, round: 0.0 }, // [wɛ] ㅗ + ㅐ
+  ㅚ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we]/[ø] ㅗ + ㅣ
+  ㅝ: { open: 0.75, spread: 0.15, round: 0.5 }, // [wʌ] ㅜ + ㅓ
+  ㅞ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we] ㅜ + ㅔ
+  ㅢ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɰi] ㅡ + ㅣ
 };
 
 // localStorage에서 'vowel_calibration' 데이터를 로드하는 헬퍼 함수
@@ -81,13 +88,22 @@ export function buildTargetVowelShape(
 
   const targetShape: Record<number, Point3D> = {};
   const isCalibratedVowel =
-    vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ' || vowel === 'ㅑ' || vowel === 'ㅠ';
+    vowel === 'ㅏ' ||
+    vowel === 'ㅜ' ||
+    vowel === 'ㅣ' ||
+    vowel === 'ㅑ' ||
+    vowel === 'ㅠ' ||
+    vowel === 'ㅘ' ||
+    vowel === 'ㅟ';
 
   allLipIds.forEach(id => {
     if (isCalibratedVowel) {
       // 보정된 데이터 직접 사용
-      const calibratedKey =
-        vowel === 'ㅏ' || vowel === 'ㅑ' ? 'a' : vowel === 'ㅜ' || vowel === 'ㅠ' ? 'u' : 'i';
+      const calibratedKey = ['ㅏ', 'ㅑ', 'ㅘ'].includes(vowel)
+        ? 'a'
+        : ['ㅜ', 'ㅠ'].includes(vowel)
+          ? 'u'
+          : 'i';
       const coords = (calibData[calibratedKey].landmarks as any)[id.toString()];
       // 데이터 null 체크
       if (!coords) {
