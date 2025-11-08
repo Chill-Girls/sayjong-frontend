@@ -5,8 +5,7 @@ import { scaled } from '../styles/mixins';
 interface FeedbackProps {
   text: string;
   message: string;
-} // 시아가 만들어줘야 할 것
-
+}
 const Feedback: React.FC<FeedbackProps> = ({ text, message }) => {
   return (
     <div

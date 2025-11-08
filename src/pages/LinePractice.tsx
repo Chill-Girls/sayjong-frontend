@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useSongLyricLines } from '../hooks/useSongs';
 import type { LyricLine } from '../api/songs/types';
@@ -17,25 +17,19 @@ import { getAdaptiveFontSize } from '../utils/fontUtils';
 import { useRecording } from '../constants/RecordingContext';
 import {
   calculateBlendshapeSimilarity,
-  TARGET_BLENDSHAPES,
   filterTargetBlendshapes,
 } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { useTts } from '../hooks/useTts';
 import VowelFeedback from '../components/VowelFeedback';
-import { extractVowels } from '../utils/hangul';
+import { mapCharsWithMask } from '../utils/highlight';
 
-interface LinePracticeProps {
-  // 필요 시 props 추가
-}
+const HIGHLIGHT_COLOR = '#F04455';
 
-const LinePractice: React.FC<LinePracticeProps> = () => {
+const LinePractice: React.FC = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
   const { setMode } = useMode();
   const { isRecording, setRecordedAudioBlob, setIsRecording } = useRecording();
-
-  // 현재 발음 중인 음절 인덱스 상태
-  const [currentSyllableIndex, setCurrentSyllableIndex] = useState(0);
 
   // songId를 number로 변환
   const songId = songIdParam
@@ -68,7 +62,9 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const similarityScoreRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
   const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
-  const [displaySimilarity, setDisplaySimilarity] = useState<number | null>(null);
+  const [failedMask, setFailedMask] = useState<number[]>([]);
+  const [lyricChars, setLyricChars] = useState<string[]>([]);
+  const [showFeedback, setShowFeedback] = useState(false);
   const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
@@ -179,6 +175,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
   const {
     currentSyllable: currentTtsSyllable,
     currentVowel: currentTtsVowel,
+    currentIndex: currentTtsIndex,
     isPlaying: isTtsPlaying,
     playTts,
     playOverlayOnly,
@@ -188,24 +185,35 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     audioUrl: displayLine.nativeAudioUrl,
   });
 
-  // 현재 줄의 모든 음절 추출 (공백 제거)
-  const syllables = React.useMemo(() => {
-    const text = displayLine?.originalText ?? '';
-    return Array.from(text).filter(char => char.trim() !== '');
-  }, [displayLine?.originalText]);
-
-  // 오버레이는 TTS가 진행 중일 때만 보여줌 (끝나면 빈화면)
-  const activeSyllable = isTtsPlaying ? currentTtsSyllable : null;
-
-  // 현재 음절에서 모음 추출
-  const activeVowel = React.useMemo(() => {
-    if (!activeSyllable) return null;
-    const vowels = extractVowels(activeSyllable);
-    return vowels[0] ?? null;
-  }, [activeSyllable]);
-
-  // 오버레이 모음은 녹음 중이고 TTS 진행 중일 때만 활성
+  // 오버레이 모음은 녹음 중(버튼 누름)이고 TTS 진행 중일 때만 활성
   const displayVowel = isRecording && isTtsPlaying ? currentTtsVowel : null;
+
+  useEffect(() => {
+    const chars = Array.from(displayLine.originalText ?? '');
+    setLyricChars(chars);
+    setFailedMask(chars.map(() => 0));
+    setShowFeedback(false);
+  }, [displayLine.lyricLineId, displayLine.originalText]);
+
+  const highlightMap = useMemo(
+    () => mapCharsWithMask(lyricChars, failedMask),
+    [lyricChars, failedMask],
+  );
+
+  const highlightedLyric = useMemo(
+    () =>
+      highlightMap.map(({ char, isHighlighted }, index) => (
+        <span
+          key={`${char}-${index}`}
+          style={{
+            color: showFeedback && isHighlighted ? HIGHLIGHT_COLOR : COLORS.dark,
+          }}
+        >
+          {char}
+        </span>
+      )),
+    [highlightMap, showFeedback],
+  );
 
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
@@ -214,23 +222,41 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
       const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
       currentBlendshapesRef.current = filteredBlendshapes;
 
+      let similarity: number | null = null;
       // 녹음 중일 때만 유사도 계산
       if (isRecording) {
         const targetBlendshapes = getTargetBlendshapes(displayVowel);
         if (targetBlendshapes) {
-          const similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
+          similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
           similarityScoreRef.current = similarity;
         }
+      }
+
+      if (
+        similarity !== null &&
+        similarity < 0.85 &&
+        isRecording &&
+        isTtsPlaying &&
+        currentTtsIndex !== null
+      ) {
+        setFailedMask(prev => {
+          if (currentTtsIndex < 0 || currentTtsIndex >= prev.length) return prev;
+          if (prev[currentTtsIndex] === 1) return prev;
+          const targetChar = lyricChars[currentTtsIndex];
+          if (!targetChar || targetChar.trim().length === 0) return prev;
+          const next = [...prev];
+          next[currentTtsIndex] = 1;
+          return next;
+        });
       }
 
       const now = performance.now();
       if (now - lastUpdateTimeRef.current >= 33) {
         lastUpdateTimeRef.current = now;
         setDisplayBlendshapes({ ...filteredBlendshapes });
-        setDisplaySimilarity(similarityScoreRef.current);
       }
     },
-    [displayVowel, getTargetBlendshapes, isRecording],
+    [currentTtsIndex, displayVowel, getTargetBlendshapes, isRecording, isTtsPlaying, lyricChars],
   );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
@@ -245,6 +271,8 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     stopTts(); // TTS 및 오버레이 정지
     setIsRecording(false); // 마이크 녹음 정지
     setRecordedAudioBlob(null); // 녹음된 오디오 초기화
+    setShowFeedback(false);
+    setFailedMask(prev => prev.map(() => 0));
   }, [stopTts, setIsRecording, setRecordedAudioBlob]);
 
   // 이전/다음 소절 이동 핸들러
@@ -266,23 +294,23 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
     if (idx >= 0 && idx < usableLines.length - 1) setSelected(usableLines[idx + 1]);
   };
 
-  // 마이크 버튼 클릭 핸들러 수정 - 녹음과 오버레이 연동
+  // 마이크 버튼 클릭 & 녹음과 오버레이 연동
   const handleMicClick = useCallback(() => {
     if (isRecording) {
-      // 녹음 중이면 정지
       setIsRecording(false);
-      stopTts(); // 오버레이 정지
+      stopTts();
+      setShowFeedback(true);
     } else {
       // 녹음 시작
       setIsRecording(true);
-      playOverlayOnly(); // 오버레이 시작
+      setShowFeedback(false);
+      setFailedMask(prev => prev.map(() => 0));
     }
-  }, [isRecording, setIsRecording, playOverlayOnly, stopTts]);
+  }, [isRecording, setIsRecording, stopTts]);
 
-  // 줄이 바뀌면 음절 인덱스 리셋
-  React.useEffect(() => {
-    setCurrentSyllableIndex(0);
-  }, [displayLine?.lyricLineId]);
+  const handleCountdownComplete = useCallback(() => {
+    playOverlayOnly();
+  }, [playOverlayOnly]);
 
   if (!songId) {
     return <div>노래 ID가 제공되지 않았습니다.</div>;
@@ -440,8 +468,10 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
                 // 녹음 중 AND TTS 진행 중일 때만 오버레이 표시
                 activeSyllable={isRecording && isTtsPlaying ? currentTtsSyllable : null}
                 activeVowel={isRecording && isTtsPlaying ? currentTtsVowel : null}
+                shouldStartOverlay={isRecording}
+                onCountdownComplete={handleCountdownComplete}
               />
-              {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
+              {/* {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
                 <div
                   style={{
                     position: 'absolute',
@@ -485,7 +515,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
                     ))}
                   </div>
                 </div>
-              )}
+              )} */}
             </div>
           </div>
 
@@ -552,7 +582,7 @@ const LinePractice: React.FC<LinePracticeProps> = () => {
                   textAlign: 'center',
                 }}
               >
-                {displayLine.originalText}
+                {highlightedLyric}
               </div>
 
               {/* 영어 가사 */}

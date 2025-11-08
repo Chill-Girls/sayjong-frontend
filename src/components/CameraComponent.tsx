@@ -16,7 +16,6 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { drawCountdown } from '../utils/Draw';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 import Canvas from './Canvas';
@@ -37,8 +36,10 @@ interface CameraComponentProps {
   activeSyllable?: string | null;
   /** LinePractice에서 전달받는, 현재 활성화된 모음 */
   activeVowel?: string | null;
-  /** 카운트다운 숫자 (3, 2, 1) - canvas에 렌더링됨 */
-  countdown?: number | null;
+  /** 외부에서 카운트다운 시작을 요청하는지 여부 */
+  shouldStartOverlay?: boolean;
+  /** 카운트다운이 끝난 뒤 호출되는 콜백 */
+  onCountdownComplete?: () => void;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -46,7 +47,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   width = '563px',
   activeSyllable = null,
   activeVowel = null,
-  countdown = null,
+  shouldStartOverlay = false,
+  onCountdownComplete,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -118,11 +120,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel } = useVowelOverlay({
-    currentVowel: activeVowel,
-    getTargetBlendshapes,
-    currentBlendshapes,
-  });
+  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay(
+    {
+      currentVowel: activeVowel,
+      getTargetBlendshapes,
+      currentBlendshapes,
+    },
+  );
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);
@@ -160,7 +164,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       toCanvas: (p: LandmarkPoint) => { x: number; y: number },
     ) => {
       if (countdown !== null) {
-        drawCountdown(canvasCtx, countdown);
         return;
       }
 
@@ -185,7 +188,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
           // 텍스트만 좌우 반전해서 정상으로 보이게 함
           canvasCtx.translate(mouthCanvasPos.x + 80, mouthCanvasPos.y);
           canvasCtx.scale(-1, 1);
-          
+
           canvasCtx.font = 'bold 48px sans-serif';
           canvasCtx.fillStyle = '#FF69B4'; // 분홍색
           canvasCtx.strokeStyle = '#000000';
@@ -202,6 +205,25 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     },
     [renderOverlay, countdown, activeSyllable],
   );
+
+  const prevShouldStartRef = useRef<boolean>(false);
+  useEffect(() => {
+    const prev = prevShouldStartRef.current;
+    if (shouldStartOverlay && !prev) {
+      startAROverlay(currentVowelRef.current);
+    } else if (!shouldStartOverlay && prev) {
+      startAROverlay(null);
+    }
+    prevShouldStartRef.current = shouldStartOverlay;
+  }, [shouldStartOverlay, startAROverlay]);
+
+  const prevShowOverlayRef = useRef<boolean>(false);
+  useEffect(() => {
+    if (!prevShowOverlayRef.current && showAROverlay) {
+      onCountdownComplete?.();
+    }
+    prevShowOverlayRef.current = showAROverlay;
+  }, [showAROverlay, onCountdownComplete]);
 
   /** 카메라 초기화 및 렌더링 설정 */
   useEffect(() => {
@@ -441,6 +463,24 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         muted
       />
       <Canvas videoRef={videoRef} onDrawFrame={handleDrawFrame} />
+      {countdown !== null && (
+        <div
+          style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            fontSize: '6rem',
+            fontWeight: 700,
+            color: '#00FF00',
+            textShadow: '0 0 20px rgba(207, 65, 164, 0.8)',
+            pointerEvents: 'none',
+            zIndex: 5,
+          }}
+        >
+          {countdown}
+        </div>
+      )}
       {(!isInitialized || isLoadingData) && !error && (
         <div
           style={{

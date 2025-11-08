@@ -1,16 +1,12 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import {
-  drawTargetMouthContours,
-  drawVowelLabel,
-  drawLiveMouthContours_red,
-  drawLiveMouthContours_green,
-  drawLiveMouthContours_orange,
-} from '../utils/Draw';
+import { drawTargetMouthContours, drawVowelLabel, drawLiveMouthContours } from '../utils/Draw';
+
 import {
   filterTargetBlendshapes,
   calculateBlendshapeSimilarity,
 } from '../utils/blendshapeProcessor';
+
 import type { LandmarkPoint } from '../constants/landmarks';
 
 interface UseVowelOverlayProps {
@@ -142,21 +138,9 @@ export function useVowelOverlay({
         }
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
-        if (similarity !== null) {
-          if (similarity >= 0.8) {
-            // 유사도 >= 80%: 초록색
-            drawLiveMouthContours_green(canvasCtx, allLandmarks, toCanvas);
-          } else if (similarity >= 0.5) {
-            // 유사도 >= 50%: 주황색
-            drawLiveMouthContours_orange(canvasCtx, allLandmarks, toCanvas);
-          } else {
-            // 유사도 < 50%: 빨간색
-            drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-          }
-        } else {
-          // 유사도 계산 불가 시 기본 색상 (빨간색)
-          drawLiveMouthContours_red(canvasCtx, allLandmarks, toCanvas);
-        }
+      }
+      if (showAROverlay) {
+        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
 
       // 목표 모음 오버레이 그리기
@@ -199,8 +183,8 @@ export function useVowelOverlay({
   return {
     renderOverlay,
     currentVowel: showAROverlay ? arVowel : currentVowel, // AR 오버레이가 활성화되면 arVowel 사용
-    startAROverlay, // AR 오버레이 시작 함수
+    startAROverlay, // AR 오버레이 시작 함수 (카운트다운 포함)
     countdown, // 카운트다운 상태
-    showAROverlay, // AR 오버레이 표시 여부
+    showAROverlay, // AR 오버레이 표시 여부 (flag)
   };
 }

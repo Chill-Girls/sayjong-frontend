@@ -29,115 +29,13 @@ export function createCanvasCoordConverter(width: number, height: number) {
  * @param landmarks - 얼굴 랜드마크 배열
  * @param toCanvas - 캔버스 좌표 변환 함수
  */
-/**
- * 빨간색 입술 윤곽선 그리기
- * @param ctx - 캔버스 렌더링 컨텍스트
- * @param landmarks - 얼굴 랜드마크 배열
- * @param toCanvas - 캔버스 좌표 변환 함수
- */
-export function drawLiveMouthContours_red(
+
+export function drawLiveMouthContours(
   ctx: CanvasRenderingContext2D,
   landmarks: LandmarkPoint[],
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+  color = '#808080',
 ) {
-  const color = '#FF0000';
-
-  // 외부 입술 윤곽선
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
-    const index = OUTER_LIP_LANDMARKS[i];
-    const point = toCanvas(landmarks[index]);
-    if (i === 0) {
-      ctx.moveTo(point.x, point.y);
-    } else {
-      ctx.lineTo(point.x, point.y);
-    }
-  }
-  ctx.closePath();
-  ctx.stroke();
-
-  // 내부 입술 윤곽선
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
-    const index = INNER_LIP_LANDMARKS[i];
-    const point = toCanvas(landmarks[index]);
-    if (i === 0) {
-      ctx.moveTo(point.x, point.y);
-    } else {
-      ctx.lineTo(point.x, point.y);
-    }
-  }
-  ctx.closePath();
-  ctx.stroke();
-}
-
-/**
- * 초록색 입술 윤곽선 그리기
- * @param ctx - 캔버스 렌더링 컨텍스트
- * @param landmarks - 얼굴 랜드마크 배열
- * @param toCanvas - 캔버스 좌표 변환 함수
- */
-export function drawLiveMouthContours_green(
-  ctx: CanvasRenderingContext2D,
-  landmarks: LandmarkPoint[],
-  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
-) {
-  const color = '#00FF00';
-
-  // 외부 입술 윤곽선
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.beginPath();
-  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
-    const index = OUTER_LIP_LANDMARKS[i];
-    const point = toCanvas(landmarks[index]);
-    if (i === 0) {
-      ctx.moveTo(point.x, point.y);
-    } else {
-      ctx.lineTo(point.x, point.y);
-    }
-  }
-  ctx.closePath();
-  ctx.stroke();
-
-  // 내부 입술 윤곽선
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
-    const index = INNER_LIP_LANDMARKS[i];
-    const point = toCanvas(landmarks[index]);
-    if (i === 0) {
-      ctx.moveTo(point.x, point.y);
-    } else {
-      ctx.lineTo(point.x, point.y);
-    }
-  }
-  ctx.closePath();
-  ctx.stroke();
-}
-
-/**
- * 주황색(오렌지색) 입술 윤곽선 그리기
- * @param ctx - 캔버스 렌더링 컨텍스트
- * @param landmarks - 얼굴 랜드마크 배열
- * @param toCanvas - 캔버스 좌표 변환 함수
- */
-export function drawLiveMouthContours_orange(
-  ctx: CanvasRenderingContext2D,
-  landmarks: LandmarkPoint[],
-  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
-) {
-  const color = '#FF8C00';
-
   // 외부 입술 윤곽선
   ctx.strokeStyle = color;
   ctx.lineWidth = 2;
@@ -285,44 +183,6 @@ export function drawVowelLabel(
     ctx.fillStyle = 'rgba(0, 255, 100, 1)';
     ctx.fillText(vowel, 0, 0);
   }
-  ctx.restore();
-}
-
-/**
- * 카운트다운을 캔버스에 그리기
- * @param ctx - 캔버스 렌더링 컨텍스트
- * @param countdown - 카운트다운 숫자 (3, 2, 1)
- */
-export function drawCountdown(ctx: CanvasRenderingContext2D, countdown: number) {
-  const canvas = ctx.canvas;
-  const centerX = canvas.width / 2;
-  const centerY = canvas.height / 2;
-
-  // 배경 반투명 처리
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // 카운트다운 숫자 그리기
-  ctx.save();
-  ctx.translate(centerX, centerY);
-  ctx.scale(-1, 1); // 비디오와 동일하게 좌우 반전
-
-  // 큰 초록색 글자
-  ctx.font = 'bold 120px Arial';
-  ctx.fillStyle = '#00FF00';
-  ctx.strokeStyle = 'rgba(0, 0, 0, 0.8)';
-  ctx.lineWidth = 8;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-
-  // 텍스트 그림자 효과
-  ctx.shadowColor = 'rgba(0, 255, 0, 0.8)';
-  ctx.shadowBlur = 20;
-
-  const countdownText = countdown.toString();
-  ctx.strokeText(countdownText, 0, 0);
-  ctx.fillText(countdownText, 0, 0);
-
   ctx.restore();
 }
 
