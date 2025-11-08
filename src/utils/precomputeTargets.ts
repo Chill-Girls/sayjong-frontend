@@ -43,7 +43,29 @@ export function precomputeAllTargetVowels(calibrationData: any): PrecomputedTarg
   }
 
   // 모든 한국어 모음 리스트 (단모음 + 이중모음)
-  const allVowels = ['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅗ', 'ㅛ', 'ㅜ', 'ㅠ', 'ㅡ', 'ㅣ'];
+  const allVowels = [
+    'ㅏ',
+    'ㅑ',
+    'ㅓ',
+    'ㅕ',
+    'ㅗ',
+    'ㅛ',
+    'ㅜ',
+    'ㅠ',
+    'ㅡ',
+    'ㅣ',
+    'ㅐ',
+    'ㅒ',
+    'ㅔ',
+    'ㅖ',
+    'ㅘ',
+    'ㅙ',
+    'ㅚ',
+    'ㅝ',
+    'ㅞ',
+    'ㅟ',
+    'ㅢ',
+  ];
 
   // 각 모음에 대한 목표 좌표 계산
   const vowelTargets: PrecomputedTargets['vowels'] = {};
