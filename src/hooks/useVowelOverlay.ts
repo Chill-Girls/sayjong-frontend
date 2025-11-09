@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { drawTargetMouthContours, drawVowelLabel, drawLiveMouthContours } from '../utils/Draw';
+import { drawTargetMouthContours, drawLiveMouthContours } from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -42,6 +42,13 @@ export function useVowelOverlay({
       targetLandmarksComputer.current.setTargetVowel(currentVowel);
     }
   }, [currentVowel]);
+
+  useEffect(() => {
+    // 현재 모음이 변경되면 AR 오버레이 모음도 업데이트
+    if (showAROverlay && currentVowel) {
+      setArVowel(currentVowel);
+    }
+  }, [showAROverlay, currentVowel]);
 
   // AR 오버레이 시작/멈춤 토글 (카운트다운 포함)
   const startAROverlay = useCallback(
@@ -174,7 +181,7 @@ export function useVowelOverlay({
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
         drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas); // 정답 입술 윤곽선 그리기
-        drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas); // 정답 모음 라벨 그리기
+        //drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas); // 정답 모음 라벨 그리기
       }
     },
     [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],
