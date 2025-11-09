@@ -2,7 +2,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './index.css';
-import App from './App.tsx';
 import SelectMusic from './pages/SelectMusic.tsx';
 import SelectMode from './pages/SelectMode.tsx';
 import LinePractice from './pages/LinePractice.tsx';
@@ -13,7 +12,7 @@ import { Toaster } from 'react-hot-toast';
 import { ModeProvider } from './constants/ModeContext.tsx';
 import { RecordingProvider } from './constants/RecordingContext.tsx';
 import { useCalibrationData } from './hooks/useCalibration';
-
+import SyllablePractice from './pages/SyllablePractice.tsx';
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
 function HistoryPage() {
@@ -45,7 +44,7 @@ function AppRouter() {
       <Route path="/lesson" element={<Navigate replace to="/home" />} />
       <Route path="/lesson/:songId" element={<SelectMode />} />
 
-      <Route path="/lesson/:songId/syllable/:page" element={<App />} />
+      <Route path="/lesson/:songId/syllable/:page" element={<SyllablePractice />} />
       <Route path="/lesson/:songId/line/:page" element={<LinePractice />} />
       <Route path="/lesson/:songId/sing" element={<SingAlong />} />
 

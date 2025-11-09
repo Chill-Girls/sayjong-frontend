@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import Feedback from './Feedback';
 import {
   calculateBlendshapeSimilarity,
@@ -8,16 +8,28 @@ import {
 
 interface VowelFeedbackProps {
   activeVowel: string | null;
-  /** 현재 프레임의 블렌드쉐이프 스냅샷 (필터링된 키 권장) */
+  /* 현재 프레임에서 잡힌 블렌드쉐이프 값 - 이게 음절단위가 아닌거 같아요*/
   currentBlendshapes: Record<string, number> | null;
-  /** 새로운 가사 줄로 이동할 때 이 키를 변경하여 누적된 피드백을 초기화 */
+  /* 현재 평가 중인 음절의 위치 (없으면 null) */
+  currentIndex: number | null;
+  /* 현재 소절을 글자 단위로 나눈 배열 */
+  lyricChars: string[];
+
+  feedbackItems: SegmentFeedbackItem[];
+  /* 세그먼트가 실패했을 때 호출되는 콜백 */
+  onSegmentFeedback?: (payload: SegmentFeedbackItem) => void;
+  /* 줄 이동 등으로 피드백을 초기화할 때 호출되는 콜백 */
+  onReset?: () => void /* 피드백을 초기화할 때 호출되는 call back function */;
+  shouldDisplay?: boolean;
+  /* 새로운 가사 줄로 이동할 때 이 키를 변경하여 누적된 피드백을 초기화 */
   resetKey?: string | number;
 }
 
-interface FeedbackItem {
+export interface SegmentFeedbackItem {
   id: number;
-  text: string; // 짧은 제목
-  message: string; // 상세한 안내
+  text: string;
+  message: string;
+  indices: number[];
 }
 
 /** 휴리스틱을 위한 단순 모음 그룹 */
@@ -28,14 +40,19 @@ const SPREAD_VOWELS = new Set(['ㅣ', 'ㅒ', 'ㅖ', 'ㅛ', 'ㅚ', 'ㅙ', 'ㅚ', 
 export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   activeVowel,
   currentBlendshapes,
+  currentIndex,
+  lyricChars,
+  feedbackItems,
+  onSegmentFeedback,
+  onReset,
+  shouldDisplay = true,
   resetKey,
 }) => {
-  const [feedbackList, setFeedbackList] = useState<FeedbackItem[]>([]);
-
   // 세그먼트 추적
   const prevVowelRef = useRef<string | null>(null);
   const segmentSamplesRef = useRef<Record<string, number>[]>([]); // 프레임별 필터링된 블렌드쉐이프
   const segmentSimilaritiesRef = useRef<number[]>([]);
+  const segmentIndicesRef = useRef<number[]>([]);
   const nextFeedbackIdRef = useRef<number>(1);
 
   // 목표 모음을 한 번만 로드
@@ -58,11 +75,12 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
   // 가사 줄 변경 시 피드백 초기화
   useEffect(() => {
-    setFeedbackList([]);
+    onReset?.();
     segmentSamplesRef.current = [];
     segmentSimilaritiesRef.current = [];
+    segmentIndicesRef.current = [];
     prevVowelRef.current = null;
-  }, [resetKey]);
+  }, [onReset, resetKey]);
 
   // 모음이 같은 동안 샘플 누적; 변경 시 이전 세그먼트 평가
   useEffect(() => {
@@ -86,7 +104,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
         const flag = avgSimilarity >= threshold ? 1 : 0;
 
-        if (flag === 0) {
+        if (flag === 0 && segmentIndicesRef.current.length > 0) {
           // 평균 블렌드쉐이프와 목표값 비교를 기반으로 피드백 생성
           const averaged: Record<string, number> = {};
           for (const name of TARGET_BLENDSHAPES) {
@@ -101,21 +119,30 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
             averaged[name] = count ? sum / count : 0;
           }
 
-          const fb = buildFeedbackForVowel(prevVowel, averaged, prevTarget);
-          setFeedbackList(list => [
-            ...list,
-            {
+          const uniqueIndices = Array.from(new Set(segmentIndicesRef.current)).sort(
+            (a, b) => a - b,
+          );
+          const segmentText = uniqueIndices
+            .map(index => lyricChars[index] ?? '')
+            .join('')
+            .trim();
+
+          if (segmentText.length > 0) {
+            const fb = buildFeedbackForVowel(prevVowel, averaged, prevTarget);
+            onSegmentFeedback?.({
               id: nextFeedbackIdRef.current++,
-              text: prevVowel, // 모음만 표시
+              text: segmentText,
               message: fb.message,
-            },
-          ]);
+              indices: uniqueIndices,
+            });
+          }
         }
       }
 
       // 새 세그먼트를 위한 초기화
       segmentSamplesRef.current = [];
       segmentSimilaritiesRef.current = [];
+      segmentIndicesRef.current = [];
     }
 
     // 모음과 블렌드쉐이프 스냅샷이 있으면 현재 세그먼트 누적 업데이트
@@ -129,12 +156,31 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
       }
     }
 
+    if (typeof currentIndex === 'number') {
+      const indices = segmentIndicesRef.current;
+      const lastIndex = indices.length > 0 ? indices[indices.length - 1] : null;
+      if (lastIndex !== currentIndex) {
+        indices.push(currentIndex);
+      }
+    }
+
     prevVowelRef.current = activeVowel;
-  }, [activeVowel, currentBlendshapes, getTargetBlendshapes]);
+  }, [
+    activeVowel,
+    currentBlendshapes,
+    currentIndex,
+    getTargetBlendshapes,
+    lyricChars,
+    onSegmentFeedback,
+  ]);
+
+  if (!shouldDisplay) {
+    return null;
+  }
 
   return (
     <div>
-      {feedbackList.map(item => (
+      {feedbackItems.map(item => (
         <Feedback key={item.id} text={item.text} message={item.message} />
       ))}
     </div>

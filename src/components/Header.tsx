@@ -84,7 +84,8 @@ const Header: FunctionComponent<HeaderProps> = () => {
         onMouseUp={() => setLogoPressed(false)}
         onMouseLeave={() => setLogoPressed(false)}
       >
-        SayJong
+        <span style={{ color: '#F04488' }}>SAY</span>
+        <span>JONG</span>
       </Link>
 
       <nav style={styles.navigation}>
