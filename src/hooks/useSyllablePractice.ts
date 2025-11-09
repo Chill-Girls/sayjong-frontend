@@ -9,7 +9,6 @@ export interface PracticeSyllable {
 }
 
 interface UseSyllablePracticeResult {
-
   syllables: PracticeSyllable[];
   loading: boolean;
   error: string | null;
@@ -56,8 +55,6 @@ const EXAMPLE_SYLLABLES: PracticeSyllable[] = [
 
 export function useSyllablePractice(songId: number | null): UseSyllablePracticeResult {
   const [syllables, setSyllables] = useState<PracticeSyllable[]>([]);
-  const [songTitle, setSongTitle] = useState<string | null>(null);
-  const [singer, setSinger] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,8 +68,6 @@ export function useSyllablePractice(songId: number | null): UseSyllablePracticeR
         // TODO: API 연동 시 아래 로직을 실제 fetch 로 교체
         timeoutId = window.setTimeout(() => {
           setSyllables(EXAMPLE_SYLLABLES);
-          setSongTitle('안녕하세요');
-          setSinger('테스트 가수');
           setLoading(false);
         }, 200);
       } catch (err) {
@@ -90,6 +85,5 @@ export function useSyllablePractice(songId: number | null): UseSyllablePracticeR
     };
   }, [songId]);
 
-  return {  syllables, loading, error };
+  return { syllables, loading, error };
 }
-

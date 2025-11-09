@@ -118,7 +118,6 @@ const LinePractice: React.FC = () => {
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
 
-
   // lyricData가 변경되면 상태 업데이트
   useEffect(() => {
     if (lyricData) {

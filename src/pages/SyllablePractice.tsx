@@ -39,11 +39,7 @@ const SyllablePractice: React.FC = () => {
   const [singer, setSinger] = useState<string>(DEFAULT_SINGER);
   const [lyricLines, setLyricLines] = useState<LyricLine[]>([]);
   const [activeLine, setActiveLine] = useState<LyricLine | null>(null);
-  const {
-    syllables,
-    loading: syllableLoading,
-    error: syllableError,
-  } = useSyllablePractice(songId);
+  const { syllables, loading: syllableLoading, error: syllableError } = useSyllablePractice(songId);
   const loading = lyricLoading || syllableLoading;
   const error = lyricError || syllableError;
   const currentData = useMemo<PracticeSyllable | null>(
@@ -66,7 +62,7 @@ const SyllablePractice: React.FC = () => {
   }, [activeLine, lyricLines]);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(600));
-  
+
   useEffect(() => {
     setMode('syllable');
     return () => setMode(null);
@@ -130,8 +126,7 @@ const SyllablePractice: React.FC = () => {
   const updateIndex = useCallback(
     (nextIndex: number) => {
       if (!songIdParam || syllables.length === 0) return;
-      const bounded =
-        ((nextIndex % syllables.length) + syllables.length) % syllables.length;
+      const bounded = ((nextIndex % syllables.length) + syllables.length) % syllables.length;
       setCurrentIndex(bounded);
       navigate(`/lesson/${songIdParam}/syllable/${bounded}`, { replace: true });
       setRecordedAudioBlob(null);
@@ -163,10 +158,9 @@ const SyllablePractice: React.FC = () => {
     }
   }, [isRecording, setIsRecording, setRecordedAudioBlob]);
 
-  const headerTitle = DEFAULT_TITLE;
-  const headerSinger =  DEFAULT_SINGER;  // !!!하드 코딩 해놓음, 여기 고쳐줘 !!!! 
-  
-  
+  const headerTitle = songTitle;
+  const headerSinger = singer;
+
   const displayLyric =
     activeLineText ||
     practiceLineText ||
@@ -436,5 +430,3 @@ const SyllablePractice: React.FC = () => {
 };
 
 export default SyllablePractice;
-
-

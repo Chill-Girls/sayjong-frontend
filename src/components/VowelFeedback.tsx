@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import Feedback from './Feedback';
 import {
   calculateBlendshapeSimilarity,
@@ -8,21 +8,20 @@ import {
 
 interface VowelFeedbackProps {
   activeVowel: string | null;
-  /** 현재 프레임의 블렌드쉐이프 스냅샷 (필터링된 키 권장) */
+  /* 현재 프레임에서 잡힌 블렌드쉐이프 값 - 이게 음절단위가 아닌거 같아요*/
   currentBlendshapes: Record<string, number> | null;
-  /** 현재 프레임에 해당하는 음절 인덱스 (없으면 null) */
+  /* 현재 평가 중인 음절의 위치 (없으면 null) */
   currentIndex: number | null;
-  /** 현재 소절을 문자 단위로 분해한 배열 */
+  /* 현재 소절을 글자 단위로 나눈 배열 */
   lyricChars: string[];
-  /** 외부에서 누적한 피드백 아이템 */
+
   feedbackItems: SegmentFeedbackItem[];
-  /** 세그먼트 평가가 이루어졌을 때 호출되는 콜백 */
+  /* 세그먼트가 실패했을 때 호출되는 콜백 */
   onSegmentFeedback?: (payload: SegmentFeedbackItem) => void;
-  /** 리셋 시 외부 상태를 초기화하기 위한 콜백 */
-  onReset?: () => void;
-  /** 피드백을 화면에 표시할지 여부 */
+  /* 줄 이동 등으로 피드백을 초기화할 때 호출되는 콜백 */
+  onReset?: () => void /* 피드백을 초기화할 때 호출되는 call back function */;
   shouldDisplay?: boolean;
-  /** 새로운 가사 줄로 이동할 때 이 키를 변경하여 누적된 피드백을 초기화 */
+  /* 새로운 가사 줄로 이동할 때 이 키를 변경하여 누적된 피드백을 초기화 */
   resetKey?: string | number;
 }
 
@@ -66,10 +65,13 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     }
   }, []);
 
-  const getTargetBlendshapes = (vowel: string | null): Record<string, number> | null => {
-    if (!vowel || !targetVowels) return null;
-    return targetVowels[vowel]?.blendshapes ?? null;
-  };
+  const getTargetBlendshapes = useCallback(
+    (vowel: string | null): Record<string, number> | null => {
+      if (!vowel || !targetVowels) return null;
+      return targetVowels[vowel]?.blendshapes ?? null;
+    },
+    [targetVowels],
+  );
 
   // 가사 줄 변경 시 피드백 초기화
   useEffect(() => {
@@ -163,7 +165,14 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     }
 
     prevVowelRef.current = activeVowel;
-  }, [activeVowel, currentBlendshapes, currentIndex, getTargetBlendshapes, lyricChars, onSegmentFeedback]);
+  }, [
+    activeVowel,
+    currentBlendshapes,
+    currentIndex,
+    getTargetBlendshapes,
+    lyricChars,
+    onSegmentFeedback,
+  ]);
 
   if (!shouldDisplay) {
     return null;
