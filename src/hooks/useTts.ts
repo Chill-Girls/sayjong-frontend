@@ -116,7 +116,7 @@ export function useTts({
 
     // 다음 프레임에 이 함수를 다시 실행
     animationFrameRef.current = requestAnimationFrame(updateOverlay);
-  }, [syllableTimings, playAudio]);
+  }, [syllableTimings, playAudio, playbackRate]);
 
   // 정지 함수
   const stop = useCallback(() => {
