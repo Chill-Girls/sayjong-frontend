@@ -2,11 +2,16 @@ import { useRef, useState, useCallback, useEffect } from 'react';
 import type { TtsMark } from '../api/songs/types';
 import { extractVowel } from '../utils/hangul';
 
+export const PLAYBACK_RATES = [0.5, 0.75, 1.0] as const;
+type PlaybackRate = (typeof PLAYBACK_RATES)[number];
+
 interface UseTtsOptions {
   /** TTS 타임스탬프 배열 */
   syllableTimings: TtsMark[];
   /** TTS 오디오 URL (선택적) */
   audioUrl?: string | null;
+  /** 재생 속도 (기본값: 1.0) */
+  initialPlaybackRate?: PlaybackRate;
 }
 
 interface UseTtsReturn {
@@ -24,12 +29,20 @@ interface UseTtsReturn {
   playOverlayOnly: () => void;
   /** TTS 및 오버레이 정지 */
   stop: () => void;
+  /** 현재 재생 속도 */
+  playbackRate: PlaybackRate;
+  /** 재생 속도 설정 함수 */
+  setPlaybackRate: (newRate: PlaybackRate) => void;
 }
 
 /**
  * TTS 재생 및 타임스탬프 기반 오버레이를 관리하는 hook
  */
-export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsReturn {
+export function useTts({
+  syllableTimings,
+  audioUrl,
+  initialPlaybackRate = 1,
+}: UseTtsOptions): UseTtsReturn {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const animationFrameRef = useRef<number | null>(null);
   const startTimeRef = useRef<number | null>(null);
@@ -38,6 +51,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [playAudio, setPlayAudio] = useState(false); // 오디오 재생 여부
+  const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(initialPlaybackRate);
 
   // 정지 함수 (ref로 관리하여 순환 의존성 문제 해결)
   const stopRef = useRef<() => void>(() => {});
@@ -51,7 +65,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
       currentTime = audioRef.current.currentTime;
     } else if (startTimeRef.current !== null) {
       // 오버레이만 재생 중이면 경과 시간 계산
-      currentTime = (performance.now() - startTimeRef.current) / 1000;
+      currentTime = ((performance.now() - startTimeRef.current) / 1000) * playbackRate;
     } else {
       // 둘 다 아니면 정지
       setCurrentSyllable(null);
@@ -143,6 +157,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     }
 
     const audio = new Audio(audioUrl);
+    audio.playbackRate = playbackRate;
     audioRef.current = audio;
 
     const onEnded = () => {
@@ -162,7 +177,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
         console.error('TTS 재생 오류:', e);
         stop();
       });
-  }, [audioUrl, stop, updateOverlay]);
+  }, [audioUrl, stop, updateOverlay, playbackRate]);
 
   // 타임스탬프만 사용한 오버레이 시작 (오디오 재생 없음)
   const playOverlayOnly = useCallback(() => {
@@ -194,5 +209,7 @@ export function useTts({ syllableTimings, audioUrl }: UseTtsOptions): UseTtsRetu
     playTts,
     playOverlayOnly,
     stop,
+    playbackRate,
+    setPlaybackRate,
   };
 }
