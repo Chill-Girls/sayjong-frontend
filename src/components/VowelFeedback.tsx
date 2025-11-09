@@ -54,7 +54,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   const segmentSimilaritiesRef = useRef<number[]>([]);
   const segmentIndicesRef = useRef<number[]>([]);
   const nextFeedbackIdRef = useRef<number>(1);
-  const prevIndexRef = useRef<number | null>(null); 
+  const prevIndexRef = useRef<number | null>(null);
 
   // 목표 모음을 한 번만 로드
   const targetVowels = useMemo(() => {
@@ -187,12 +187,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
     prevVowelRef.current = activeVowel;
     prevIndexRef.current = typeof currentIndex === 'number' ? currentIndex : null;
-  }, [
-    activeVowel,
-    currentBlendshapes,
-    currentIndex,
-    finalizeSegment,
-  ]);
+  }, [activeVowel, currentBlendshapes, currentIndex, finalizeSegment, getTargetBlendshapes]);
 
   if (!shouldDisplay) {
     return null;
