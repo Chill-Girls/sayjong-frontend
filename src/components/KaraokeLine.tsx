@@ -16,10 +16,13 @@ interface LyricLine {
 
 interface KaraokeLineProps {
   line: LyricLine;
-  currentTime: number;
-} // 노션보고 넣었는데 맞는지 모르겠음!
+  currentTime?: number;
+  activeIndex?: number | null;
+}
 
-const KaraokeLine: React.FC<KaraokeLineProps> = ({ line, currentTime }) => {
+const KaraokeLine: React.FC<KaraokeLineProps> = ({ line, currentTime = 0, activeIndex = null }) => {
+  const highlightByIndex = typeof activeIndex === 'number';
+
   return (
     <div
       style={{
@@ -34,8 +37,10 @@ const KaraokeLine: React.FC<KaraokeLineProps> = ({ line, currentTime }) => {
       }}
     >
       {line.syllables.map((syll, i) => {
-        const isPassed = currentTime > syll.end;
-        const isActive = currentTime >= syll.start && currentTime < syll.end;
+        const isPassed = highlightByIndex ? i < (activeIndex ?? -1) : currentTime > syll.end;
+        const isActive = highlightByIndex
+          ? i === activeIndex
+          : currentTime >= syll.start && currentTime < syll.end;
 
         // 이미 부르거나 현재 부르는 중이면 핑크색
         const isPink = isPassed || isActive;

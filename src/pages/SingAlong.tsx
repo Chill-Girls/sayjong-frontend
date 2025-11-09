@@ -1,14 +1,16 @@
 import type { FunctionComponent } from 'react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
-import KaraokeLine from '../components/KaraokeLine';
-import { useSong } from '../hooks/useSongs';
+import LyricsCanvasOverlay from '../components/LyricsCanvasOverlay';
+import { useSong, useSongLyricLines } from '../hooks/useSongs';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
-import { containerFullscreen, flexColumn, flexCenter, scaled } from '../styles/mixins';
+import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
+import { useTts } from '../hooks/useTts';
+import type { TtsMark } from '../api/songs/types';
 
 type SingAlongProps = object;
 
@@ -22,39 +24,63 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
   const { song, loading } = useSong(songIdNum);
+  const { lyricData, loading: lyricLoading, error: lyricError } = useSongLyricLines(songIdNum);
 
-  const [currentTime, setCurrentTime] = useState(0);
+  const lyricLines = useMemo(() => lyricData?.lyrics ?? [], [lyricData]);
 
-  // 테스트용 가사 데이터
-  const line = {
-    textOriginal: '읽기쉬운맘',
-    startTime: 0,
-    endTime: 4.5,
-    syllables: [
-      { text: '읽', start: 0.0, end: 1.0 },
-      { text: '기', start: 1.0, end: 2.0 },
-      { text: '쉬', start: 2.0, end: 3.0 },
-      { text: '운', start: 3.0, end: 3.5 },
-      { text: '맘', start: 3.5, end: 4.5 },
-    ],
-  };
+  const ttsTimeline = useMemo(() => {
+    const marks: TtsMark[] = [];
+    const meta: { lineIndex: number; syllableIndex: number }[] = [];
 
-  // 자동 타이머
-  useEffect(() => {
-    const startTime = Date.now();
+    lyricLines.forEach((line, lineIndex) => {
+      line.syllableTimings.forEach((mark, syllableIndex) => {
+        marks.push(mark);
+        meta.push({ lineIndex, syllableIndex });
+      });
+    });
 
-    const update = () => {
-      const elapsed = (Date.now() - startTime) / 1000;
-      setCurrentTime(elapsed);
-      requestAnimationFrame(update);
+    return { marks, meta };
+  }, [lyricLines]);
+
+  const { currentIndex, isPlaying, playOverlayOnly, stop } = useTts({
+    syllableTimings: ttsTimeline.marks,
+    audioUrl: null,
+  });
+
+  const activeMeta = typeof currentIndex === 'number' ? ttsTimeline.meta[currentIndex] : null;
+  const activeLineIndex =
+    typeof activeMeta?.lineIndex === 'number'
+      ? activeMeta.lineIndex
+      : lyricLines.length > 0
+        ? 0
+        : null;
+  const activeSyllableIndex = activeMeta?.syllableIndex ?? null;
+
+  const karaokeLine = useMemo(() => {
+    if (activeLineIndex === null) {
+      return null;
+    }
+
+    const targetLine = lyricLines[activeLineIndex];
+    if (!targetLine) {
+      return null;
+    }
+
+    const syllables = targetLine.syllableTimings.map((mark, index, arr) => ({
+      text: (mark.markName ?? '').trim(),
+      start: mark.timeSeconds,
+      end: index < arr.length - 1 ? arr[index + 1].timeSeconds : mark.timeSeconds + 0.6,
+    }));
+
+    return {
+      textOriginal: targetLine.originalText,
+      startTime: syllables[0]?.start ?? 0,
+      endTime: syllables[syllables.length - 1]?.end ?? 0,
+      syllables,
     };
+  }, [activeLineIndex, lyricLines]);
 
-    const animationId = requestAnimationFrame(update);
-
-    return () => cancelAnimationFrame(animationId);
-  }, []);
-
-  if (loading) {
+  if (loading || lyricLoading) {
     return (
       <div
         style={{
@@ -88,6 +114,45 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             Loading song...
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (lyricError) {
+    return (
+      <div
+        style={{
+          ...containerFullscreen,
+          padding: `${scaled(12)} 0`,
+          paddingTop: scaled(55.5),
+          paddingBottom: scaled(80),
+          gap: scaled(24.75),
+          textAlign: 'left',
+          fontSize: FONT_SIZES.lg,
+          color: COLORS.dark,
+          fontFamily: FONTS.primary,
+        }}
+      >
+        <Header />
+        <div
+          style={{
+            ...flexColumn,
+            alignItems: 'center',
+            gap: scaled(6),
+            fontSize: FONT_SIZES.xl,
+          }}
+        >
+          <div
+            style={{
+              position: 'relative',
+              fontWeight: FONT_WEIGHTS.medium,
+              margin: 0,
+            }}
+          >
+            {lyricError}
+          </div>
+        </div>
+        <Footer />
       </div>
     );
   }
@@ -146,29 +211,65 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
         </div>
       </div>
 
-      {/* 카메라 */}
-      <div
-        style={{
-          position: 'relative',
-          zIndex: 3,
-          borderRadius: '12px',
-          overflow: 'hidden',
-          ...flexCenter,
-        }}
-      >
-        <CameraComponent width="803.25px" />
-      </div>
-
-      {/* 카라오케 가사 */}
+      {/* 가사 & 카메라 */}
       <div
         style={{
           ...flexColumn,
           alignItems: 'center',
-          gap: '20px',
-          marginTop: '20px',
+          gap: scaled(12),
+          zIndex: 3,
         }}
       >
-        <KaraokeLine line={line} currentTime={currentTime} />
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '803.25px',
+            position: 'relative',
+            borderRadius: '12px',
+            overflow: 'hidden',
+          }}
+        >
+          <LyricsCanvasOverlay line={karaokeLine} activeIndex={activeSyllableIndex} />
+          <CameraComponent width="803.25px" />
+        </div>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: scaled(8),
+          }}
+        >
+          <button
+            type="button"
+            onClick={playOverlayOnly}
+            style={{
+              padding: `${scaled(4)} ${scaled(10)}`,
+              borderRadius: scaled(6),
+              border: 'none',
+              background: COLORS.primary,
+              color: COLORS.white,
+              fontWeight: FONT_WEIGHTS.medium,
+              cursor: 'pointer',
+            }}
+          >
+            {isPlaying ? '다시 재생' : '오버레이 재생'}
+          </button>
+          <button
+            type="button"
+            onClick={stop}
+            style={{
+              padding: `${scaled(4)} ${scaled(10)}`,
+              borderRadius: scaled(6),
+              border: `1px solid ${COLORS.primary}`,
+              background: 'transparent',
+              color: COLORS.primary,
+              fontWeight: FONT_WEIGHTS.medium,
+              cursor: 'pointer',
+            }}
+          >
+            정지
+          </button>
+        </div>
       </div>
 
       <Footer />
