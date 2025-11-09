@@ -54,6 +54,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   const segmentSimilaritiesRef = useRef<number[]>([]);
   const segmentIndicesRef = useRef<number[]>([]);
   const nextFeedbackIdRef = useRef<number>(1);
+  const prevIndexRef = useRef<number | null>(null); 
 
   // 목표 모음을 한 번만 로드
   const targetVowels = useMemo(() => {
@@ -82,12 +83,16 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     prevVowelRef.current = null;
   }, [onReset, resetKey]);
 
-  // 모음이 같은 동안 샘플 누적; 변경 시 이전 세그먼트 평가
-  useEffect(() => {
-    const prevVowel = prevVowelRef.current;
+  const finalizeSegment = useCallback(
+    (nextVowel: string | null) => {
+      const prevVowel = prevVowelRef.current;
+      if (!prevVowel) {
+        segmentSamplesRef.current = [];
+        segmentSimilaritiesRef.current = [];
+        segmentIndicesRef.current = [];
+        return;
+      }
 
-    // 모음이 변경된 경우, 이전 세그먼트 완료
-    if (prevVowel && activeVowel !== prevVowel) {
       const prevTarget = getTargetBlendshapes(prevVowel);
       if (prevTarget && segmentSamplesRef.current.length > 0) {
         const similarities = segmentSimilaritiesRef.current;
@@ -97,7 +102,6 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
         // 임계값: 0.80 기준값, 다음 모음이 둥글게/열리게 하면 0.05 완화
         let threshold = 0.8;
-        const nextVowel = activeVowel; // 새로운 현재가 완료할 세그먼트의 "다음" 모음
         if (nextVowel && (ROUNDED_VOWELS.has(nextVowel) || OPEN_VOWELS.has(nextVowel))) {
           threshold -= 0.05;
         }
@@ -139,10 +143,27 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
         }
       }
 
-      // 새 세그먼트를 위한 초기화
       segmentSamplesRef.current = [];
       segmentSimilaritiesRef.current = [];
       segmentIndicesRef.current = [];
+    },
+    [getTargetBlendshapes, lyricChars, onSegmentFeedback],
+  );
+
+  // 모음/가사 인덱스가 유지되는 동안 샘플을 누적하고, 변동이 생기면 이전 세그먼트를 평가
+  useEffect(() => {
+    const prevVowel = prevVowelRef.current;
+    const prevIndex = prevIndexRef.current;
+    const hasPrevIndex = typeof prevIndex === 'number';
+    const hasCurrentIndex = typeof currentIndex === 'number';
+
+    // currentIndex(음절 위치) 변화 여부 추적 -> 음절이 변경된 경우 찾기
+    const indexChanged = hasPrevIndex && hasCurrentIndex && currentIndex !== prevIndex;
+    const indexReset = hasPrevIndex && !hasCurrentIndex;
+
+    // 모음이 변경된 경우, 이전 세그먼트 강제 종료 -> 이전 세그먼트 평가
+    if ((prevVowel && activeVowel !== prevVowel) || indexChanged || indexReset) {
+      finalizeSegment(activeVowel ?? null);
     }
 
     // 모음과 블렌드쉐이프 스냅샷이 있으면 현재 세그먼트 누적 업데이트
@@ -165,13 +186,12 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     }
 
     prevVowelRef.current = activeVowel;
+    prevIndexRef.current = typeof currentIndex === 'number' ? currentIndex : null;
   }, [
     activeVowel,
     currentBlendshapes,
     currentIndex,
-    getTargetBlendshapes,
-    lyricChars,
-    onSegmentFeedback,
+    finalizeSegment,
   ]);
 
   if (!shouldDisplay) {
