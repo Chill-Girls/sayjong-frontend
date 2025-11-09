@@ -15,13 +15,10 @@ import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { getAdaptiveFontSize } from '../utils/fontUtils';
 import { useRecording } from '../constants/RecordingContext';
-import {
-  calculateBlendshapeSimilarity,
-  filterTargetBlendshapes,
-} from '../utils/blendshapeProcessor';
+import { filterTargetBlendshapes } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { useTts } from '../hooks/useTts';
-import VowelFeedback from '../components/VowelFeedback';
+import VowelFeedback, { type SegmentFeedbackItem } from '../components/VowelFeedback';
 import { mapCharsWithMask } from '../utils/highlight';
 
 const HIGHLIGHT_COLOR = '#F04455';
@@ -58,14 +55,12 @@ const LinePractice: React.FC = () => {
     return lines.length > 1 ? lines.slice(0, lines.length - 1) : lines;
   }, [lines]);
 
-  const currentBlendshapesRef = useRef<Record<string, number>>({});
-  const similarityScoreRef = useRef<number | null>(null);
   const lastUpdateTimeRef = useRef<number>(0);
   const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
   const [failedMask, setFailedMask] = useState<number[]>([]);
   const [lyricChars, setLyricChars] = useState<string[]>([]);
   const [showFeedback, setShowFeedback] = useState(false);
-  const targetBlendshapesCacheRef = useRef<Record<string, Record<string, number>>>({});
+  const [segmentFeedbacks, setSegmentFeedbacks] = useState<SegmentFeedbackItem[]>([]);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
 
@@ -123,27 +118,6 @@ const LinePractice: React.FC = () => {
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
 
-  const getTargetBlendshapes = useCallback(
-    (vowel: string | null): Record<string, number> | null => {
-      // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
-      if (!vowel || !loadedTargetVowels) return null;
-
-      // 캐시 확인 (동일)
-      if (targetBlendshapesCacheRef.current[vowel]) {
-        return targetBlendshapesCacheRef.current[vowel];
-      }
-
-      // 'targetVowelsData' 대신 'loadedTargetVowels' state 사용
-      const target = loadedTargetVowels[vowel]?.blendshapes;
-
-      if (target) {
-        targetBlendshapesCacheRef.current[vowel] = target;
-        return target;
-      }
-      return null;
-    },
-    [loadedTargetVowels], // loadedTargetVowels에 의존
-  );
 
   // lyricData가 변경되면 상태 업데이트
   useEffect(() => {
@@ -188,12 +162,17 @@ const LinePractice: React.FC = () => {
   // 오버레이 모음은 녹음 중(버튼 누름)이고 TTS 진행 중일 때만 활성
   const displayVowel = isRecording && isTtsPlaying ? currentTtsVowel : null;
 
+  const handleResetSegmentFeedbacks = useCallback(() => {
+    setSegmentFeedbacks([]);
+  }, []);
+
   useEffect(() => {
     const chars = Array.from(displayLine.originalText ?? '');
     setLyricChars(chars);
     setFailedMask(chars.map(() => 0));
     setShowFeedback(false);
-  }, [displayLine.lyricLineId, displayLine.originalText]);
+    handleResetSegmentFeedbacks();
+  }, [displayLine.lyricLineId, displayLine.originalText, handleResetSegmentFeedbacks]);
 
   const highlightMap = useMemo(
     () => mapCharsWithMask(lyricChars, failedMask),
@@ -215,40 +194,28 @@ const LinePractice: React.FC = () => {
     [highlightMap, showFeedback],
   );
 
+  const handleSegmentFeedback = useCallback((feedback: SegmentFeedbackItem) => {
+    setFailedMask(prev => {
+      const next = [...prev];
+      feedback.indices.forEach(index => {
+        if (index >= 0 && index < next.length) {
+          next[index] = 1;
+        }
+      });
+      return next;
+    });
+    setSegmentFeedbacks(prev => {
+      const exists = prev.some(item => item.id === feedback.id);
+      if (exists) return prev;
+      return [...prev, feedback];
+    });
+  }, []);
+
   const handleCameraResults = useCallback(
     (results: { landmarks?: any[]; blendshapes?: Record<string, number> }) => {
       if (!results.blendshapes) return;
 
       const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes!);
-      currentBlendshapesRef.current = filteredBlendshapes;
-
-      let similarity: number | null = null;
-      // 녹음 중일 때만 유사도 계산
-      if (isRecording) {
-        const targetBlendshapes = getTargetBlendshapes(displayVowel);
-        if (targetBlendshapes) {
-          similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
-          similarityScoreRef.current = similarity;
-        }
-      }
-
-      if (
-        similarity !== null &&
-        similarity < 0.85 &&
-        isRecording &&
-        isTtsPlaying &&
-        currentTtsIndex !== null
-      ) {
-        setFailedMask(prev => {
-          if (currentTtsIndex < 0 || currentTtsIndex >= prev.length) return prev;
-          if (prev[currentTtsIndex] === 1) return prev;
-          const targetChar = lyricChars[currentTtsIndex];
-          if (!targetChar || targetChar.trim().length === 0) return prev;
-          const next = [...prev];
-          next[currentTtsIndex] = 1;
-          return next;
-        });
-      }
 
       const now = performance.now();
       if (now - lastUpdateTimeRef.current >= 33) {
@@ -256,7 +223,7 @@ const LinePractice: React.FC = () => {
         setDisplayBlendshapes({ ...filteredBlendshapes });
       }
     },
-    [currentTtsIndex, displayVowel, getTargetBlendshapes, isRecording, isTtsPlaying, lyricChars],
+    [],
   );
 
   // 현재 표시 중인 소절 인덱스(1-based) 및 전체 개수 — usableLines 기준
@@ -273,7 +240,8 @@ const LinePractice: React.FC = () => {
     setRecordedAudioBlob(null); // 녹음된 오디오 초기화
     setShowFeedback(false);
     setFailedMask(prev => prev.map(() => 0));
-  }, [stopTts, setIsRecording, setRecordedAudioBlob]);
+    handleResetSegmentFeedbacks();
+  }, [handleResetSegmentFeedbacks, stopTts, setIsRecording, setRecordedAudioBlob]);
 
   // 이전/다음 소절 이동 핸들러
   const handlePrevLine = () => {
@@ -305,8 +273,9 @@ const LinePractice: React.FC = () => {
       setIsRecording(true);
       setShowFeedback(false);
       setFailedMask(prev => prev.map(() => 0));
+      handleResetSegmentFeedbacks();
     }
-  }, [isRecording, setIsRecording, stopTts]);
+  }, [handleResetSegmentFeedbacks, isRecording, setIsRecording, stopTts]);
 
   const handleCountdownComplete = useCallback(() => {
     playOverlayOnly();
@@ -614,6 +583,14 @@ const LinePractice: React.FC = () => {
                 <VowelFeedback
                   activeVowel={displayVowel}
                   currentBlendshapes={displayBlendshapes}
+                  currentIndex={
+                    isRecording && isTtsPlaying && currentTtsIndex !== null ? currentTtsIndex : null
+                  }
+                  lyricChars={lyricChars}
+                  feedbackItems={segmentFeedbacks}
+                  shouldDisplay={showFeedback}
+                  onSegmentFeedback={handleSegmentFeedback}
+                  onReset={handleResetSegmentFeedbacks}
                   resetKey={selected?.lyricLineId}
                 />
               </div>
