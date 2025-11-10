@@ -17,7 +17,7 @@ import { getAdaptiveFontSize } from '../utils/fontUtils';
 import { useRecording } from '../constants/RecordingContext';
 import { filterTargetBlendshapes } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
-import { useTts } from '../hooks/useTts';
+import { useTts, PLAYBACK_RATES } from '../hooks/useTts';
 import VowelFeedback, { type SegmentFeedbackItem } from '../components/VowelFeedback';
 import { mapCharsWithMask } from '../utils/highlight';
 
@@ -153,9 +153,12 @@ const LinePractice: React.FC = () => {
     playTts,
     playOverlayOnly,
     stop: stopTts,
+    playbackRate,
+    setPlaybackRate,
   } = useTts({
     syllableTimings: displayLine.syllableTimings || [],
     audioUrl: displayLine.nativeAudioUrl,
+    initialPlaybackRate: 0.5,
   });
 
   // 오버레이 모음은 녹음 중(버튼 누름)이고 TTS 진행 중일 때만 활성
@@ -650,7 +653,7 @@ const LinePractice: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: `${scaled(20)} 0`, // 좌우 패딩 제거
+            padding: `${scaled(20)} 0 ${scaled(32)}`, // 좌우 패딩 제거, 아래쪽 패딩 추가
             gap: scaled(80),
             minHeight: scaled(120),
             zIndex: 3,
@@ -706,35 +709,73 @@ const LinePractice: React.FC = () => {
             />
           </button>
 
-          <button
-            onClick={() => {
-              setIsRecording(false); // 녹음 상태 명시적으로 false 설정
-              stopTts(); // 기존 오버레이 정지
-              playTts(); // TTS만 재생 (오버레이 없이)
-            }}
-            disabled={!displayLine.nativeAudioUrl}
+          <div
             style={{
+              position: 'relative',
               width: scaled(80),
               height: scaled(80),
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 0,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              flexShrink: 0,
             }}
           >
-            <BtnTts
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                display: 'block',
+            {/* TTS 재생 버튼 */}
+            <button
+              onClick={() => {
+                setIsRecording(false);
+                stopTts();
+                playTts();
               }}
-            />
-          </button>
+              disabled={!displayLine.nativeAudioUrl}
+              style={{
+                width: scaled(80),
+                height: scaled(80),
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <BtnTts
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+            </button>
+
+            {/* 배속 선택 버튼 (작은 텍스트) */}
+            <button
+              onClick={() => {
+                const currentIndex = PLAYBACK_RATES.indexOf(playbackRate);
+                const nextIndex = (currentIndex + 1) % PLAYBACK_RATES.length;
+                setPlaybackRate(PLAYBACK_RATES[nextIndex]);
+              }}
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: `${scaled(4)} ${scaled(8)}`,
+                fontSize: scaled(16),
+                fontWeight: FONT_WEIGHTS.semibold,
+                color: COLORS.primary,
+                marginTop: scaled(4),
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {playbackRate}x
+            </button>
+          </div>
         </div>
       </div>
 
