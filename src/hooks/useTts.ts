@@ -50,7 +50,7 @@ export function useTts({
   const [currentVowel, setCurrentVowel] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [playAudio, setPlayAudio] = useState(false); // 오디오 재생 여부
+  const playAudioRef = useRef(false);
   const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(initialPlaybackRate);
 
   // 정지 함수 (ref로 관리하여 순환 의존성 문제 해결)
@@ -60,7 +60,7 @@ export function useTts({
   const updateOverlay = useCallback(() => {
     let currentTime: number;
 
-    if (playAudio && audioRef.current) {
+    if (playAudioRef.current && audioRef.current) {
       // 오디오 재생 중이면 오디오의 currentTime 사용
       currentTime = audioRef.current.currentTime;
     } else if (startTimeRef.current !== null) {
@@ -105,7 +105,7 @@ export function useTts({
     setCurrentIndex(prev => (prev !== nextIndex ? nextIndex : prev));
 
     // 오버레이만 재생 중이고 타임스탬프가 끝났는지 확인
-    if (!playAudio && startTimeRef.current !== null) {
+    if (!playAudioRef.current && startTimeRef.current !== null) {
       const lastMark = syllableTimings[syllableTimings.length - 1];
       // 마지막 음절 이후 0.8초 더 표시 후 정지
       if (lastMark && currentTime >= lastMark.timeSeconds + 0.8) {
@@ -116,7 +116,7 @@ export function useTts({
 
     // 다음 프레임에 이 함수를 다시 실행
     animationFrameRef.current = requestAnimationFrame(updateOverlay);
-  }, [syllableTimings, playAudio, playbackRate]);
+  }, [syllableTimings, playbackRate]);
 
   // 정지 함수
   const stop = useCallback(() => {
@@ -138,7 +138,7 @@ export function useTts({
     setCurrentVowel(null);
     setCurrentIndex(null);
     setIsPlaying(false);
-    setPlayAudio(false);
+    playAudioRef.current = false;
     startTimeRef.current = null;
   }, []);
 
@@ -168,7 +168,7 @@ export function useTts({
     audio
       .play()
       .then(() => {
-        setPlayAudio(true);
+        playAudioRef.current = true;
         setIsPlaying(true);
         startTimeRef.current = null; // 오디오 재생 중이면 startTimeRef 사용 안 함
         animationFrameRef.current = requestAnimationFrame(updateOverlay);
@@ -188,7 +188,7 @@ export function useTts({
       return;
     }
 
-    setPlayAudio(false);
+    playAudioRef.current = false;
     setIsPlaying(true);
     startTimeRef.current = performance.now();
     animationFrameRef.current = requestAnimationFrame(updateOverlay);

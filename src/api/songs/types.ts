@@ -1,5 +1,18 @@
 import { z } from 'zod';
 
+export const ttsMarkSchema = z.object({
+  timeSeconds: z.number(),
+  markName: z.string(),
+});
+
+export type TtsMark = z.infer<typeof ttsMarkSchema>;
+
+export const timingLineSchema = z.object({
+  originalText: z.string(),
+  timings: z.array(ttsMarkSchema), // 음절 타이밍 배열
+});
+export type TimingLine = z.infer<typeof timingLineSchema>;
+
 export const songResponseSchema = z.object({
   songId: z.number().int(),
   title: z.string(),
@@ -7,18 +20,42 @@ export const songResponseSchema = z.object({
   trackId: z.string(),
   coverUrl: z.string().url().nullable(),
   titleEng: z.string(),
+  songUrl: z.string().url(),
+  timings: z
+    .string()
+    .transform((str, ctx) => {
+      if (!str || str.trim() === '') {
+        return [];
+      }
+      try {
+        const parsed = JSON.parse(str);
+        const result = z.array(timingLineSchema).safeParse(parsed);
+        if (!result.success) {
+          ctx.addIssue({
+            code: 'custom',
+            message: 'Timings string-JSON structure is invalid.',
+            path: ['timings', 'json'],
+          });
+          return z.NEVER;
+        }
+        return result.data;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (_) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'Invalid JSON string in timings field',
+          path: ['timings', 'json-parse'],
+        });
+        return z.NEVER;
+      }
+    })
+    .default([]),
 });
+
 export const songListResponseSchema = z.array(songResponseSchema);
 
 export type Song = z.infer<typeof songResponseSchema>;
 export type SongList = z.infer<typeof songListResponseSchema>;
-
-export const ttsMarkSchema = z.object({
-  timeSeconds: z.number(),
-  markName: z.string(),
-});
-
-export type TtsMark = z.infer<typeof ttsMarkSchema>;
 
 export const lyricLineSchema = z.object({
   lyricLineId: z.number(),
