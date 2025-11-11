@@ -13,6 +13,8 @@ import {
   type LandmarkPoint,
 } from '../constants/landmarks';
 
+const MOUTH_CENTER_LANDMARK = 13;
+
 /**
  * 캔버스 좌표로 변환하는 헬퍼 함수
  * @param width - 캔버스 너비
@@ -246,3 +248,36 @@ export function drawSimilarityScore(
 
   ctx.restore();
 }
+
+/**
+ * 활성 음절을 입 위치 기준으로 화면에 그리기 핑크색으로 입 옆에 가사 그리는거
+ */
+export function drawActiveSyllable(
+  ctx: CanvasRenderingContext2D,
+  landmarks: LandmarkPoint[],
+  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+  syllable: string,
+) {
+  const mouthCenter = landmarks[MOUTH_CENTER_LANDMARK];
+  if (!mouthCenter) {
+    return;
+  }
+
+  const mouthCanvasPos = toCanvas(mouthCenter);
+
+  ctx.save();
+  ctx.translate(mouthCanvasPos.x + 80, mouthCanvasPos.y);
+  ctx.scale(-1, 1);
+
+  ctx.font = 'bold 48px sans-serif';
+  ctx.fillStyle = '#FF69B4';
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  ctx.strokeText(syllable, 0, 0);
+  ctx.fillText(syllable, 0, 0);
+  ctx.restore();
+}
+

@@ -26,6 +26,7 @@ const KaraokeLine: React.FC<KaraokeLineProps> = ({ lyrics }) => {
               color: isActive ? '#f04299' : '#fff',
               textShadow: '2px 0 0 #000, 0 2px 0 #000, -2px 0 0 #000, 0 -2px 0 #000',
               transition: 'color 150ms',
+              fontSize: '35px',
             }}
           >
             {syllable.text}

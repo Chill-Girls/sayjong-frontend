@@ -196,8 +196,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             overflow: 'hidden',
           }}
         >
-          <KaraokeLine lyrics={lyrics} />
-        
           <CameraComponent // 오버레이 설정도 여기서
             width="803.25px"
             onResults={handleCameraResults}
@@ -206,6 +204,22 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             shouldStartOverlay={isOverlayActive}
             onCountdownComplete={handleCountdownComplete}
           />
+          <div // 가사 오버레이
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: scaled(36),
+              transform: 'translateX(-50%)',
+              width: '90%',
+              maxWidth: '760px',
+              pointerEvents: 'none',
+              textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <KaraokeLine lyrics={lyrics} />
+          </div>
         </div>
 
         <div
@@ -227,7 +241,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            {playback.isPlaying ? '다시 재생' : '오버레이 재생'}
+            {playback.isPlaying ? 'restart' : 'start'}
           </button>
           <button
             type="button"
@@ -242,7 +256,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            정지
+            stop
           </button>
         </div>
       </div>

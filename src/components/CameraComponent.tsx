@@ -18,6 +18,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
+import { drawActiveSyllable } from '../utils/Draw';
 import Canvas from './Canvas';
 import type { LandmarkPoint } from '../constants/landmarks';
 
@@ -120,13 +121,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay(
-    {
-      currentVowel: activeVowel,
-      getTargetBlendshapes,
-      currentBlendshapes,
-    },
-  );
+  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay({
+    currentVowel: activeVowel,
+    getTargetBlendshapes,
+    currentBlendshapes,
+  });
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);
@@ -177,30 +176,11 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const timeSinceLastDetection = now - lastDetectionTimeRef.current;
 
         renderOverlay(canvasCtx, toCanvas, allLandmarks, cachedResultsRef, timeSinceLastDetection);
-
         // 음절 표시 (입모양 오버레이 오른쪽, 사용자 움직임과 같이 움직이도록)
         if (activeSyllable) {
-          // 입 중심 좌표 계산 (landmark 13: 입 중심)
-          const mouthCenter = allLandmarks[13];
-          const mouthCanvasPos = toCanvas(mouthCenter);
-
-          canvasCtx.save();
-          // 텍스트만 좌우 반전해서 정상으로 보이게 함
-          canvasCtx.translate(mouthCanvasPos.x + 80, mouthCanvasPos.y);
-          canvasCtx.scale(-1, 1);
-
-          canvasCtx.font = 'bold 48px sans-serif';
-          canvasCtx.fillStyle = '#FF69B4'; // 분홍색
-          canvasCtx.strokeStyle = '#000000';
-          canvasCtx.lineWidth = 3;
-          canvasCtx.textAlign = 'center';
-          canvasCtx.textBaseline = 'middle';
-          const text = activeSyllable;
-          // 변환 기준점이 이미 (mouthCanvasPos.x + 80, mouthCanvasPos.y)이므로 (0, 0)에 그림
-          canvasCtx.strokeText(text, 0, 0);
-          canvasCtx.fillText(text, 0, 0);
-          canvasCtx.restore();
+          drawActiveSyllable(canvasCtx, allLandmarks, toCanvas, activeSyllable);
         }
+
       }
     },
     [renderOverlay, countdown, activeSyllable],
@@ -473,7 +453,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             fontSize: '6rem',
             fontWeight: 700,
             color: '#00FF00',
-            textShadow: '0 0 20px rgba(207, 65, 164, 0.8)',
+            textShadow: '0 0 20px rgba(65, 207, 119, 0.8)',
             pointerEvents: 'none',
             zIndex: 5,
           }}
