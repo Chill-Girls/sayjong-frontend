@@ -15,8 +15,6 @@ import { useRecording } from '../constants/RecordingContext';
 import { extractVowel } from '../utils/hangul';
 import { useSongLyricLines } from '../hooks/useSongs';
 import { useSyllablePractice, type PracticeSyllable } from '../hooks/useSyllablePractice';
-const DEFAULT_TITLE = 'soda pop';
-const DEFAULT_SINGER = 'sjajboys';
 
 const SyllablePractice: React.FC = () => {
   const { songId: songIdParam, page: pageParam } = useParams<{ songId: string; page?: string }>();
@@ -32,25 +30,27 @@ const SyllablePractice: React.FC = () => {
   const initialIndex = useMemo(() => {
     if (!pageParam) return 0;
     const maybeNum = Number(pageParam);
-    return Number.isNaN(maybeNum) ? 0 : Math.max(maybeNum, 0);
+    return Number.isNaN(maybeNum) ? 0 : Math.max(maybeNum - 1, 0);
   }, [pageParam]);
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const { lyricData, loading: lyricLoading, error: lyricError } = useSongLyricLines(songId);
-  const { syllables, loading: syllableLoading, error: syllableError } = useSyllablePractice(songId);
+  const { syllables, loading: syllableLoading, error: syllableError, songTitle: apiSongTitle, singer: apiSinger } =
+    useSyllablePractice(songId);
 
-  const [songTitle, setSongTitle] = useState<string>(DEFAULT_TITLE);
-  const [singer, setSinger] = useState<string>(DEFAULT_SINGER);
+  // 클릭된 음절을 저장 (null이면 현재 연습 중인 음절을 의미)
+  const [selectedSyllable, setSelectedSyllable] = useState<PracticeSyllable | null>(null);
 
-  const loading = lyricLoading || syllableLoading;
-  const error = lyricError || syllableError;
+  const [songTitle, setSongTitle] = useState<string>('');
+  const [singer, setSinger] = useState<string>('');
+
+  const loadingState = lyricLoading || syllableLoading;
+  const errorState = lyricError || syllableError;
 
   const currentData = useMemo<PracticeSyllable | null>(() => {
     if (syllables.length === 0) return null;
     return syllables[((currentIndex % syllables.length) + syllables.length) % syllables.length];
   }, [currentIndex, syllables]);
-
-  const currentSyllable = currentData?.textKor ?? '';
 
   const activeLineSyllables = useMemo(() => {
     if (!currentData) return [];
@@ -71,13 +71,16 @@ const SyllablePractice: React.FC = () => {
 
   useEffect(() => {
     if (lyricData) {
-      setSongTitle(lyricData.title ?? DEFAULT_TITLE);
-      setSinger(lyricData.singer ?? DEFAULT_SINGER);
+      setSongTitle(lyricData.title ?? '');
+      setSinger(lyricData.singer ?? '');
+    } else if (apiSongTitle) {
+      setSongTitle(apiSongTitle ?? '');
+      setSinger(apiSinger ?? '');
     } else if (lyricError || !songId) {
-      setSongTitle(DEFAULT_TITLE);
-      setSinger(DEFAULT_SINGER);
+      setSongTitle('');
+      setSinger('');
     }
-  }, [lyricData, lyricError, songId]);
+  }, [lyricData, lyricError, apiSongTitle, apiSinger, songId]);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -133,9 +136,11 @@ const SyllablePractice: React.FC = () => {
       if (!songIdParam || syllables.length === 0) return;
       const bounded = ((nextIndex % syllables.length) + syllables.length) % syllables.length;
       setCurrentIndex(bounded);
-      navigate(`/lesson/${songIdParam}/syllable/${bounded}`, { replace: true });
+      navigate(`/lesson/${songIdParam}/syllable/${bounded + 1}`, { replace: true });
       setRecordedAudioBlob(null);
       setIsRecording(false);
+      setSelectedSyllable(null);
+
       if (audioRef.current) {
         audioRef.current.pause();
         audioRef.current = null;
@@ -212,6 +217,9 @@ const SyllablePractice: React.FC = () => {
   const handlePlayNative = useCallback(() => {
     const url = currentData?.nativeAudioUrl;
     if (!url) return;
+
+    setSelectedSyllable(null);
+
     setIsRecording(false);
     setIsOverlayActive(false);
     if (audioRef.current) {
@@ -249,8 +257,33 @@ const SyllablePractice: React.FC = () => {
     lastUpdateTimeRef.current = now;
   }, []);
 
-  const totalSyllables = syllables.length;
-  const displayIndex = totalSyllables > 0 ? currentIndex + 1 : 0;
+  // 소절 내의 음절을 클릭했을 때 호출
+  const handleSyllableClick = useCallback((syllable: PracticeSyllable) => {
+    // 선택된 음절을 state에 저장
+    setSelectedSyllable(syllable);
+
+    // 해당 음절의 TTS 재생
+    const url = syllable.nativeAudioUrl;
+    if (!url) return;
+
+    // 기존 오디오가 있으면 정지
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    audio.play().catch(err => {
+      console.error('Clicked syllable audio play error', err);
+      audioRef.current = null;
+    });
+    audio.onended = () => {
+      audioRef.current = null;
+    };
+    audio.onerror = () => {
+      audioRef.current = null;
+    };
+  }, []); 
 
   const effectiveIndex =
     activeLineSyllables.length > 0
@@ -260,16 +293,44 @@ const SyllablePractice: React.FC = () => {
       : 0;
   const cyclingTarget =
     activeLineSyllables.length > 0 ? activeLineSyllables[effectiveIndex] : (currentData ?? null);
-  const cyclingHangul = cyclingTarget?.textKor ?? '';
-  const cyclingRomaja = cyclingTarget?.textRomaja ?? '';
-  const displayLine = cyclingTarget?.line ?? null;
-  const displayLineText = displayLine?.originalText ?? '오늘은';
-  const displayEnglish = displayLine?.textEng ?? 'today';
+
+  // 유저가 클릭한 음절(selectedSyllable)이 있으면 그것을, 없다면 현재 페이지의 기본 음절을 표시
+  const displayTarget = selectedSyllable || (isOverlayActive ? cyclingTarget : currentData);
+  const cyclingHangul = displayTarget?.textKor ?? '';
+  const cyclingRomaja = displayTarget?.textRomaja ?? '';
+
+  const displayLine = displayTarget?.line ?? null;
+  const displayLineText = displayLine?.originalText ?? '';
   const displaySinger = singer ? `- ${singer}` : '';
-  const currentDisplaySyllable = isOverlayActive && cyclingHangul ? cyclingHangul : currentSyllable;
+
+  const currentDisplaySyllable = displayTarget?.textKor ?? '';
   const displayVowel = isOverlayActive ? extractVowel(currentDisplaySyllable) : null;
 
-  if (loading) {
+  const totalSyllables = syllables.length;
+
+  // displayIndex: 현재 포커스된 음절이 전체에서 몇 번째인지
+  const displayIndex = useMemo(() => {
+    if (!displayTarget || syllables.length === 0) return 0;
+
+    let foundIndex = syllables.indexOf(displayTarget);
+
+    if (foundIndex === -1) {
+      const targetId = displayTarget.line?.lyricLineId;
+      const targetSylNo = displayTarget.sylNo;
+      foundIndex = syllables.findIndex(s => 
+          s.line?.lyricLineId === targetId && s.sylNo === targetSylNo
+      );
+    }
+
+    if (foundIndex === -1) {
+      foundIndex = currentIndex;
+    }
+
+    return foundIndex + 1;
+
+  }, [displayTarget, syllables, currentIndex]);
+
+  if (loadingState) {
     return (
       <div
         style={{
@@ -287,7 +348,7 @@ const SyllablePractice: React.FC = () => {
     );
   }
 
-  if (error) {
+  if (errorState) {
     return (
       <div
         style={{
@@ -301,7 +362,7 @@ const SyllablePractice: React.FC = () => {
       >
         <Header />
         <div style={{ marginTop: scaled(80) }}>
-          가사 데이터를 불러오는 중 오류가 발생했습니다: {error}
+          가사 데이터를 불러오는 중 오류가 발생했습니다: {errorState}
         </div>
         <Footer />
       </div>
@@ -495,29 +556,65 @@ const SyllablePractice: React.FC = () => {
                 >
                   <div
                     style={{
-                      fontSize: scaled(48),
+                      fontSize: scaled(40),
                       fontWeight: FONT_WEIGHTS.semibold,
                       letterSpacing: '0.08em',
                       color: COLORS.dark,
                       textAlign: 'center',
-                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      lineHeight: 1.4,
                     }}
                   >
-                    {displayLineText || '-'}
+                    {(() => {
+                      let syllableLineIndex = 0;
+                      const lineWords = (displayLineText || '').split(' ');
+
+                      return lineWords.map((word, wordIndex) => (
+                        <span
+                          key={wordIndex}
+                          style={{ marginRight: '0.25em' }}
+                        >
+                          <span style={{ whiteSpace: 'nowrap' }}>
+                            {word.split('').map((char, charIndex) => {
+                              const syllable = activeLineSyllables[syllableLineIndex];
+
+                              if (syllable && syllable.textKor === char) {
+                                syllableLineIndex++;
+                                return (
+                                  <span
+                                    key={`${wordIndex}-${charIndex}`}
+                                    onClick={() => handleSyllableClick(syllable)}
+                                    style={{
+                                      cursor: 'pointer',
+                                      padding: '0 0.05em',
+                                      color:
+                                        displayTarget?.sylNo === syllable.sylNo
+                                          ? COLORS.primary
+                                          : COLORS.dark,
+                                      fontWeight:
+                                        displayTarget?.sylNo === syllable.sylNo
+                                          ? FONT_WEIGHTS.bold
+                                          : FONT_WEIGHTS.semibold,
+                                      transition: 'color 0.2s',
+                                    }}
+                                  >
+                                    {char}
+                                  </span>
+                                );
+                              }
+                              return <span key={`${wordIndex}-${charIndex}`}>{char}</span>;
+                            })}
+                          </span>
+                        </span>
+                      ));
+                    })()}
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    fontSize: scaled(20),
-                    fontWeight: FONT_WEIGHTS.light,
-                    color: COLORS.textSecondary,
-                    textTransform: 'lowercase',
-                    textAlign: 'center',
-                  }}
-                >
-                  {displayEnglish}
-                </div>
+                {/* textEng not used */}
 
                 <div
                   style={{
