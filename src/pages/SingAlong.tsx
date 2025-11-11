@@ -1,10 +1,10 @@
 import type { FunctionComponent } from 'react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
-import LyricsCanvasOverlay from '../components/LyricsCanvasOverlay';
+import KaraokeLine from '../components/KaraokeLine';
 import { useKaraoke } from '../hooks/useKaraoke';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
@@ -21,7 +21,31 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
 
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
-  const { songInfo, playback, lyrics, isLoading, error } = useKaraoke(songIdNum);
+  const { songInfo, playback, lyrics, overlay, isLoading, error } = useKaraoke(songIdNum);
+  const { isPlaying: isPlaybackPlaying, playOverlayOnly } = playback;
+
+  const activeSyllableFromIndex = useMemo(() => {
+    if (!lyrics.currentLine || lyrics.activeSyllableIndex === null) {
+      return null;
+    }
+    return lyrics.currentLine.syllables[lyrics.activeSyllableIndex]?.text ?? null;
+  }, [lyrics.activeSyllableIndex, lyrics.currentLine]);
+
+  const activeSyllable = overlay.currentSyllable ?? activeSyllableFromIndex;
+  const activeVowel = overlay.currentVowel ?? null;
+  const isOverlayActive = isPlaybackPlaying;
+
+  const handleCameraResults = useCallback(
+    (_results: { landmarks?: unknown[]; blendshapes?: Record<string, number> }) => {
+      // SingAlong에서는 카메라 결과를 별도로 저장하지 않는다.
+    },
+    [],
+  );
+  const handleCountdownComplete = useCallback(() => {
+    if (!isPlaybackPlaying) {
+      playOverlayOnly();
+    }
+  }, [isPlaybackPlaying, playOverlayOnly]);
 
   if (isLoading) {
     return (
@@ -172,8 +196,16 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             overflow: 'hidden',
           }}
         >
-          <LyricsCanvasOverlay line={lyrics.currentLine} activeIndex={lyrics.activeSyllableIndex} />
-          <CameraComponent width="803.25px" />
+          <KaraokeLine lyrics={lyrics} />
+        
+          <CameraComponent // 오버레이 설정도 여기서
+            width="803.25px"
+            onResults={handleCameraResults}
+            activeSyllable={isOverlayActive ? activeSyllable : null}
+            activeVowel={isOverlayActive ? activeVowel : null}
+            shouldStartOverlay={isOverlayActive}
+            onCountdownComplete={handleCountdownComplete}
+          />
         </div>
 
         <div
