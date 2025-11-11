@@ -96,3 +96,28 @@ export const songWithLyricsSchema = z.object({
 
 export type LyricLine = z.infer<typeof lyricLineSchema>;
 export type SongWithLyrics = z.infer<typeof songWithLyricsSchema>;
+
+export const syllableSchema = z.object({
+  sylNo: z.number(),
+  textKor: z.string(),
+  textRomaja: z.string().nullable().optional(),
+  nativeAudioUrl: z.string().nullable().optional(),
+});
+
+export const lyricSyllableLineSchema = z.object({
+  lyricLineId: z.number(),
+  lineNo: z.number(),
+  originalText: z.string(),
+  syllables: z.array(syllableSchema).default([]),
+});
+
+export const songSyllablesSchema = z.object({
+  songId: z.number(),
+  title: z.string(),
+  singer: z.string(),
+  lyrics: z.array(lyricSyllableLineSchema).default([]),
+});
+
+export type Syllable = z.infer<typeof syllableSchema>;
+export type LyricSyllableLine = z.infer<typeof lyricSyllableLineSchema>;
+export type SongSyllablesResponse = z.infer<typeof songSyllablesSchema>;
