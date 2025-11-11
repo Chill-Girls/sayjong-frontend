@@ -1,16 +1,14 @@
 import type { FunctionComponent } from 'react';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
 import LyricsCanvasOverlay from '../components/LyricsCanvasOverlay';
-import { useSong, useSongLyricLines } from '../hooks/useSongs';
+import { useKaraoke } from '../hooks/useKaraoke';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
-import { useTts } from '../hooks/useTts';
-import type { TtsMark } from '../api/songs/types';
 
 type SingAlongProps = object;
 
@@ -23,64 +21,9 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
 
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
-  const { song, loading } = useSong(songIdNum);
-  const { lyricData, loading: lyricLoading, error: lyricError } = useSongLyricLines(songIdNum);
+  const { songInfo, playback, lyrics, isLoading, error } = useKaraoke(songIdNum);
 
-  const lyricLines = useMemo(() => lyricData?.lyrics ?? [], [lyricData]);
-
-  const ttsTimeline = useMemo(() => {
-    const marks: TtsMark[] = [];
-    const meta: { lineIndex: number; syllableIndex: number }[] = [];
-
-    lyricLines.forEach((line, lineIndex) => {
-      line.syllableTimings.forEach((mark, syllableIndex) => {
-        marks.push(mark);
-        meta.push({ lineIndex, syllableIndex });
-      });
-    });
-
-    return { marks, meta };
-  }, [lyricLines]);
-
-  const { currentIndex, isPlaying, playOverlayOnly, stop } = useTts({
-    syllableTimings: ttsTimeline.marks,
-    audioUrl: null,
-  });
-
-  const activeMeta = typeof currentIndex === 'number' ? ttsTimeline.meta[currentIndex] : null;
-  const activeLineIndex =
-    typeof activeMeta?.lineIndex === 'number'
-      ? activeMeta.lineIndex
-      : lyricLines.length > 0
-        ? 0
-        : null;
-  const activeSyllableIndex = activeMeta?.syllableIndex ?? null;
-
-  const karaokeLine = useMemo(() => {
-    if (activeLineIndex === null) {
-      return null;
-    }
-
-    const targetLine = lyricLines[activeLineIndex];
-    if (!targetLine) {
-      return null;
-    }
-
-    const syllables = targetLine.syllableTimings.map((mark, index, arr) => ({
-      text: (mark.markName ?? '').trim(),
-      start: mark.timeSeconds,
-      end: index < arr.length - 1 ? arr[index + 1].timeSeconds : mark.timeSeconds + 0.6,
-    }));
-
-    return {
-      textOriginal: targetLine.originalText,
-      startTime: syllables[0]?.start ?? 0,
-      endTime: syllables[syllables.length - 1]?.end ?? 0,
-      syllables,
-    };
-  }, [activeLineIndex, lyricLines]);
-
-  if (loading || lyricLoading) {
+  if (isLoading) {
     return (
       <div
         style={{
@@ -118,7 +61,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
     );
   }
 
-  if (lyricError) {
+  if (error) {
     return (
       <div
         style={{
@@ -149,7 +92,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               margin: 0,
             }}
           >
-            {lyricError}
+            {error}
           </div>
         </div>
         <Footer />
@@ -207,7 +150,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             margin: 0,
           }}
         >
-          "{song?.title || 'Song Not Found'} - {song?.singer || '...'}"
+          "{songInfo.title || 'Song Not Found'} - {songInfo.singer || '...'}"
         </div>
       </div>
 
@@ -229,7 +172,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             overflow: 'hidden',
           }}
         >
-          <LyricsCanvasOverlay line={karaokeLine} activeIndex={activeSyllableIndex} />
+          <LyricsCanvasOverlay line={lyrics.currentLine} activeIndex={lyrics.activeSyllableIndex} />
           <CameraComponent width="803.25px" />
         </div>
 
@@ -241,7 +184,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
         >
           <button
             type="button"
-            onClick={playOverlayOnly}
+            onClick={playback.play}
             style={{
               padding: `${scaled(4)} ${scaled(10)}`,
               borderRadius: scaled(6),
@@ -252,11 +195,11 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            {isPlaying ? '다시 재생' : '오버레이 재생'}
+            {playback.isPlaying ? '다시 재생' : '오버레이 재생'}
           </button>
           <button
             type="button"
-            onClick={stop}
+            onClick={playback.stop}
             style={{
               padding: `${scaled(4)} ${scaled(10)}`,
               borderRadius: scaled(6),
