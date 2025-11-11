@@ -16,9 +16,11 @@ interface KaraokeLineData {
 
 export function useKaraoke(songId: number | null) {
   const { song, loading, error } = useSong(songId);
+  // 받아온 노래 정보에서 타이밍 데이터만 꺼내 캐싱한다
   const lyricLines = useMemo(() => song?.timings ?? [], [song?.timings]);
 
   const ttsTimeline = useMemo(() => {
+    // 마크 정보와 각 마크가 속한 행/음절 인덱스를 따로 저장한다
     const marks: TtsMark[] = [];
     const meta: { lineIndex: number; syllableIndex: number }[] = [];
 
@@ -32,7 +34,18 @@ export function useKaraoke(songId: number | null) {
     return { marks, meta };
   }, [lyricLines]);
 
-  const { currentIndex, isPlaying, playTts, stop } = useTts({
+  const {
+    currentSyllable,
+    currentVowel,
+    currentIndex,
+    isPlaying,
+    isPaused,
+    playTts,
+    playOverlayOnly,
+    pause,
+    stop,
+  } = useTts({
+    // TTS 훅에 전체 음절 타임라인과 음원 주소를 전달한다
     syllableTimings: ttsTimeline.marks,
     audioUrl: song?.songUrl ?? null,
   });
@@ -59,6 +72,7 @@ export function useKaraoke(songId: number | null) {
       return null;
     }
 
+    // 한 음절의 종료 시점은 다음 음절 시작 시점까지로 간주한다
     const syllables = targetLine.timings.map((mark, index, arr) => ({
       text: (mark.markName ?? '').trim(),
       start: mark.timeSeconds,
@@ -84,7 +98,10 @@ export function useKaraoke(songId: number | null) {
     // 재생 제어
     playback: {
       isPlaying,
+      isPaused,
       play: playTts,
+      playOverlayOnly,
+      pause,
       stop,
     },
 
@@ -93,5 +110,14 @@ export function useKaraoke(songId: number | null) {
       currentLine: karaokeLine,
       activeSyllableIndex,
     },
+
+    overlay: {
+      currentSyllable,
+      currentVowel,
+      currentIndex,
+    },
   };
 }
+
+export type UseKaraokeResult = ReturnType<typeof useKaraoke>;
+export type UseKaraokeLyrics = UseKaraokeResult['lyrics'];

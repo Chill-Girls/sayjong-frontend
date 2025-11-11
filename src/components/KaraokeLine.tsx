@@ -1,60 +1,35 @@
-// 글씨 색 시간에 따라 변경해주는 컴포넌트
 import React from 'react';
+import type { UseKaraokeLyrics } from '../hooks/useKaraoke';
+// 노래 가사를 박자에 맞게 변경해주는 컴포넌트
 
-interface Syllable {
-  text: string;
-  start: number;
-  end: number;
-}
+type KaraokeLineProps = {
+  lyrics: UseKaraokeLyrics;
+};
 
-interface LyricLine {
-  textOriginal: string;
-  startTime: number;
-  endTime: number;
-  syllables: Syllable[];
-}
+const KaraokeLine: React.FC<KaraokeLineProps> = ({ lyrics }) => {
+  const { currentLine, activeSyllableIndex } = lyrics;
 
-interface KaraokeLineProps {
-  line: LyricLine;
-  currentTime?: number;
-  activeIndex?: number | null;
-}
-
-const KaraokeLine: React.FC<KaraokeLineProps> = ({ line, currentTime = 0, activeIndex = null }) => {
-  const highlightByIndex = typeof activeIndex === 'number';
+  if (!currentLine) {
+    return null;
+  }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        position: 'relative',
-        fontSize: '64px',
-        letterSpacing: '0.3em',
-        fontWeight: 500,
-        fontFamily: 'Pretendard',
-        textAlign: 'left',
-        display: 'inline-block',
-      }}
-    >
-      {line.syllables.map((syll, i) => {
-        const isPassed = highlightByIndex ? i < (activeIndex ?? -1) : currentTime > syll.end;
-        const isActive = highlightByIndex
-          ? i === activeIndex
-          : currentTime >= syll.start && currentTime < syll.end;
-
-        // 이미 부르거나 현재 부르는 중이면 핑크색
-        const isPink = isPassed || isActive;
+    <div>
+      {currentLine.syllables.map((syllable, index) => {
+        const isActive =
+          activeSyllableIndex !== null && activeSyllableIndex >= 0 && index <= activeSyllableIndex;
 
         return (
           <span
-            key={i}
+            key={syllable.text + index}
             style={{
-              color: isPink ? '#f04299' : '#fff',
+              color: isActive ? '#f04299' : '#fff',
               textShadow: '2px 0 0 #000, 0 2px 0 #000, -2px 0 0 #000, 0 -2px 0 #000',
               transition: 'color 150ms',
+              fontSize: '35px',
             }}
           >
-            {syll.text}
+            {syllable.text}
           </span>
         );
       })}

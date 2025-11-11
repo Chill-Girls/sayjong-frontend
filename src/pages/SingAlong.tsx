@@ -1,10 +1,10 @@
 import type { FunctionComponent } from 'react';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
-import LyricsCanvasOverlay from '../components/LyricsCanvasOverlay';
+import KaraokeLine from '../components/KaraokeLine';
 import { useKaraoke } from '../hooks/useKaraoke';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
@@ -21,7 +21,25 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
 
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
-  const { songInfo, playback, lyrics, isLoading, error } = useKaraoke(songIdNum);
+  const { songInfo, playback, lyrics, overlay, isLoading, error } = useKaraoke(songIdNum);
+  const { isPlaying: isPlaybackPlaying, isPaused: isPlaybackPaused, playOverlayOnly } = playback;
+
+  const activeSyllableFromIndex = useMemo(() => {
+    if (!lyrics.currentLine || lyrics.activeSyllableIndex === null) {
+      return null;
+    }
+    return lyrics.currentLine.syllables[lyrics.activeSyllableIndex]?.text ?? null;
+  }, [lyrics.activeSyllableIndex, lyrics.currentLine]);
+
+  const activeSyllable = overlay.currentSyllable ?? activeSyllableFromIndex;
+  const activeVowel = overlay.currentVowel ?? null;
+  const isOverlayActive = isPlaybackPlaying;
+
+  const handleCountdownComplete = useCallback(() => {
+    if (!isPlaybackPlaying) {
+      playOverlayOnly();
+    }
+  }, [isPlaybackPlaying, playOverlayOnly]);
 
   if (isLoading) {
     return (
@@ -172,8 +190,29 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             overflow: 'hidden',
           }}
         >
-          <LyricsCanvasOverlay line={lyrics.currentLine} activeIndex={lyrics.activeSyllableIndex} />
-          <CameraComponent width="803.25px" />
+          <CameraComponent // 오버레이 설정도 여기서
+            width="803.25px"
+            activeSyllable={isOverlayActive ? activeSyllable : null}
+            activeVowel={isOverlayActive ? activeVowel : null}
+            shouldStartOverlay={isOverlayActive}
+            onCountdownComplete={handleCountdownComplete}
+          />
+          <div // 가사 오버레이 위치
+            style={{
+              position: 'absolute',
+              left: '50%',
+              bottom: scaled(36),
+              transform: 'translateX(-50%)',
+              width: '90%',
+              maxWidth: '760px',
+              pointerEvents: 'none',
+              textAlign: 'center',
+              display: 'flex',
+              justifyContent: 'center',
+            }}
+          >
+            <KaraokeLine lyrics={lyrics} />
+          </div>
         </div>
 
         <div
@@ -195,11 +234,11 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            {playback.isPlaying ? '다시 재생' : '오버레이 재생'}
+            {isPlaybackPlaying ? 'restart' : isPlaybackPaused ? 'resume' : 'start'}
           </button>
           <button
             type="button"
-            onClick={playback.stop}
+            onClick={playback.pause}
             style={{
               padding: `${scaled(4)} ${scaled(10)}`,
               borderRadius: scaled(6),
@@ -210,7 +249,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            정지
+            pause
           </button>
         </div>
       </div>
