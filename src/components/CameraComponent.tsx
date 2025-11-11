@@ -121,11 +121,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
 
   /** 모음 오버레이 렌더링 함수 */
-  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay({
-    currentVowel: activeVowel,
-    getTargetBlendshapes,
-    currentBlendshapes,
-  });
+  const { renderOverlay, currentVowel, countdown, startAROverlay, showAROverlay } = useVowelOverlay(
+    {
+      currentVowel: activeVowel,
+      getTargetBlendshapes,
+      currentBlendshapes,
+    },
+  );
 
   /** 현재 모음을 ref로 관리 (의존성 변경 최소화) */
   const currentVowelRef = useRef<string | null>(null);
@@ -180,7 +182,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         if (activeSyllable) {
           drawActiveSyllable(canvasCtx, allLandmarks, toCanvas, activeSyllable);
         }
-
       }
     },
     [renderOverlay, countdown, activeSyllable],

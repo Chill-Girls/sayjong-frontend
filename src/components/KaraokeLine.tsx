@@ -4,7 +4,7 @@ import type { UseKaraokeLyrics } from '../hooks/useKaraoke';
 
 type KaraokeLineProps = {
   lyrics: UseKaraokeLyrics;
-}; 
+};
 
 const KaraokeLine: React.FC<KaraokeLineProps> = ({ lyrics }) => {
   const { currentLine, activeSyllableIndex } = lyrics;

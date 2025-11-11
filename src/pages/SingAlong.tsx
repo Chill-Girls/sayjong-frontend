@@ -22,7 +22,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const { songId } = useParams();
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
   const { songInfo, playback, lyrics, overlay, isLoading, error } = useKaraoke(songIdNum);
-  const { isPlaying: isPlaybackPlaying, playOverlayOnly } = playback;
+  const { isPlaying: isPlaybackPlaying, isPaused: isPlaybackPaused, playOverlayOnly } = playback;
 
   const activeSyllableFromIndex = useMemo(() => {
     if (!lyrics.currentLine || lyrics.activeSyllableIndex === null) {
@@ -35,12 +35,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const activeVowel = overlay.currentVowel ?? null;
   const isOverlayActive = isPlaybackPlaying;
 
-  const handleCameraResults = useCallback(
-    (_results: { landmarks?: unknown[]; blendshapes?: Record<string, number> }) => {
-      // SingAlong에서는 카메라 결과를 별도로 저장하지 않는다.
-    },
-    [],
-  );
   const handleCountdownComplete = useCallback(() => {
     if (!isPlaybackPlaying) {
       playOverlayOnly();
@@ -198,13 +192,12 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
         >
           <CameraComponent // 오버레이 설정도 여기서
             width="803.25px"
-            onResults={handleCameraResults}
             activeSyllable={isOverlayActive ? activeSyllable : null}
             activeVowel={isOverlayActive ? activeVowel : null}
             shouldStartOverlay={isOverlayActive}
             onCountdownComplete={handleCountdownComplete}
           />
-          <div // 가사 오버레이
+          <div // 가사 오버레이 위치
             style={{
               position: 'absolute',
               left: '50%',
@@ -241,11 +234,11 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            {playback.isPlaying ? 'restart' : 'start'}
+            {isPlaybackPlaying ? 'restart' : isPlaybackPaused ? 'resume' : 'start'}
           </button>
           <button
             type="button"
-            onClick={playback.stop}
+            onClick={playback.pause}
             style={{
               padding: `${scaled(4)} ${scaled(10)}`,
               borderRadius: scaled(6),
@@ -256,7 +249,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               cursor: 'pointer',
             }}
           >
-            stop
+            pause
           </button>
         </div>
       </div>

@@ -23,10 +23,14 @@ interface UseTtsReturn {
   currentIndex: number | null;
   /** TTS 재생 중 여부 */
   isPlaying: boolean;
+  /** TTS 일시정지 여부 */
+  isPaused: boolean;
   /** TTS 재생 (오디오 + 오버레이) */
   playTts: () => void;
   /** 타임스탬프만 사용한 오버레이 시작 (오디오 재생 없음) */
   playOverlayOnly: () => void;
+  /** 일시정지 */
+  pause: () => void;
   /** TTS 및 오버레이 정지 */
   stop: () => void;
   /** 현재 재생 속도 */
@@ -52,6 +56,9 @@ export function useTts({
   const [isPlaying, setIsPlaying] = useState(false);
   const playAudioRef = useRef(false);
   const [playbackRate, setPlaybackRate] = useState<PlaybackRate>(initialPlaybackRate);
+  const pausedTimeRef = useRef<number | null>(null);
+  const wasAudioPausedRef = useRef(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // 정지 함수 (ref로 관리하여 순환 의존성 문제 해결)
   const stopRef = useRef<() => void>(() => {});
@@ -138,8 +145,11 @@ export function useTts({
     setCurrentVowel(null);
     setCurrentIndex(null);
     setIsPlaying(false);
+    setIsPaused(false);
     playAudioRef.current = false;
     startTimeRef.current = null;
+    pausedTimeRef.current = null;
+    wasAudioPausedRef.current = false;
   }, []);
 
   // stop 함수를 ref에 저장
@@ -147,14 +157,76 @@ export function useTts({
     stopRef.current = stop;
   }, [stop]);
 
+  const pause = useCallback(() => {
+    if (!isPlaying) {
+      return;
+    }
+    if (animationFrameRef.current) {
+      // 애니메이션 프레임 루프 중지
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
+    }
+
+    if (playAudioRef.current && audioRef.current) {
+      // 오디오 재생 중이면 일시정지
+      const audio = audioRef.current;
+      pausedTimeRef.current = audio.currentTime;
+      wasAudioPausedRef.current = true;
+      audio.pause();
+    } else if (!playAudioRef.current && startTimeRef.current !== null) {
+      // 오버레이만 재생 중이면 일시정지
+      const elapsedSeconds = ((performance.now() - startTimeRef.current) / 1000) * playbackRate;
+      pausedTimeRef.current = elapsedSeconds;
+      wasAudioPausedRef.current = false;
+    } else {
+      pausedTimeRef.current = null; // 둘 다 아니면 일시정지 시간 초기화
+      wasAudioPausedRef.current = false;
+    }
+
+    startTimeRef.current = null;
+    setIsPlaying(false);
+    setIsPaused(pausedTimeRef.current !== null);
+  }, [isPlaying, playbackRate]);
+
   // TTS 재생 (오디오 + 오버레이)
   const playTts = useCallback(() => {
-    stop();
-
     if (!audioUrl) {
       console.warn('TTS 오디오 URL이 없습니다.');
       return;
     }
+
+    if (audioRef.current && pausedTimeRef.current !== null && wasAudioPausedRef.current) {
+      const audio = audioRef.current;
+      audio.playbackRate = playbackRate;
+      try {
+        audio.currentTime = pausedTimeRef.current;
+      } catch (error) {
+        console.warn('현재 위치로 이동 실패, 처음부터 재생합니다.', error);
+        pausedTimeRef.current = null;
+        wasAudioPausedRef.current = false;
+      }
+
+      if (pausedTimeRef.current !== null) {
+        audio
+          .play()
+          .then(() => {
+            playAudioRef.current = true;
+            setIsPlaying(true);
+            setIsPaused(false);
+            startTimeRef.current = null;
+            animationFrameRef.current = requestAnimationFrame(updateOverlay);
+            pausedTimeRef.current = null;
+            wasAudioPausedRef.current = false;
+          })
+          .catch(e => {
+            console.error('TTS 재생 오류:', e);
+            stop();
+          });
+        return;
+      }
+    }
+
+    stop();
 
     const audio = new Audio(audioUrl);
     audio.playbackRate = playbackRate;
@@ -170,6 +242,7 @@ export function useTts({
       .then(() => {
         playAudioRef.current = true;
         setIsPlaying(true);
+        setIsPaused(false);
         startTimeRef.current = null; // 오디오 재생 중이면 startTimeRef 사용 안 함
         animationFrameRef.current = requestAnimationFrame(updateOverlay);
       })
@@ -181,18 +254,29 @@ export function useTts({
 
   // 타임스탬프만 사용한 오버레이 시작 (오디오 재생 없음)
   const playOverlayOnly = useCallback(() => {
-    stop();
-
     if (!syllableTimings || syllableTimings.length === 0) {
       console.warn('타임스탬프 데이터가 없습니다.');
       return;
     }
 
+    if (pausedTimeRef.current !== null && !wasAudioPausedRef.current) {
+      playAudioRef.current = false;
+      setIsPlaying(true);
+      setIsPaused(false);
+      startTimeRef.current = performance.now() - (pausedTimeRef.current / playbackRate) * 1000;
+      animationFrameRef.current = requestAnimationFrame(updateOverlay);
+      pausedTimeRef.current = null;
+      return;
+    }
+
+    stop();
+
     playAudioRef.current = false;
     setIsPlaying(true);
+    setIsPaused(false);
     startTimeRef.current = performance.now();
     animationFrameRef.current = requestAnimationFrame(updateOverlay);
-  }, [syllableTimings, stop, updateOverlay]);
+  }, [syllableTimings, stop, updateOverlay, playbackRate]);
 
   // 컴포넌트 언마운트 시 정리
   useEffect(() => {
@@ -206,8 +290,10 @@ export function useTts({
     currentVowel,
     currentIndex,
     isPlaying,
+    isPaused,
     playTts,
     playOverlayOnly,
+    pause,
     stop,
     playbackRate,
     setPlaybackRate,

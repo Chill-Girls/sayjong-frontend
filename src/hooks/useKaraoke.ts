@@ -39,8 +39,10 @@ export function useKaraoke(songId: number | null) {
     currentVowel,
     currentIndex,
     isPlaying,
+    isPaused,
     playTts,
     playOverlayOnly,
+    pause,
     stop,
   } = useTts({
     // TTS 훅에 전체 음절 타임라인과 음원 주소를 전달한다
@@ -96,8 +98,10 @@ export function useKaraoke(songId: number | null) {
     // 재생 제어
     playback: {
       isPlaying,
+      isPaused,
       play: playTts,
       playOverlayOnly,
+      pause,
       stop,
     },
 
