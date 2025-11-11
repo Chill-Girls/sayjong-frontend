@@ -35,8 +35,13 @@ const SyllablePractice: React.FC = () => {
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const { lyricData, loading: lyricLoading, error: lyricError } = useSongLyricLines(songId);
-  const { syllables, loading: syllableLoading, error: syllableError, songTitle: apiSongTitle, singer: apiSinger } =
-    useSyllablePractice(songId);
+  const {
+    syllables,
+    loading: syllableLoading,
+    error: syllableError,
+    songTitle: apiSongTitle,
+    singer: apiSinger,
+  } = useSyllablePractice(songId);
 
   // 클릭된 음절을 저장 (null이면 현재 연습 중인 음절을 의미)
   const [selectedSyllable, setSelectedSyllable] = useState<PracticeSyllable | null>(null);
@@ -283,7 +288,7 @@ const SyllablePractice: React.FC = () => {
     audio.onerror = () => {
       audioRef.current = null;
     };
-  }, []); 
+  }, []);
 
   const effectiveIndex =
     activeLineSyllables.length > 0
@@ -317,8 +322,8 @@ const SyllablePractice: React.FC = () => {
     if (foundIndex === -1) {
       const targetId = displayTarget.line?.lyricLineId;
       const targetSylNo = displayTarget.sylNo;
-      foundIndex = syllables.findIndex(s => 
-          s.line?.lyricLineId === targetId && s.sylNo === targetSylNo
+      foundIndex = syllables.findIndex(
+        s => s.line?.lyricLineId === targetId && s.sylNo === targetSylNo,
       );
     }
 
@@ -327,7 +332,6 @@ const SyllablePractice: React.FC = () => {
     }
 
     return foundIndex + 1;
-
   }, [displayTarget, syllables, currentIndex]);
 
   if (loadingState) {
@@ -573,10 +577,7 @@ const SyllablePractice: React.FC = () => {
                       const lineWords = (displayLineText || '').split(' ');
 
                       return lineWords.map((word, wordIndex) => (
-                        <span
-                          key={wordIndex}
-                          style={{ marginRight: '0.25em' }}
-                        >
+                        <span key={wordIndex} style={{ marginRight: '0.25em' }}>
                           <span style={{ whiteSpace: 'nowrap' }}>
                             {word.split('').map((char, charIndex) => {
                               const syllable = activeLineSyllables[syllableLineIndex];
