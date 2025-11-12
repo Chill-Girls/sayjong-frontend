@@ -37,3 +37,14 @@ export async function getSongLyricLines(songId: number): Promise<SongWithLyrics>
     throw new Error(`${songId}번 노래의 가사 소절을 가져오는 데 실패했습니다.`);
   }
 }
+
+// 특정 노래의 전체 음절(lyric syllables) 조회
+export async function getSongLyricSyllables(songId: number): Promise<any> {
+  try {
+    const response = await apiClient.get(`/songs/${songId}/lyricSyllables`);
+    return response.data;
+  } catch (error) {
+    console.error(`API Error (getSongLyricSyllables) for ID ${songId}:`, error);
+    throw new Error(`${songId}번 노래의 음절 정보를 가져오는 데 실패했습니다.`);
+  }
+}
