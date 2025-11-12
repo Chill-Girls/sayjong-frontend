@@ -180,7 +180,13 @@ export function useVowelOverlay({
 
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
-        drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas); // 정답 입술 윤곽선 그리기
+        if(similarityScoreRef.current && similarityScoreRef.current > 0.8) {
+          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
+        } 
+        else {
+          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
+        }
+        // drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas); // 정답 입술 윤곽선 그리기
         //drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas); // 정답 모음 라벨 그리기
       }
     },

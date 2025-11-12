@@ -113,8 +113,9 @@ export function drawTargetMouthContours(
   ctx: CanvasRenderingContext2D,
   targetLandmarks: Record<number, LandmarkPoint>,
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+  color = '#00FF00',
 ) {
-  ctx.strokeStyle = '#00FF00';
+  ctx.strokeStyle = color;
   ctx.lineWidth = 3;
   ctx.setLineDash([]);
   ctx.lineCap = 'round';
@@ -137,7 +138,7 @@ export function drawTargetMouthContours(
   ctx.closePath();
   ctx.stroke();
 
-  ctx.strokeStyle = '#00FF00';
+  ctx.strokeStyle = color;
   ctx.lineWidth = 2;
   ctx.beginPath();
   for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
