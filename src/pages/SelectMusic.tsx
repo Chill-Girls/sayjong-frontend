@@ -121,93 +121,93 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
       <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
         <Header />
 
-      <div
-        style={{
-          width: '100%',
-          ...flexColumn,
-          alignItems: 'center',
-          gap: scaled(48),
-          padding: `${scaled(48)} ${scaled(18)}`,
-          paddingBottom: scaled(100),
-          boxSizing: 'border-box',
-          minHeight: 'calc(100vh - 55.5px)',
-          overflowY: 'auto',
-        }}
-      >
-        {/* 타이틀 섹션 */}
         <div
-          style={{
-            ...flexColumn,
-            alignItems: 'center',
-            gap: scaled(18),
-            textAlign: 'center',
-            fontFamily: FONTS.primary,
-          }}
-        >
-          <div
-            style={{
-              fontSize: FONT_SIZES.xl,
-              fontWeight: FONT_WEIGHTS.bold,
-              color: COLORS.dark,
-              margin: 0,
-            }}
-          >
-            Practice Your Favorite Song
-          </div>
-          <div
-            style={{
-              fontSize: FONT_SIZES.lg,
-              color: COLORS.dark,
-              margin: 0,
-            }}
-          >
-            Songs
-          </div>
-        </div>
-
-        {/* 음악 카드 그리드 */}
-        <div
-          className="music-grid-scroll"
           style={{
             width: '100%',
-            maxWidth: '1200px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: scaled(24),
-            padding: `0 ${scaled(24)}`,
+            ...flexColumn,
+            alignItems: 'center',
+            gap: scaled(48),
+            padding: `${scaled(48)} ${scaled(18)}`,
+            paddingBottom: scaled(100),
             boxSizing: 'border-box',
-            maxHeight: 'calc(227px * 2 + 18px)',
+            minHeight: 'calc(100vh - 55.5px)',
             overflowY: 'auto',
           }}
         >
-          {songs.map(music => (
+          {/* 타이틀 섹션 */}
+          <div
+            style={{
+              ...flexColumn,
+              alignItems: 'center',
+              gap: scaled(18),
+              textAlign: 'center',
+              fontFamily: FONTS.primary,
+            }}
+          >
             <div
-              key={music.songId}
               style={{
-                cursor: 'pointer',
-                transition: 'transform 0.2s ease',
-              }}
-              onClick={() => {
-                navigate(`/lesson/${music.songId}`);
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = 'translateY(-4px)';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = 'translateY(0)';
+                fontSize: FONT_SIZES.xl,
+                fontWeight: FONT_WEIGHTS.bold,
+                color: COLORS.dark,
+                margin: 0,
               }}
             >
-              <MusicCard
-                title={music.title}
-                artist={music.singer}
-                albumId={music.songId}
-                coverUrl={music.coverUrl}
-              />
+              Practice Your Favorite Song
             </div>
-          ))}
+            <div
+              style={{
+                fontSize: FONT_SIZES.lg,
+                color: COLORS.dark,
+                margin: 0,
+              }}
+            >
+              Songs
+            </div>
+          </div>
+
+          {/* 음악 카드 그리드 */}
+          <div
+            className="music-grid-scroll"
+            style={{
+              width: '100%',
+              maxWidth: '1200px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(5, 1fr)',
+              gap: scaled(24),
+              padding: `0 ${scaled(24)}`,
+              boxSizing: 'border-box',
+              maxHeight: 'calc(227px * 2 + 18px)',
+              overflowY: 'auto',
+            }}
+          >
+            {songs.map(music => (
+              <div
+                key={music.songId}
+                style={{
+                  cursor: 'pointer',
+                  transition: 'transform 0.2s ease',
+                }}
+                onClick={() => {
+                  navigate(`/lesson/${music.songId}`);
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-4px)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                }}
+              >
+                <MusicCard
+                  title={music.title}
+                  artist={music.singer}
+                  albumId={music.songId}
+                  coverUrl={music.coverUrl}
+                />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
     </>
   );
 };
