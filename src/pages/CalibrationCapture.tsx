@@ -48,6 +48,7 @@ const CalibrationCapture: React.FC = () => {
   const [isCapturing, setIsCapturing] = useState(false);
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false); // 서버 전송을 위한 로딩 state 추가
+  const [isFlashing, setIsFlashing] = useState(false); // 카메라 플래시 효과
 
   useEffect(() => {
     initializeMediaPipe();
@@ -193,6 +194,11 @@ const CalibrationCapture: React.FC = () => {
         [currentVowel]: frame,
       }));
 
+      // 카메라 플래시 효과
+      setIsFlashing(true);
+      setTimeout(() => {
+        setIsFlashing(false);
+      }, 150); // 150ms 동안 플래시 효과
     }
 
     setIsCapturing(false);
@@ -268,16 +274,32 @@ const CalibrationCapture: React.FC = () => {
   };
 
   return (
-    <div
-      style={{
-        ...containerFullscreen,
-        padding: scaled(20),
-        paddingTop: scaled(75.5), // Account for fixed header (55.5px + 20px)
-        backgroundColor: '#f8f6f7',
-        minHeight: '100vh',
-      }}
-    >
-      <Header />
+    <>
+      <style>
+        {`
+          @keyframes flash {
+            0% {
+              opacity: 0;
+            }
+            50% {
+              opacity: 1;
+            }
+            100% {
+              opacity: 0;
+            }
+          }
+        `}
+      </style>
+      <div
+        style={{
+          ...containerFullscreen,
+          padding: scaled(20),
+          paddingTop: scaled(75.5), // Account for fixed header (55.5px + 20px)
+          backgroundColor: '#f8f6f7',
+          minHeight: '100vh',
+        }}
+      >
+        <Header />
       <h1
         style={{
           textAlign: 'center',
@@ -372,6 +394,22 @@ const CalibrationCapture: React.FC = () => {
             >
               {vowelInstructions[currentVowel]}
             </div>
+            {/* Camera Flash Effect */}
+            {isFlashing && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                  zIndex: 1000,
+                  pointerEvents: 'none',
+                  animation: 'flash 150ms ease-out',
+                }}
+              />
+            )}
           </div>
         </div>
 
@@ -470,7 +508,13 @@ const CalibrationCapture: React.FC = () => {
                     border: `1px solid ${calibrationData[vowel] ? '#c3e6c3' : '#ffeaa7'}`,
                   }}
                 >
-                  <span style={{ fontSize: '0.8rem', fontWeight: FONT_WEIGHTS.semibold, color: '#495057' }}>
+                  <span
+                    style={{
+                      fontSize: '0.8rem',
+                      fontWeight: FONT_WEIGHTS.semibold,
+                      color: '#495057',
+                    }}
+                  >
                     {vowel}
                   </span>
                   <span style={{ fontSize: FONT_SIZES.base }}>
@@ -521,6 +565,7 @@ const CalibrationCapture: React.FC = () => {
       </div>
       <FooterCopyright />
     </div>
+    </>
   );
 };
 

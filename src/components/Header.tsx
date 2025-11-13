@@ -51,7 +51,8 @@ const Header: FunctionComponent<HeaderProps> = () => {
       height: '37.5px',
       objectFit: 'contain',
       justifySelf: 'end',
-      filter: 'brightness(0) saturate(100%) invert(27%) sepia(93%) saturate(1352%) hue-rotate(300deg) brightness(98%) contrast(95%)',
+      filter:
+        'brightness(0) saturate(100%) invert(27%) sepia(93%) saturate(1352%) hue-rotate(300deg) brightness(98%) contrast(95%)',
     },
   };
 
