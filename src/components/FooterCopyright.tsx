@@ -18,7 +18,7 @@ const FooterCopyright: FunctionComponent = () => {
       justifyContent: 'flex-start',
       padding: '8px 27px',
       boxSizing: 'border-box',
-      backgroundColor: COLORS.white,
+      backgroundColor: '#f8f6f7',
       color: '#313131',
       fontFamily: 'Pretendard',
       fontSize: '12px',

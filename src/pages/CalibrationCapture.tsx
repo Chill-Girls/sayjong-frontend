@@ -20,6 +20,8 @@ import {
 } from '../styles/mixins';
 import { precomputeAllTargetVowels, saveTargetsToBackend } from '../utils/precomputeTargets';
 import axios from 'axios';
+import Header from '../components/Header';
+import FooterCopyright from '../components/FooterCopyright';
 
 interface CalibrationData {
   neutral?: CapturedFrame;
@@ -191,7 +193,6 @@ const CalibrationCapture: React.FC = () => {
         [currentVowel]: frame,
       }));
 
-      alert(`✅ Captured ${currentVowel}!`);
     }
 
     setIsCapturing(false);
@@ -260,10 +261,10 @@ const CalibrationCapture: React.FC = () => {
     }
   };
   const vowelInstructions = {
-    neutral: '😐 Neutral face - Relax your mouth\n  ',
-    a: '😮 Say "ㅏ" (ah) - Open mouth wide\n  ',
-    u: '😗 Say "ㅜ" (oo) - Round and pucker lips\n  ',
-    i: '😁 Say "ㅣ" (ee) - Spread lips wide\n  ',
+    neutral: '😐 Relax your mouth\n  ',
+    a: '😮 Open your jaw\n  ',
+    u: '😗 Pucker & round your lips\n  ',
+    i: '😁 Spread your lips wide\n  ',
   };
 
   return (
@@ -271,27 +272,29 @@ const CalibrationCapture: React.FC = () => {
       style={{
         ...containerFullscreen,
         padding: scaled(20),
-        backgroundColor: COLORS.white,
+        paddingTop: scaled(75.5), // Account for fixed header (55.5px + 20px)
+        backgroundColor: '#f8f6f7',
         minHeight: '100vh',
       }}
     >
+      <Header />
       <h1
         style={{
           textAlign: 'center',
           color: COLORS.primary,
-          fontSize: '2.5rem',
+          fontSize: '2rem',
           marginBottom: '2rem',
           fontFamily: FONTS.primary,
           fontWeight: FONT_WEIGHTS.bold,
         }}
       >
-        Vowel Calibration Tool
+        Mouth Shape Calibration Tool
       </h1>
 
       <div
         style={{
           display: 'flex',
-          gap: scaled(30),
+          gap: scaled(100),
           marginTop: scaled(20),
           maxWidth: scaled(1400),
           margin: `${scaled(20)} auto 0`,
@@ -348,6 +351,27 @@ const CalibrationCapture: React.FC = () => {
                 {countdown}
               </div>
             )}
+            <div
+              style={{
+                position: 'absolute',
+                left: '50%',
+                bottom: scaled(24),
+                transform: 'translateX(-50%)',
+                padding: `${scaled(12)} ${scaled(18)}`,
+                backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                borderRadius: scaled(12),
+                fontSize: FONT_SIZES.md,
+                color: COLORS.dark,
+                border: '1px solid rgba(240, 66, 153, 0.25)',
+                boxShadow: '0 8px 20px rgba(240, 66, 153, 0.12)',
+                whiteSpace: 'pre-line',
+                textAlign: 'center',
+                maxWidth: '90%',
+                pointerEvents: 'none',
+              }}
+            >
+              {vowelInstructions[currentVowel]}
+            </div>
           </div>
         </div>
 
@@ -369,11 +393,11 @@ const CalibrationCapture: React.FC = () => {
               style={{
                 margin: `0 0 ${scaled(15)} 0`,
                 color: COLORS.primary,
-                fontSize: '1.2rem',
-                fontWeight: FONT_WEIGHTS.semibold,
+                fontSize: '1.0rem',
+                fontWeight: FONT_WEIGHTS.bold,
               }}
             >
-              Current Vowel
+              CURRENT VOWEL
             </h3>
             <select
               value={currentVowel}
@@ -390,24 +414,11 @@ const CalibrationCapture: React.FC = () => {
                 fontFamily: FONTS.primary,
               }}
             >
-              <option value="neutral">Neutral (중립)</option>
-              <option value="a">ㅏ (ah)</option>
-              <option value="u">ㅜ (oo)</option>
-              <option value="i">ㅣ (ee)</option>
+              <option value="neutral">Neutral</option>
+              <option value="a">ㅏ (a)</option>
+              <option value="u">ㅜ (u)</option>
+              <option value="i">ㅣ (i)</option>
             </select>
-            <div
-              style={{
-                padding: scaled(15),
-                backgroundColor: COLORS.white,
-                borderRadius: scaled(8),
-                fontSize: FONT_SIZES.sm,
-                border: '1px solid #dee2e6',
-                color: '#495057',
-                whiteSpace: 'pre-line',
-              }}
-            >
-              {vowelInstructions[currentVowel]}
-            </div>
           </div>
 
           {/* 캡처 버튼 */}
@@ -439,11 +450,11 @@ const CalibrationCapture: React.FC = () => {
               style={{
                 margin: `0 0 ${scaled(15)} 0`,
                 color: COLORS.primary,
-                fontSize: '1.2rem',
-                fontWeight: FONT_WEIGHTS.semibold,
+                fontSize: '1.0rem',
+                fontWeight: FONT_WEIGHTS.bold,
               }}
             >
-              Captured Data
+              CAPTURED DATA
             </h3>
             <div style={{ ...flexColumn, gap: scaled(8) }}>
               {(['neutral', 'a', 'u', 'i'] as const).map(vowel => (
@@ -459,7 +470,7 @@ const CalibrationCapture: React.FC = () => {
                     border: `1px solid ${calibrationData[vowel] ? '#c3e6c3' : '#ffeaa7'}`,
                   }}
                 >
-                  <span style={{ fontWeight: FONT_WEIGHTS.semibold, color: '#495057' }}>
+                  <span style={{ fontSize: '0.8rem', fontWeight: FONT_WEIGHTS.semibold, color: '#495057' }}>
                     {vowel}
                   </span>
                   <span style={{ fontSize: FONT_SIZES.base }}>
@@ -508,6 +519,7 @@ const CalibrationCapture: React.FC = () => {
           </div>
         </div>
       </div>
+      <FooterCopyright />
     </div>
   );
 };
