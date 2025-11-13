@@ -678,7 +678,6 @@ const LinePractice: React.FC = () => {
             <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
           )}
         </div>
-
         {/* 버튼 영역 */}
         <div
           style={{
