@@ -56,8 +56,8 @@ export function useVowelOverlay({
   const startAROverlay = useCallback(
     async (vowel: string | null) => {
       // 이미 AR 오버레이가 표시 중이면 멈춤
-      if (showAROverlay ) {
-        setShowAROverlay(false); 
+      if (showAROverlay) {
+        setShowAROverlay(false);
         setArVowel(null);
         setCountdown(null);
         isCountdownCancelledRef.current = false;

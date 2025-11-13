@@ -322,7 +322,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                 }
                 // 현재 블렌드쉐이프 상태 업데이트
                 setCurrentBlendshapes(currentBlendshapeMap);
-                console.log('CameraComponent: currentBlendshapeMap', currentBlendshapeMap);
+                //console.log('CameraComponent: currentBlendshapeMap', currentBlendshapeMap);
               }
             }
 
