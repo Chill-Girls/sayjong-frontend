@@ -141,7 +141,7 @@ const SyllablePractice: React.FC = () => {
       if (!songIdParam || syllables.length === 0) return;
       const bounded = ((nextIndex % syllables.length) + syllables.length) % syllables.length;
       setCurrentIndex(bounded);
-      navigate(`/lesson/${songIdParam}/syllable/${bounded + 1}`, { replace: true });
+      navigate(`/lesson/${songIdParam}/syllable`, { replace: true });
       setRecordedAudioBlob(null);
       setIsRecording(false);
       setSelectedSyllable(null);
