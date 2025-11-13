@@ -40,7 +40,7 @@ const Login: FunctionComponent<LoginProps> = () => {
       userPassword: credentials.password,
     });
     if (result.success) {
-      navigate('/calibration');
+      navigate('/');
     }
   };
 
