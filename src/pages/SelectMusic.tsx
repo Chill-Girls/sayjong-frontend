@@ -210,7 +210,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
                 }}
               >
                 <MusicCard
-                  title={music.title}
+                  title={music.titleEng}
                   artist={music.singer}
                   albumId={music.songId}
                   coverUrl={music.coverUrl}

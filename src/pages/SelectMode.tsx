@@ -135,7 +135,16 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
               margin: 0,
             }}
           >
-            {song?.title || 'Song Not Found'}
+            {song?.titleEng || 'Song Not Found'}
+          </div>
+          <div
+            style={{
+              fontSize: FONT_SIZES.lg,
+              color: COLORS.dark,
+              margin: 0,
+            }}
+          >
+            {song?.title || '...'}
           </div>
           <div
             style={{

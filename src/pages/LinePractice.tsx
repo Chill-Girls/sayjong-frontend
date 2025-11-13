@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { useSongLyricLines } from '../hooks/useSongs';
+import { useSong, useSongLyricLines } from '../hooks/useSongs';
 import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
@@ -36,6 +36,7 @@ const LinePractice: React.FC = () => {
     : null;
 
   // useSongLyricLines 훅 사용
+  const { song } = useSong(songId);
   const { lyricData, error: lyricError } = useSongLyricLines(songId);
 
   const [lines, setLines] = useState<LyricLine[]>([]);
@@ -122,7 +123,7 @@ const LinePractice: React.FC = () => {
   useEffect(() => {
     if (lyricData) {
       setLines(lyricData.lyrics ?? []);
-      setSongTitle(lyricData.title ?? '');
+      setSongTitle(song?.titleEng ?? '');
       setSinger(lyricData.singer ?? '');
       setSelected(lyricData.lyrics && lyricData.lyrics.length > 0 ? lyricData.lyrics[0] : null);
     } else if (lyricError || !songId) {
