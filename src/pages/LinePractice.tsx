@@ -670,9 +670,7 @@ const LinePractice: React.FC = () => {
               const finalScore = mouthScorePercentage * 0.4 + score * 0.6;
               const roundedFinalScore = Math.round(finalScore);
 
-              return (
-                <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore}점</p>
-              );
+              return <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore}점</p>;
             })()}
           {!isLoading && !error && score !== null && mouthScoreRef.current === null && (
             <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
