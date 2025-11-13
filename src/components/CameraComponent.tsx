@@ -41,6 +41,7 @@ interface CameraComponentProps {
   shouldStartOverlay?: boolean;
   /** 카운트다운이 끝난 뒤 호출되는 콜백 */
   onCountdownComplete?: () => void;
+  skipCountdown?: boolean;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -50,6 +51,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   activeVowel = null,
   shouldStartOverlay = false,
   onCountdownComplete,
+  skipCountdown = false,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -125,6 +127,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       currentVowel: activeVowel,
       getTargetBlendshapes,
       currentBlendshapes,
+      skipCountdown,
     },
   );
 
