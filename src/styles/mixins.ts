@@ -103,7 +103,7 @@ export const inputField: CSSProperties = {
   width: '100%',
   border: 'none',
   outline: 'none',
-  backgroundColor: 'transparent',
+  backgroundColor: '#f8f6f7',
   fontFamily: FONTS.secondary,
   color: COLORS.textLight,
   padding: 0,
@@ -111,7 +111,7 @@ export const inputField: CSSProperties = {
 
 export const inputContainer: CSSProperties = {
   borderRadius: BORDER_RADIUS.sm,
-  backgroundColor: COLORS.white,
+  backgroundColor: '#f8f6f7',
   border: `1px solid ${COLORS.border}`,
   display: 'flex',
   flexDirection: 'column',
@@ -120,7 +120,7 @@ export const inputContainer: CSSProperties = {
 
 export const inputLabel: CSSProperties = {
   position: 'absolute',
-  backgroundColor: COLORS.white,
+  backgroundColor: '#f8f6f7',
   fontFamily: FONTS.primary,
   pointerEvents: 'none',
   zIndex: 1,
