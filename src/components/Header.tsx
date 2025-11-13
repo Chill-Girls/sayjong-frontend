@@ -1,8 +1,9 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import { useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
 import { useMode, MODE_LABEL } from '../constants/ModeContext';
+import { COLORS } from '../styles/theme';
 
 type HeaderProps = Record<string, never>;
 
@@ -50,9 +51,53 @@ const Header: FunctionComponent<HeaderProps> = () => {
       width: '37.5px',
       height: '37.5px',
       objectFit: 'contain',
-      justifySelf: 'end',
       filter:
         'brightness(0) saturate(100%) invert(27%) sepia(93%) saturate(1352%) hue-rotate(300deg) brightness(98%) contrast(95%)',
+    },
+    profileButton: {
+      border: 'none',
+      background: 'transparent',
+      padding: 0,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      outline: 'none',
+    },
+    dropdownWrapper: {
+      position: 'relative',
+      justifySelf: 'end',
+      display: 'flex',
+      alignItems: 'center',
+    },
+    dropdown: {
+      position: 'absolute',
+      top: 'calc(100% + 12px)',
+      right: 0,
+      backgroundColor: '#fff',
+      boxShadow: '0 12px 24px rgba(0, 0, 0, 0.12)',
+      borderRadius: 12,
+      minWidth: 190,
+      padding: '12px 0',
+      zIndex: 101,
+      border: '1px solid rgba(240, 66, 153, 0.12)',
+    },
+    dropdownItem: {
+      fontFamily: 'Pretendard',
+      fontSize: '16px',
+      padding: '10px 20px',
+      color: COLORS.textSecondary,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      width: '100%',
+      background: 'transparent',
+      border: 'none',
+      textAlign: 'left',
+    },
+    dropdownItemHover: {
+      backgroundColor: 'rgba(240, 66, 153, 0.08)',
+      color: '#f04299',
     },
   };
 
@@ -72,7 +117,46 @@ const Header: FunctionComponent<HeaderProps> = () => {
   };
 
   const [logoPressed, setLogoPressed] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement | null>(null);
+  const navigate = useNavigate();
   const { mode } = useMode();
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsProfileMenuOpen(false);
+      }
+    }
+
+    window.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleNavigation = (path: string) => {
+    setIsProfileMenuOpen(false);
+    navigate(path);
+  };
+
+  const handleLogout = () => {
+    setIsProfileMenuOpen(false);
+    localStorage.removeItem('accessToken');
+    navigate('/login');
+  };
+
+  const dropdownItems: Array<{
+    label: string;
+    onClick: () => void;
+  }> = [
+    { label: 'Calibration', onClick: () => handleNavigation('/calibration') },
+    { label: 'Training Log', onClick: () => handleNavigation('/training-log') },
+    { label: 'Log Out', onClick: handleLogout },
+  ];
 
   return (
     <header style={styles.header}>
@@ -94,7 +178,37 @@ const Header: FunctionComponent<HeaderProps> = () => {
         {mode ? <div style={{ fontWeight: 600, color: '#f04299' }}>{MODE_LABEL[mode]}</div> : null}
       </nav>
 
-      <img style={styles.accountCircleIcon} alt="Account Icon" src={accountIcon} />
+      <div ref={dropdownRef} style={styles.dropdownWrapper}>
+        <button
+          type="button"
+          style={styles.profileButton}
+          onClick={() => setIsProfileMenuOpen(prev => !prev)}
+          aria-haspopup="menu"
+          aria-expanded={isProfileMenuOpen}
+        >
+          <img style={styles.accountCircleIcon} alt="Profile menu" src={accountIcon} />
+        </button>
+        {isProfileMenuOpen ? (
+          <div role="menu" style={styles.dropdown}>
+            {dropdownItems.map(item => (
+              <button
+                key={item.label}
+                type="button"
+                style={styles.dropdownItem}
+                onClick={item.onClick}
+                onMouseEnter={event =>
+                  Object.assign(event.currentTarget.style, styles.dropdownItemHover)
+                }
+                onMouseLeave={event => {
+                  Object.assign(event.currentTarget.style, styles.dropdownItem);
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        ) : null}
+      </div>
     </header>
   );
 };

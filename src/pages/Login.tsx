@@ -86,6 +86,7 @@ const Login: FunctionComponent<LoginProps> = () => {
         fontSize: FONT_SIZES.xxl,
         color: COLORS.dark,
         fontFamily: FONTS.primary,
+        backgroundColor: '#f8f6f7',
       }}
     >
       <div
