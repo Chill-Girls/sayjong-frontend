@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
 import LessonCard from '../components/LessonCard';
+import FooterCopyright from '../components/FooterCopyright';
 import WordIcon from '../assets/Word.svg';
 import LyricLinesIcon from '../assets/Lyric Lines.svg';
 import ArtistIcon from '../assets/artist.svg';
@@ -62,40 +63,43 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
 
   if (loading) {
     return (
-      <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
-        <Header />
-        <div
-          style={{
-            width: '100%',
-            ...flexColumn,
-            alignItems: 'center',
-            gap: scaled(60),
-            padding: `${scaled(48)} ${scaled(18)}`,
-            boxSizing: 'border-box',
-          }}
-        >
+      <>
+        <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
+          <Header />
           <div
             style={{
+              width: '100%',
               ...flexColumn,
               alignItems: 'center',
-              gap: scaled(12),
-              textAlign: 'center',
-              fontFamily: FONTS.primary,
+              gap: scaled(60),
+              padding: `${scaled(48)} ${scaled(18)}`,
+              boxSizing: 'border-box',
             }}
           >
             <div
               style={{
-                fontSize: FONT_SIZES.xl,
-                fontWeight: FONT_WEIGHTS.semibold,
-                color: COLORS.dark,
-                margin: 0,
+                ...flexColumn,
+                alignItems: 'center',
+                gap: scaled(12),
+                textAlign: 'center',
+                fontFamily: FONTS.primary,
               }}
             >
-              Loading song...
+              <div
+                style={{
+                  fontSize: FONT_SIZES.xl,
+                  fontWeight: FONT_WEIGHTS.semibold,
+                  color: COLORS.dark,
+                  margin: 0,
+                }}
+              >
+                Loading song...
+              </div>
             </div>
           </div>
         </div>
-      </div>
+        <FooterCopyright />
+      </>
     );
   }
 
@@ -125,13 +129,13 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
         >
           <div
             style={{
-              fontSize: FONT_SIZES.xl,
-              fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.dark,
+              fontSize: FONT_SIZES.xxl,
+              fontWeight: FONT_WEIGHTS.bold,
+              color: COLORS.primary,
               margin: 0,
             }}
           >
-            "{song?.title || 'Song Not Found'}"
+            {song?.title || 'Song Not Found'}
           </div>
           <div
             style={{
@@ -163,8 +167,8 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
           <div
             style={{
               fontSize: FONT_SIZES.xl,
-              fontWeight: FONT_WEIGHTS.semibold,
-              color: COLORS.dark,
+              fontWeight: FONT_WEIGHTS.bold,
+              color: COLORS.primary,
               margin: 0,
               zIndex: 0,
             }}
@@ -237,6 +241,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
           </div>
         </div>
       </div>
+      <FooterCopyright />
     </div>
   );
 };

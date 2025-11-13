@@ -151,7 +151,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
     onClick: () => void;
   }> = [
     { label: 'Calibration', onClick: () => handleNavigation('/calibration') },
-    { label: 'Training Log', onClick: () => handleNavigation('/training-log') },
+    { label: 'Training Log', onClick: () => handleNavigation('/history') },
     { label: 'Log Out', onClick: handleLogout },
   ];
 
