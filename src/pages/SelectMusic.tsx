@@ -150,6 +150,8 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
             padding: `${scaled(48)} ${scaled(18)}`,
             paddingBottom: scaled(100),
             boxSizing: 'border-box',
+            minHeight: `calc(100vh - ${scaled(55.5)})`,
+            overflowY: 'auto',
           }}
         >
           {/* 타이틀 섹션 */}

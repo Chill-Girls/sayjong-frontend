@@ -15,12 +15,14 @@ interface UseVowelOverlayProps {
   getTargetBlendshapes?: (vowel: string | null) => Record<string, number> | null;
   /** 현재 블렌드쉐이프 데이터 */
   currentBlendshapes?: Record<string, number> | null;
+  skipCountdown?: boolean;
 }
 
 export function useVowelOverlay({
   currentVowel,
   getTargetBlendshapes,
   currentBlendshapes,
+  skipCountdown = false,
 }: UseVowelOverlayProps) {
   const targetVowelRef = useRef<(string | null)[]>([]);
   const targetLandmarksComputer = useRef<TargetLandmarksComputer | null>(null);
@@ -76,6 +78,14 @@ export function useVowelOverlay({
       setArVowel(null);
       isCountdownCancelledRef.current = false;
 
+      // skipCountdown이 true이면 카운트다운 없이 바로 시작
+      if (skipCountdown) {
+        setCountdown(null);
+        setArVowel(vowel);
+        setShowAROverlay(true);
+        return;
+      }
+
       // 카운트다운
       for (let i = 3; i > 0; i--) {
         // 취소되었는지 확인
@@ -105,7 +115,7 @@ export function useVowelOverlay({
       setArVowel(vowel);
       setShowAROverlay(true);
     },
-    [showAROverlay, countdown],
+    [showAROverlay, countdown, skipCountdown],
   );
 
   /**

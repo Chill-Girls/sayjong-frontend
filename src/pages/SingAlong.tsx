@@ -196,6 +196,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             activeVowel={isOverlayActive ? activeVowel : null}
             shouldStartOverlay={isOverlayActive}
             onCountdownComplete={handleCountdownComplete}
+            skipCountdown={true}
           />
           <div // 가사 오버레이 위치
             style={{
