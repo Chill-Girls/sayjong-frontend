@@ -132,7 +132,7 @@ const LinePractice: React.FC = () => {
       setSongTitle('');
       setSinger('');
     }
-  }, [lyricData, lyricError, songId]);
+  }, [lyricData, lyricError, songId, song]);
 
   // 화면에 보여줄 소절 선택
   const displayLine = selected ??
