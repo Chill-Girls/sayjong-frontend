@@ -19,10 +19,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
   const filteredSongs = songs.filter(song => {
     if (!searchQuery.trim()) return true;
     const query = searchQuery.toLowerCase();
-    return (
-      song.title.toLowerCase().includes(query) ||
-      song.singer.toLowerCase().includes(query)
-    );
+    return song.title.toLowerCase().includes(query) || song.singer.toLowerCase().includes(query);
   });
 
   if (loading) {
