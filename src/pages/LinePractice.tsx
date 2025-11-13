@@ -668,17 +668,14 @@ const LinePractice: React.FC = () => {
               // 최종 점수 계산: (입모양 점수 * 100 * 0.4) + (소리 AI 서버 점수 * 0.6)
               const mouthScorePercentage = mouthScoreRef.current * 100;
               const finalScore = mouthScorePercentage * 0.4 + score * 0.6;
-              const roundedFinalScore = Math.round(finalScore * 100) / 100;
+              const roundedFinalScore = Math.round(finalScore);
 
-              return (
-                <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore.toFixed(2)}점</p>
-              );
+              return <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore}점</p>;
             })()}
           {!isLoading && !error && score !== null && mouthScoreRef.current === null && (
             <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
           )}
         </div>
-
         {/* 버튼 영역 */}
         <div
           style={{
