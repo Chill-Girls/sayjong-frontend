@@ -91,7 +91,7 @@ export function useKaraoke(songId: number | null) {
     isLoading: loading,
     error,
     songInfo: {
-      title: song?.title,
+      title: song?.titleEng,
       singer: song?.singer,
     },
 
