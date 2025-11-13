@@ -100,7 +100,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     (vowel: string | null): Record<string, number> | null => {
       // 데이터가 로드되지 않았거나 모음이 없으면 null 반환
       if (!vowel || !loadedTargetVowels) return null;
-
       // 캐시 확인
       if (targetBlendshapesCacheRef.current[vowel]) {
         return targetBlendshapesCacheRef.current[vowel];
@@ -145,14 +144,14 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       try {
         const parsedData = JSON.parse(dataString);
         setLoadedTargetVowels(parsedData);
-        console.log("CameraComponent: 'target_vowels'를 localStorage에서 로드했습니다.");
+        // console.log("CameraComponent: 'target_vowels'를 localStorage에서 로드했습니다.");
       } catch (e) {
-        console.error('CameraComponent: localStorage 데이터 파싱 실패', e);
+        // console.error('CameraComponent: localStorage 데이터 파싱 실패', e);
         setError('캘리브레이션 데이터를 불러오는 데 실패했습니다.');
       }
     } else {
       // 캘리브레이션을 아직 안 한 사용자
-      console.warn("CameraComponent: 'target_vowels' 데이터가 없습니다.");
+      // console.warn("CameraComponent: 'target_vowels' 데이터가 없습니다.");
       setError('캘리브레이션이 필요합니다. 캘리브레이션 페이지로 이동해주세요.');
     }
     setIsLoadingData(false); // 데이터 로드 시도 완료
@@ -211,7 +210,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
     const initializeCamera = async () => {
       try {
         if (!videoRef.current) {
-          console.error('Video ref not available');
+          // console.error('Video ref not available');
           return;
         }
 
@@ -299,7 +298,32 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
               }
             }
 
-            // 외부로 결과 전달
+            // 블렌드쉐이프 데이터 처리 (onResults와 무관하게 항상 실행! 이 부분 수정)
+            if (results) {
+              const blendshapeCategories = results.faceBlendshapes?.[0]?.categories;
+              if (blendshapeCategories && Array.isArray(blendshapeCategories)) {
+                const blendshapeMap = new Map<string, number>(); 
+                const catCount = blendshapeCategories.length; 
+                for (let i = 0; i < catCount; i++) {
+                  const cat = blendshapeCategories[i];
+                  blendshapeMap.set(cat.categoryName, cat.score);
+                }
+
+                // 타겟 블렌드쉐이프만 추출
+                const targetCount = TARGET_BLENDSHAPES.length;
+                const currentBlendshapeMap: Record<string, number> = {};
+                for (let i = 0; i < targetCount; i++) {
+                  const key = TARGET_BLENDSHAPES[i];
+                  const value = blendshapeMap.get(key) ?? 0;
+                  currentBlendshapeMap[key] = value;
+                }
+                // 현재 블렌드쉐이프 상태 업데이트
+                setCurrentBlendshapes(currentBlendshapeMap);
+                console.log('CameraComponent: currentBlendshapeMap', currentBlendshapeMap);
+              }
+            }
+
+            // 외부로 결과 전달 (onResults가 있을 때만)
             if (onResultsRef.current && results) {
               const processedResults = processedResultsRef.current;
               const hasFace = results.faceLandmarks && results.faceLandmarks.length > 0;
@@ -330,7 +354,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                 processedResults.landmarks = undefined;
               }
 
-              // 블렌드쉐이프 데이터 처리
+              // 블렌드쉐이프 데이터 처리 (processedResults에도 저장)
               if (!processedResults.blendshapes) {
                 processedResults.blendshapes = {};
               }
@@ -344,23 +368,19 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
                   blendshapeMap.set(cat.categoryName, cat.score);
                 }
 
-                // 타겟 블렌드쉐이프만 추출
+                // 타겟 블렌드쉐이프만 추출하여 processedResults에도 저장
                 const targetCount = TARGET_BLENDSHAPES.length;
-                const currentBlendshapeMap: Record<string, number> = {};
                 for (let i = 0; i < targetCount; i++) {
                   const key = TARGET_BLENDSHAPES[i];
                   const value = blendshapeMap.get(key) ?? 0;
                   processedResults.blendshapes![key] = value;
-                  currentBlendshapeMap[key] = value;
                 }
-                // 현재 블렌드쉐이프 상태 업데이트
-                setCurrentBlendshapes(currentBlendshapeMap);
               }
 
               onResultsRef.current(processedResults);
             }
           } catch (error) {
-            console.error('Error detecting face:', error);
+            // console.error('Error detecting face:', error);
           }
 
           // 다음 프레임 요청
@@ -382,7 +402,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         setIsInitialized(true);
         setError(null);
       } catch (err) {
-        console.error('Camera initialization failed:', err);
+        // console.error('Camera initialization failed:', err);
         setError(
           `Camera initialization failed: ${err instanceof Error ? err.message : 'Unknown error'}`,
         );
@@ -415,7 +435,6 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         currentVideo.srcObject = null;
         currentVideo.pause();
       }
-
       // FaceLandmarker 리소스 해제
       if (currentFaceLandmarker) {
         currentFaceLandmarker.close();
