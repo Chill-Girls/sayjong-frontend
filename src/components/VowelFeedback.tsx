@@ -100,8 +100,8 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
           ? similarities.reduce((a, b) => a + b, 0) / similarities.length
           : 0;
 
-        // 임계값: 0.80 기준값, 다음 모음이 둥글게/열리게 하면 0.05 완화
-        let threshold = 0.8;
+        // 임계값: 0.75 기준값, 다음 모음이 둥글게/열리게 하면 0.05 완화
+        let threshold = 0.75;
         if (nextVowel && (ROUNDED_VOWELS.has(nextVowel) || OPEN_VOWELS.has(nextVowel))) {
           threshold -= 0.05;
         }
@@ -232,16 +232,16 @@ function buildFeedbackForVowel(
   const smileRatio = Math.min(smileLeftRatio, smileRightRatio);
 
   // 우선순위: 모음이 열림이 필요하면 -> jawOpen 확인; 둥글림이 필요하면 -> pucker/funnel 확인
-  if (needOpen && openRatio < 0.9) {
+  if (needOpen && openRatio < 0.85) {
     return { title: `${vowel} pronunciation`, message: 'Open your mouth more.' };
   }
-  if (needRound && puckerRatio < 0.9) {
+  if (needRound && puckerRatio < 0.85) {
     return { title: `${vowel} pronunciation`, message: 'Round your lips more.' };
   }
-  if (needRound && funnelRatio < 0.9) {
+  if (needRound && funnelRatio < 0.85) {
     return { title: `${vowel} pronunciation`, message: 'Purse your lips a bit more.' };
   }
-  if (SPREAD_VOWELS.has(vowel) && smileRatio < 0.9) {
+  if (SPREAD_VOWELS.has(vowel) && smileRatio < 0.85) {
     return { title: `${vowel} pronunciation`, message: 'Spread your lips a bit more.' };
   }
   if (SPREAD_VOWELS.has(vowel) && puckerRatio > 1.1) {
