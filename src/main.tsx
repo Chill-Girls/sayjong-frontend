@@ -13,6 +13,8 @@ import { ModeProvider } from './constants/ModeContext.tsx';
 import { RecordingProvider } from './constants/RecordingContext.tsx';
 import { useCalibrationData } from './hooks/useCalibration';
 import SyllablePractice from './pages/SyllablePractice.tsx';
+import ProtectedRoute from './components/ProtectedRoute.tsx';
+
 // 임시 History 페이지
 // eslint-disable-next-line react-refresh/only-export-components
 function HistoryPage() {
@@ -39,19 +41,19 @@ function AppRouter() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate replace to="/home" />} />
-      <Route path="/home" element={<SelectMusic />} />
-      <Route path="/lesson" element={<Navigate replace to="/home" />} />
-      <Route path="/lesson/:songId" element={<SelectMode />} />
-
-      <Route path="/lesson/:songId/syllable" element={<SyllablePractice />} />
-      <Route path="/lesson/:songId/line" element={<LinePractice />} />
-      <Route path="/lesson/:songId/sing" element={<SingAlong />} />
-
-      <Route path="/history" element={<HistoryPage />} />
-      <Route path="/calibration" element={<CalibrationCapture />} />
-
       <Route path="/login" element={<Login />} />
+      <Route element={<ProtectedRoute />}>
+        <Route path="/" element={<Navigate replace to="/home" />} />
+        <Route path="/home" element={<SelectMusic />} />
+        <Route path="/lesson" element={<Navigate replace to="/home" />} />
+        <Route path="/lesson/:songId" element={<SelectMode />} />
+        <Route path="/lesson/:songId/syllable" element={<SyllablePractice />} />
+        <Route path="/lesson/:songId/line" element={<LinePractice />} />
+        <Route path="/lesson/:songId/sing" element={<SingAlong />} />
+
+        <Route path="/history" element={<HistoryPage />} />
+        <Route path="/calibration" element={<CalibrationCapture />} />
+      </Route>
     </Routes>
   );
 }
