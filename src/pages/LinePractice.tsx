@@ -108,12 +108,12 @@ const LinePractice: React.FC = () => {
       try {
         const parsedData = JSON.parse(dataString);
         setLoadedTargetVowels(parsedData);
-        console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
-      } catch (e) {
-        console.error('LinePractice: localStorage 데이터 파싱 실패', e);
+        // console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
+      } catch {
+        // console.error('LinePractice: localStorage 데이터 파싱 실패', e);
       }
     } else {
-      console.warn("LinePractice: 'target_vowels' 데이터가 없습니다. 캘리브레이션이 필요합니다.");
+      // console.warn("LinePractice: 'target_vowels' 데이터가 없습니다. 캘리브레이션이 필요합니다.");
     }
     setIsLoadingData(false); // 데이터 로드 시도 완료
   }, []); // [] : 컴포넌트 마운트 시 한 번만 실행

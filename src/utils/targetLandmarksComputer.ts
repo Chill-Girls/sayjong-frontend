@@ -77,8 +77,8 @@ export class TargetLandmarksComputer {
       let calibData;
       try {
         calibData = JSON.parse(rawString);
-      } catch (e) {
-        console.error('TargetLandmarksComputer: "vowel_calibration" 데이터 파싱 실패.', e);
+      } catch {
+        //console.error('TargetLandmarksComputer: "vowel_calibration" 데이터 파싱 실패.', e);
         return {}; // 데이터 손상
       }
 
@@ -122,9 +122,9 @@ export class TargetLandmarksComputer {
       const orthogonalityCheck = validateCoordinateSystem(this.personalCoordinateSystem);
       const normalizationCheck = validateNormalization(this.personalCoordinateSystem);
 
-      console.log('개인화 좌표계 보정 완료 (입술 중앙 기준)');
-      console.log('직교성 검증:', orthogonalityCheck);
-      console.log('정규화 검증:', normalizationCheck);
+      //console.log('개인화 좌표계 보정 완료 (입술 중앙 기준)');
+      // console.log('직교성 검증:', orthogonalityCheck);
+      // console.log('정규화 검증:', normalizationCheck);
 
       if (!orthogonalityCheck.isValid || !normalizationCheck.isValid) {
         console.warn('좌표계 검증 실패!');
@@ -222,7 +222,7 @@ export class TargetLandmarksComputer {
 
     // 디버깅 로그 (1% 확률로 출력)
     if (Math.random() < 0.01) {
-      console.log('입술 중앙 기준 좌표계:', {
+      /*console.log('입술 중앙 기준 좌표계:', {
         currentMouthCenter: {
           x: currentMouthCenter.x.toFixed(3),
           y: currentMouthCenter.y.toFixed(3),
@@ -235,7 +235,7 @@ export class TargetLandmarksComputer {
         distanceScale: distanceScale.toFixed(3),
         personalEyeDistance: personalSystem.eyeDistance.toFixed(3),
         dynamicEyeDistance: dynamicSystem.eyeDistance.toFixed(3),
-      });
+      });*/
     }
 
     return targetLandmarks;

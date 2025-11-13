@@ -101,7 +101,6 @@ export function useVowelOverlay({
       }
 
       setCountdown(null);
-
       // AR 오버레이 표시 시작
       setArVowel(vowel);
       setShowAROverlay(true);
@@ -173,14 +172,13 @@ export function useVowelOverlay({
       if (timeSinceLastDetection >= 8 || !targetLandmarks) {
         // 마지막 감지 이후 8ms 이상이거나 목표 랜드마크가 없으면 계산
         targetLandmarks = targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
-
         if (!cachedResultsRef.current) cachedResultsRef.current = {}; // 캐시된 결과가 없으면 초기화
         cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
       }
 
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
-        if (similarityScoreRef.current && similarityScoreRef.current > 0.8) {
+        if (similarityScoreRef.current && similarityScoreRef.current >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
         } else {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황

@@ -300,271 +300,276 @@ const CalibrationCapture: React.FC = () => {
         }}
       >
         <Header />
-      <h1
-        style={{
-          textAlign: 'center',
-          color: COLORS.primary,
-          fontSize: '2rem',
-          marginBottom: '2rem',
-          fontFamily: FONTS.primary,
-          fontWeight: FONT_WEIGHTS.bold,
-        }}
-      >
-        Mouth Shape Calibration Tool
-      </h1>
-
-      <div
-        style={{
-          display: 'flex',
-          gap: scaled(100),
-          marginTop: scaled(20),
-          maxWidth: scaled(1400),
-          margin: `${scaled(20)} auto 0`,
-          alignItems: 'flex-start',
-        }}
-      >
-        {/* 비디오/캔버스 */}
-        <div
+        <h1
           style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: scaled(700),
-            maxWidth: scaled(900),
+            textAlign: 'center',
+            color: COLORS.primary,
+            fontSize: '2rem',
+            marginBottom: '2rem',
+            fontFamily: FONTS.primary,
+            fontWeight: FONT_WEIGHTS.bold,
           }}
         >
+          Mouth Shape Calibration Tool
+        </h1>
+
+        <div
+          style={{
+            display: 'flex',
+            gap: scaled(100),
+            marginTop: scaled(20),
+            maxWidth: scaled(1400),
+            margin: `${scaled(20)} auto 0`,
+            alignItems: 'flex-start',
+          }}
+        >
+          {/* 비디오/캔버스 */}
           <div
             style={{
-              position: 'relative',
-              width: scaled(800),
-              height: scaled(600),
-              backgroundColor: COLORS.gray,
-              borderRadius: scaled(10),
-              overflow: 'hidden',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              minWidth: scaled(700),
+              maxWidth: scaled(900),
             }}
           >
-            <video
-              ref={videoRef}
-              style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'none',
-              }}
-            />
-            <canvas
-              ref={canvasRef}
-              style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover' }}
-            />
-            {countdown !== null && (
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  fontSize: scaled(120),
-                  fontWeight: FONT_WEIGHTS.bold,
-                  color: '#00FF00',
-                  textShadow: '0 0 20px rgba(0,255,0,0.8)',
-                }}
-              >
-                {countdown}
-              </div>
-            )}
             <div
               style={{
-                position: 'absolute',
-                left: '50%',
-                bottom: scaled(24),
-                transform: 'translateX(-50%)',
-                padding: `${scaled(12)} ${scaled(18)}`,
-                backgroundColor: 'rgba(255, 255, 255, 0.7)',
-                borderRadius: scaled(12),
-                fontSize: FONT_SIZES.md,
-                color: COLORS.dark,
-                border: '1px solid rgba(240, 66, 153, 0.25)',
-                boxShadow: '0 8px 20px rgba(240, 66, 153, 0.12)',
-                whiteSpace: 'pre-line',
-                textAlign: 'center',
-                maxWidth: '90%',
-                pointerEvents: 'none',
+                position: 'relative',
+                width: scaled(800),
+                height: scaled(600),
+                backgroundColor: COLORS.gray,
+                borderRadius: scaled(10),
+                overflow: 'hidden',
               }}
             >
-              {vowelInstructions[currentVowel]}
-            </div>
-            {/* Camera Flash Effect */}
-            {isFlashing && (
+              <video
+                ref={videoRef}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  display: 'none',
+                }}
+              />
+              <canvas
+                ref={canvasRef}
+                style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+              {countdown !== null && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
+                    fontSize: scaled(120),
+                    fontWeight: FONT_WEIGHTS.bold,
+                    color: '#00FF00',
+                    textShadow: '0 0 20px rgba(0,255,0,0.8)',
+                  }}
+                >
+                  {countdown}
+                </div>
+              )}
               <div
                 style={{
                   position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                  zIndex: 1000,
+                  left: '50%',
+                  bottom: scaled(24),
+                  transform: 'translateX(-50%)',
+                  padding: `${scaled(12)} ${scaled(18)}`,
+                  backgroundColor: 'rgba(255, 255, 255, 0.7)',
+                  borderRadius: scaled(12),
+                  fontSize: FONT_SIZES.md,
+                  color: COLORS.dark,
+                  border: '1px solid rgba(240, 66, 153, 0.25)',
+                  boxShadow: '0 8px 20px rgba(240, 66, 153, 0.12)',
+                  whiteSpace: 'pre-line',
+                  textAlign: 'center',
+                  maxWidth: '90%',
                   pointerEvents: 'none',
-                  animation: 'flash 150ms ease-out',
                 }}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* 컨트롤 */}
-        <div
-          style={{ width: scaled(450), ...flexColumn, gap: scaled(20), fontFamily: FONTS.primary }}
-        >
-          {/* 현재 모음 선택 */}
-          <div
-            style={{
-              backgroundColor: '#f8f9fa',
-              padding: scaled(20),
-              borderRadius: scaled(12),
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              border: '1px solid #e9ecef',
-            }}
-          >
-            <h3
-              style={{
-                margin: `0 0 ${scaled(15)} 0`,
-                color: COLORS.primary,
-                fontSize: '1.0rem',
-                fontWeight: FONT_WEIGHTS.bold,
-              }}
-            >
-              CURRENT VOWEL
-            </h3>
-            <select
-              value={currentVowel}
-              onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                setCurrentVowel(e.target.value as 'neutral' | 'a' | 'u' | 'i')
-              }
-              style={{
-                width: '100%',
-                padding: scaled(12),
-                fontSize: FONT_SIZES.base,
-                borderRadius: scaled(8),
-                border: `2px solid ${COLORS.primary}`,
-                marginBottom: scaled(10),
-                fontFamily: FONTS.primary,
-              }}
-            >
-              <option value="neutral">Neutral</option>
-              <option value="a">ㅏ (a)</option>
-              <option value="u">ㅜ (u)</option>
-              <option value="i">ㅣ (i)</option>
-            </select>
-          </div>
-
-          {/* 캡처 버튼 */}
-          <button
-            onClick={captureFrame}
-            disabled={!isInitialized || isCapturing}
-            style={{
-              ...(isCapturing ? buttonDisabled : buttonPrimary),
-              padding: `${scaled(15)} ${scaled(30)}`,
-              fontSize: FONT_SIZES.md,
-              fontWeight: FONT_WEIGHTS.bold,
-              borderRadius: scaled(10),
-            }}
-          >
-            {isCapturing ? 'Capturing...' : `Capture ${currentVowel.toUpperCase()}`}
-          </button>
-
-          {/* 캡처된 데이터 표시 */}
-          <div
-            style={{
-              backgroundColor: '#f8f9fa',
-              padding: scaled(20),
-              borderRadius: scaled(12),
-              boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-              border: '1px solid #e9ecef',
-            }}
-          >
-            <h3
-              style={{
-                margin: `0 0 ${scaled(15)} 0`,
-                color: COLORS.primary,
-                fontSize: '1.0rem',
-                fontWeight: FONT_WEIGHTS.bold,
-              }}
-            >
-              CAPTURED DATA
-            </h3>
-            <div style={{ ...flexColumn, gap: scaled(8) }}>
-              {(['neutral', 'a', 'u', 'i'] as const).map(vowel => (
+              >
+                {vowelInstructions[currentVowel]}
+              </div>
+              {/* Camera Flash Effect */}
+              {isFlashing && (
                 <div
-                  key={vowel}
                   style={{
-                    padding: scaled(12),
-                    backgroundColor: calibrationData[vowel] ? '#e8f5e8' : '#fff3cd',
-                    borderRadius: scaled(8),
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    border: `1px solid ${calibrationData[vowel] ? '#c3e6c3' : '#ffeaa7'}`,
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                    zIndex: 1000,
+                    pointerEvents: 'none',
+                    animation: 'flash 150ms ease-out',
                   }}
-                >
-                  <span
-                    style={{
-                      fontSize: '0.8rem',
-                      fontWeight: FONT_WEIGHTS.semibold,
-                      color: '#495057',
-                    }}
-                  >
-                    {vowel}
-                  </span>
-                  <span style={{ fontSize: FONT_SIZES.base }}>
-                    {calibrationData[vowel] ? '✅' : '⏳'}
-                  </span>
-                </div>
-              ))}
+                />
+              )}
             </div>
           </div>
 
-          {/* 다운로드 버튼 */}
-          <button
-            onClick={handleSaveClick}
-            disabled={Object.keys(calibrationData).length < 4 || isSaving}
+          {/* 컨트롤 */}
+          <div
             style={{
-              padding: `${scaled(15)} ${scaled(30)}`,
-              fontSize: FONT_SIZES.md,
-              fontWeight: FONT_WEIGHTS.semibold,
-              backgroundColor: Object.keys(calibrationData).length < 4 ? '#e9ecef' : '#28a745',
-              color: Object.keys(calibrationData).length < 4 ? '#6c757d' : COLORS.white,
-              border: 'none',
-              borderRadius: scaled(12),
-              cursor: Object.keys(calibrationData).length < 4 ? 'not-allowed' : 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-              transition: 'all 0.2s ease',
+              width: scaled(450),
+              ...flexColumn,
+              gap: scaled(20),
               fontFamily: FONTS.primary,
             }}
           >
-            Complete Calibration
-          </button>
+            {/* 현재 모음 선택 */}
+            <div
+              style={{
+                backgroundColor: '#f8f9fa',
+                padding: scaled(20),
+                borderRadius: scaled(12),
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                border: '1px solid #e9ecef',
+              }}
+            >
+              <h3
+                style={{
+                  margin: `0 0 ${scaled(15)} 0`,
+                  color: COLORS.primary,
+                  fontSize: '1.0rem',
+                  fontWeight: FONT_WEIGHTS.bold,
+                }}
+              >
+                CURRENT VOWEL
+              </h3>
+              <select
+                value={currentVowel}
+                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                  setCurrentVowel(e.target.value as 'neutral' | 'a' | 'u' | 'i')
+                }
+                style={{
+                  width: '100%',
+                  padding: scaled(12),
+                  fontSize: FONT_SIZES.base,
+                  borderRadius: scaled(8),
+                  border: `2px solid ${COLORS.primary}`,
+                  marginBottom: scaled(10),
+                  fontFamily: FONTS.primary,
+                }}
+              >
+                <option value="neutral">Neutral</option>
+                <option value="a">ㅏ (a)</option>
+                <option value="u">ㅜ (u)</option>
+                <option value="i">ㅣ (i)</option>
+              </select>
+            </div>
 
-          {/* 정보 텍스트 */}
-          <div
-            style={{
-              fontSize: FONT_SIZES.xs,
-              color: '#6c757d',
-              textAlign: 'center',
-              lineHeight: 1.6,
-            }}
-          >
-            Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
-            <br />
-            (4 face + 40 mouth)
-            <br />
-            <span style={{ color: '#FF0000', fontWeight: FONT_WEIGHTS.bold }}></span>
+            {/* 캡처 버튼 */}
+            <button
+              onClick={captureFrame}
+              disabled={!isInitialized || isCapturing}
+              style={{
+                ...(isCapturing ? buttonDisabled : buttonPrimary),
+                padding: `${scaled(15)} ${scaled(30)}`,
+                fontSize: FONT_SIZES.md,
+                fontWeight: FONT_WEIGHTS.bold,
+                borderRadius: scaled(10),
+              }}
+            >
+              {isCapturing ? 'Capturing...' : `Capture ${currentVowel.toUpperCase()}`}
+            </button>
+
+            {/* 캡처된 데이터 표시 */}
+            <div
+              style={{
+                backgroundColor: '#f8f9fa',
+                padding: scaled(20),
+                borderRadius: scaled(12),
+                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+                border: '1px solid #e9ecef',
+              }}
+            >
+              <h3
+                style={{
+                  margin: `0 0 ${scaled(15)} 0`,
+                  color: COLORS.primary,
+                  fontSize: '1.0rem',
+                  fontWeight: FONT_WEIGHTS.bold,
+                }}
+              >
+                CAPTURED DATA
+              </h3>
+              <div style={{ ...flexColumn, gap: scaled(8) }}>
+                {(['neutral', 'a', 'u', 'i'] as const).map(vowel => (
+                  <div
+                    key={vowel}
+                    style={{
+                      padding: scaled(12),
+                      backgroundColor: calibrationData[vowel] ? '#e8f5e8' : '#fff3cd',
+                      borderRadius: scaled(8),
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      border: `1px solid ${calibrationData[vowel] ? '#c3e6c3' : '#ffeaa7'}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: '0.8rem',
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: '#495057',
+                      }}
+                    >
+                      {vowel}
+                    </span>
+                    <span style={{ fontSize: FONT_SIZES.base }}>
+                      {calibrationData[vowel] ? '✅' : '⏳'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 다운로드 버튼 */}
+            <button
+              onClick={handleSaveClick}
+              disabled={Object.keys(calibrationData).length < 4 || isSaving}
+              style={{
+                padding: `${scaled(15)} ${scaled(30)}`,
+                fontSize: FONT_SIZES.md,
+                fontWeight: FONT_WEIGHTS.semibold,
+                backgroundColor: Object.keys(calibrationData).length < 4 ? '#e9ecef' : '#28a745',
+                color: Object.keys(calibrationData).length < 4 ? '#6c757d' : COLORS.white,
+                border: 'none',
+                borderRadius: scaled(12),
+                cursor: Object.keys(calibrationData).length < 4 ? 'not-allowed' : 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                transition: 'all 0.2s ease',
+                fontFamily: FONTS.primary,
+              }}
+            >
+              Complete Calibration
+            </button>
+
+            {/* 정보 텍스트 */}
+            <div
+              style={{
+                fontSize: FONT_SIZES.xs,
+                color: '#6c757d',
+                textAlign: 'center',
+                lineHeight: 1.6,
+              }}
+            >
+              Tracking: {ALL_TRACKED_LANDMARKS.length} landmarks
+              <br />
+              (4 face + 40 mouth)
+              <br />
+              <span style={{ color: '#FF0000', fontWeight: FONT_WEIGHTS.bold }}></span>
+            </div>
           </div>
         </div>
+        <FooterCopyright />
       </div>
-      <FooterCopyright />
-    </div>
     </>
   );
 };
