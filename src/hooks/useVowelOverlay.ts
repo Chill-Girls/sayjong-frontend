@@ -189,7 +189,6 @@ export function useVowelOverlay({
     },
     [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],
   );
-
   return {
     renderOverlay,
     currentVowel: showAROverlay ? arVowel : currentVowel, // AR 오버레이가 활성화되면 arVowel 사용
