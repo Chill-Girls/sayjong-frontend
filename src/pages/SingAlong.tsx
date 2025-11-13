@@ -368,5 +368,4 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
     </div>
   );
 };
-
 export default SingAlong;
