@@ -51,6 +51,7 @@ const Header: FunctionComponent<HeaderProps> = () => {
       height: '37.5px',
       objectFit: 'contain',
       justifySelf: 'end',
+      filter: 'brightness(0) saturate(100%) invert(27%) sepia(93%) saturate(1352%) hue-rotate(300deg) brightness(98%) contrast(95%)',
     },
   };
 
@@ -84,8 +85,8 @@ const Header: FunctionComponent<HeaderProps> = () => {
         onMouseUp={() => setLogoPressed(false)}
         onMouseLeave={() => setLogoPressed(false)}
       >
-        <span style={{ color: '#F04488' }}>SAY</span>
-        <span>JONG</span>
+        <span style={{ color: '#F04488', fontWeight: 'bold' }}>SAY</span>
+        <span style={{ fontWeight: 'bold' }}>JONG</span>
       </Link>
 
       <nav style={styles.navigation}>
