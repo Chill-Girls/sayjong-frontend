@@ -126,6 +126,10 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
       const prevTarget = getTargetBlendshapes(prevVowel);
       if (prevTarget && segmentSamplesRef.current.length > 0) {
+        // 모음 하나를 완전히 평가할 때마다 총 모음 개수를 증가
+        setTotalVowelCount(prev => prev + 1);
+        totalVowelCountRef.current += 1;
+
         const similarities = segmentSimilaritiesRef.current;
         const avgSimilarity = similarities.length
           ? similarities.reduce((a, b) => a + b, 0) / similarities.length
@@ -180,7 +184,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
       segmentSimilaritiesRef.current = [];
       segmentIndicesRef.current = [];
     },
-    [getTargetBlendshapes, lyricChars, onSegmentFeedback, flagAccumulatorRef],
+    [getTargetBlendshapes, lyricChars, onSegmentFeedback, flagAccumulatorRef, totalVowelCountRef],
   );
 
   // 모음/가사 인덱스가 유지되는 동안 샘플을 누적하고, 변동이 생기면 이전 세그먼트를 평가
@@ -222,16 +226,13 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     prevIndexRef.current = typeof currentIndex === 'number' ? currentIndex : null;
   }, [activeVowel, currentBlendshapes, currentIndex, finalizeSegment, getTargetBlendshapes]);
 
-  // 모음 변경 감지 및 총 글자 수 카운트 (useScore 로직)
+  // 모음 변경 감지 (세그먼트 추적을 위한 previous 갱신)
   useEffect(() => {
     if (!isActive) return;
 
     const prevVowel = vowelCountPrevVowelRef.current;
 
-    // 모음이 변경되었고, null이 아니면 글자 수 증가
     if (activeVowel !== null && activeVowel !== prevVowel) {
-      setTotalVowelCount(prev => prev + 1);
-      totalVowelCountRef.current += 1;
       vowelCountPrevVowelRef.current = activeVowel;
     } else if (activeVowel === null && prevVowel !== null) {
       vowelCountPrevVowelRef.current = null;
