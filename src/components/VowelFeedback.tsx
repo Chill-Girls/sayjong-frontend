@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Feedback from './Feedback';
 import {
   calculateBlendshapeSimilarity,
@@ -23,6 +23,14 @@ interface VowelFeedbackProps {
   shouldDisplay?: boolean;
   /* 새로운 가사 줄로 이동할 때 이 키를 변경하여 누적된 피드백을 초기화 */
   resetKey?: string | number;
+  /* flagAccumulator ref를 외부로 전달 */
+  flagAccumulatorRef?: React.MutableRefObject<number>;
+  /* 발음 점수를 외부로 전달할 ref */
+  mouthScoreRef?: React.MutableRefObject<number | null>;
+  /* 전체 모음 갯수를 외부로 전달할 ref */
+  totalVowelCountRef?: React.MutableRefObject<number>;
+  /* 점수 계산을 시작할지 여부 */
+  isActive?: boolean;
 }
 
 export interface SegmentFeedbackItem {
@@ -47,6 +55,10 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   onReset,
   shouldDisplay = true,
   resetKey,
+  flagAccumulatorRef: externalFlagAccumulatorRef,
+  mouthScoreRef: externalMouthScoreRef,
+  totalVowelCountRef: externalTotalVowelCountRef,
+  isActive = true,
 }) => {
   // 세그먼트 추적
   const prevVowelRef = useRef<string | null>(null);
@@ -55,6 +67,19 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   const segmentIndicesRef = useRef<number[]>([]);
   const nextFeedbackIdRef = useRef<number>(1);
   const prevIndexRef = useRef<number | null>(null);
+  // flag 값 누적 (외부 ref가 있으면 사용, 없으면 내부 ref 생성)
+  const internalFlagAccumulatorRef = useRef<number>(0);
+  const flagAccumulatorRef = externalFlagAccumulatorRef || internalFlagAccumulatorRef;
+
+  // 모음 갯수 추적 (useScore 로직)
+  const vowelCountPrevVowelRef = useRef<string | null>(null);
+  const [totalVowelCount, setTotalVowelCount] = useState<number>(0);
+
+  // 내부 ref 생성 (외부 ref가 없으면)
+  const internalMouthScoreRef = useRef<number | null>(null);
+  const internalTotalVowelCountRef = useRef<number>(0);
+  const mouthScoreRef = externalMouthScoreRef || internalMouthScoreRef;
+  const totalVowelCountRef = externalTotalVowelCountRef || internalTotalVowelCountRef;
 
   // 목표 모음을 한 번만 로드
   const targetVowels = useMemo(() => {
@@ -81,7 +106,13 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     segmentSimilaritiesRef.current = [];
     segmentIndicesRef.current = [];
     prevVowelRef.current = null;
-  }, [onReset, resetKey]);
+    flagAccumulatorRef.current = 0;
+    // 점수 관련 초기화
+    setTotalVowelCount(0);
+    vowelCountPrevVowelRef.current = null;
+    mouthScoreRef.current = null;
+    totalVowelCountRef.current = 0;
+  }, [onReset, resetKey, mouthScoreRef, totalVowelCountRef, flagAccumulatorRef]);
 
   const finalizeSegment = useCallback(
     (nextVowel: string | null) => {
@@ -107,6 +138,8 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
         }
 
         const flag = avgSimilarity >= threshold ? 1 : 0;
+        // flag 값 누적
+        flagAccumulatorRef.current += flag;
 
         if (flag === 0 && segmentIndicesRef.current.length > 0) {
           // 평균 블렌드쉐이프와 목표값 비교를 기반으로 피드백 생성
@@ -147,7 +180,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
       segmentSimilaritiesRef.current = [];
       segmentIndicesRef.current = [];
     },
-    [getTargetBlendshapes, lyricChars, onSegmentFeedback],
+    [getTargetBlendshapes, lyricChars, onSegmentFeedback, flagAccumulatorRef],
   );
 
   // 모음/가사 인덱스가 유지되는 동안 샘플을 누적하고, 변동이 생기면 이전 세그먼트를 평가
@@ -188,6 +221,40 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     prevVowelRef.current = activeVowel;
     prevIndexRef.current = typeof currentIndex === 'number' ? currentIndex : null;
   }, [activeVowel, currentBlendshapes, currentIndex, finalizeSegment, getTargetBlendshapes]);
+
+  // 모음 변경 감지 및 총 글자 수 카운트 (useScore 로직)
+  useEffect(() => {
+    if (!isActive) return;
+
+    const prevVowel = vowelCountPrevVowelRef.current;
+
+    // 모음이 변경되었고, null이 아니면 글자 수 증가
+    if (activeVowel !== null && activeVowel !== prevVowel) {
+      setTotalVowelCount(prev => prev + 1);
+      totalVowelCountRef.current += 1;
+      vowelCountPrevVowelRef.current = activeVowel;
+    } else if (activeVowel === null && prevVowel !== null) {
+      vowelCountPrevVowelRef.current = null;
+    }
+  }, [activeVowel, isActive, totalVowelCountRef]);
+
+  // flagAccumulator와 총 글자 수를 기반으로 점수 계산
+  useEffect(() => {
+    if (!isActive) return;
+
+    const intervalId = setInterval(() => {
+      if (totalVowelCount === 0) {
+        mouthScoreRef.current = null;
+        return;
+      }
+
+      const flagAccumulator = flagAccumulatorRef.current;
+      const score = flagAccumulator / totalVowelCount;
+      mouthScoreRef.current = score;
+    }, 100); // 100ms마다 체크
+
+    return () => clearInterval(intervalId);
+  }, [flagAccumulatorRef, totalVowelCount, isActive, mouthScoreRef]);
 
   if (!shouldDisplay) {
     return null;

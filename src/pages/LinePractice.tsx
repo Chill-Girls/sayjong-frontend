@@ -110,7 +110,7 @@ const LinePractice: React.FC = () => {
         setLoadedTargetVowels(parsedData);
         // console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
       } catch {
-        // console.error('LinePractice: localStorage 데이터 파싱 실패', e);
+        // console.error('LinePractice: localStorage 데이터 파싱 실패');
       }
     } else {
       // console.warn("LinePractice: 'target_vowels' 데이터가 없습니다. 캘리브레이션이 필요합니다.");
@@ -232,8 +232,11 @@ const LinePractice: React.FC = () => {
   const totalLines = usableLines.length;
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
-
   const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
+  //노래 점수
+  const flagAccumulatorRef = useRef<number>(0);
+  const mouthScoreRef = useRef<number | null>(null);
+  const totalVowelCountRef = useRef<number>(0);
 
   // 모든 버튼 상태 리셋 함수
   const resetAllButtons = useCallback(() => {
@@ -270,12 +273,25 @@ const LinePractice: React.FC = () => {
       setIsRecording(false);
       stopTts();
       setShowFeedback(true);
+      // 녹음 종료 시 입모양 점수 계산완료
+      if (mouthScoreRef.current !== null) {
+        console.log('녹음 종료 - 입모양 점수:', {
+          mouthScore: mouthScoreRef.current,
+          totalVowelCount: totalVowelCountRef.current,
+          flagAccumulator: flagAccumulatorRef.current,
+          percentage: (mouthScoreRef.current * 100).toFixed(1) + '%',
+        });
+      }
     } else {
       // 녹음 시작
       setIsRecording(true);
       setShowFeedback(false);
       setFailedMask(prev => prev.map(() => 0));
       handleResetSegmentFeedbacks();
+      // 점수 초기화
+      flagAccumulatorRef.current = 0;
+      mouthScoreRef.current = null;
+      totalVowelCountRef.current = 0;
     }
   }, [handleResetSegmentFeedbacks, isRecording, setIsRecording, stopTts]);
 
@@ -594,6 +610,10 @@ const LinePractice: React.FC = () => {
                   onSegmentFeedback={handleSegmentFeedback}
                   onReset={handleResetSegmentFeedbacks}
                   resetKey={selected?.lyricLineId}
+                  flagAccumulatorRef={flagAccumulatorRef}
+                  mouthScoreRef={mouthScoreRef}
+                  totalVowelCountRef={totalVowelCountRef}
+                  isActive={isRecording}
                 />
               </div>
             </div>
@@ -640,7 +660,21 @@ const LinePractice: React.FC = () => {
         >
           {isLoading && <p>채점 중...</p>}
           {error && <p style={{ color: 'red' }}>오류: {error}</p>}
-          {!isLoading && !error && score !== null && (
+          {!isLoading &&
+            !error &&
+            score !== null &&
+            mouthScoreRef.current !== null &&
+            (() => {
+              // 최종 점수 계산: (입모양 점수 * 100 * 0.4) + (소리 AI 서버 점수 * 0.6)
+              const mouthScorePercentage = mouthScoreRef.current * 100;
+              const finalScore = mouthScorePercentage * 0.4 + score * 0.6;
+              const roundedFinalScore = Math.round(finalScore * 100) / 100;
+
+              return (
+                <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore.toFixed(2)}점</p>
+              );
+            })()}
+          {!isLoading && !error && score !== null && mouthScoreRef.current === null && (
             <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
           )}
         </div>
