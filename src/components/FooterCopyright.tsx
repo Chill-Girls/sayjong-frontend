@@ -1,5 +1,4 @@
 import type { CSSProperties, FunctionComponent } from 'react';
-import { COLORS } from '../styles/theme';
 
 /**
  * FooterCopyright
