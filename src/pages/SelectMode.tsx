@@ -53,9 +53,9 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
     if (!songId) return;
 
     if (lessonType === 'syllable') {
-      navigate(`/lesson/${songId}/syllable/1`);
+      navigate(`/lesson/${songId}/syllable`);
     } else if (lessonType === 'line') {
-      navigate(`/lesson/${songId}/line/1`);
+      navigate(`/lesson/${songId}/line`);
     } else if (lessonType === 'singalong') {
       navigate(`/lesson/${songId}/sing`);
     }

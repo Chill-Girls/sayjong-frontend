@@ -39,13 +39,13 @@ function AppRouter() {
 
   return (
     <Routes>
-      <Route path="/" element={<Navigate replace to="/login" />} />
+      <Route path="/" element={<Navigate replace to="/home" />} />
       <Route path="/home" element={<SelectMusic />} />
       <Route path="/lesson" element={<Navigate replace to="/home" />} />
       <Route path="/lesson/:songId" element={<SelectMode />} />
 
-      <Route path="/lesson/:songId/syllable/:page" element={<SyllablePractice />} />
-      <Route path="/lesson/:songId/line/:page" element={<LinePractice />} />
+      <Route path="/lesson/:songId/syllable" element={<SyllablePractice />} />
+      <Route path="/lesson/:songId/line" element={<LinePractice />} />
       <Route path="/lesson/:songId/sing" element={<SingAlong />} />
 
       <Route path="/history" element={<HistoryPage />} />
