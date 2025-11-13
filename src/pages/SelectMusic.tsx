@@ -100,8 +100,26 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
   }
 
   return (
-    <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
-      <Header />
+    <>
+      <style>
+        {`
+          .music-grid-scroll::-webkit-scrollbar {
+            width: 8px;
+          }
+          .music-grid-scroll::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .music-grid-scroll::-webkit-scrollbar-thumb {
+            background: transparent;
+          }
+          .music-grid-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: darkgray transparent;
+          }
+        `}
+      </style>
+      <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
+        <Header />
 
       <div
         style={{
@@ -110,7 +128,10 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
           alignItems: 'center',
           gap: scaled(48),
           padding: `${scaled(48)} ${scaled(18)}`,
+          paddingBottom: scaled(100),
           boxSizing: 'border-box',
+          minHeight: 'calc(100vh - 55.5px)',
+          overflowY: 'auto',
         }}
       >
         {/* 타이틀 섹션 */}
@@ -146,14 +167,17 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
 
         {/* 음악 카드 그리드 */}
         <div
+          className="music-grid-scroll"
           style={{
-            width: '85%',
+            width: '100%',
             maxWidth: '1200px',
             display: 'grid',
             gridTemplateColumns: 'repeat(5, 1fr)',
-            gap: scaled(18),
-            padding: `0 ${scaled(18)}`,
+            gap: scaled(24),
+            padding: `0 ${scaled(24)}`,
             boxSizing: 'border-box',
+            maxHeight: 'calc(227px * 2 + 18px)',
+            overflowY: 'auto',
           }}
         >
           {songs.map(music => (
@@ -184,6 +208,7 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
