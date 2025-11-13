@@ -77,7 +77,7 @@ export class TargetLandmarksComputer {
       let calibData;
       try {
         calibData = JSON.parse(rawString);
-      } catch (e) {
+      } catch {
         //console.error('TargetLandmarksComputer: "vowel_calibration" 데이터 파싱 실패.', e);
         return {}; // 데이터 손상
       }
@@ -222,7 +222,6 @@ export class TargetLandmarksComputer {
 
     // 디버깅 로그 (1% 확률로 출력)
     if (Math.random() < 0.01) {
-      
       /*console.log('입술 중앙 기준 좌표계:', {
         currentMouthCenter: {
           x: currentMouthCenter.x.toFixed(3),

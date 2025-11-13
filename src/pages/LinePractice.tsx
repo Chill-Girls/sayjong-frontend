@@ -109,7 +109,7 @@ const LinePractice: React.FC = () => {
         const parsedData = JSON.parse(dataString);
         setLoadedTargetVowels(parsedData);
         // console.log("LinePractice: 'target_vowels'를 localStorage에서 로드했습니다.");
-      } catch (e) {
+      } catch {
         // console.error('LinePractice: localStorage 데이터 파싱 실패', e);
       }
     } else {

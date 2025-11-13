@@ -145,7 +145,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         const parsedData = JSON.parse(dataString);
         setLoadedTargetVowels(parsedData);
         // console.log("CameraComponent: 'target_vowels'를 localStorage에서 로드했습니다.");
-      } catch (e) {
+      } catch {
         // console.error('CameraComponent: localStorage 데이터 파싱 실패', e);
         setError('캘리브레이션 데이터를 불러오는 데 실패했습니다.');
       }
@@ -302,8 +302,8 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
             if (results) {
               const blendshapeCategories = results.faceBlendshapes?.[0]?.categories;
               if (blendshapeCategories && Array.isArray(blendshapeCategories)) {
-                const blendshapeMap = new Map<string, number>(); 
-                const catCount = blendshapeCategories.length; 
+                const blendshapeMap = new Map<string, number>();
+                const catCount = blendshapeCategories.length;
                 for (let i = 0; i < catCount; i++) {
                   const cat = blendshapeCategories[i];
                   blendshapeMap.set(cat.categoryName, cat.score);
@@ -379,7 +379,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
 
               onResultsRef.current(processedResults);
             }
-          } catch (error) {
+          } catch {
             // console.error('Error detecting face:', error);
           }
 

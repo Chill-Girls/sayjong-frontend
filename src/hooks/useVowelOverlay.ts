@@ -176,10 +176,9 @@ export function useVowelOverlay({
         cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
       }
 
-
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
-        if (similarityScoreRef.current  && similarityScoreRef.current >= 0.75) {
+        if (similarityScoreRef.current && similarityScoreRef.current >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
         } else {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
