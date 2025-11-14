@@ -1,5 +1,5 @@
 import React from 'react';
-import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
+import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { scaled } from '../styles/mixins';
 
 interface FeedbackProps {
@@ -24,7 +24,7 @@ const Feedback: React.FC<FeedbackProps> = ({ text, message }) => {
       {/* 왼쪽: 큰 빨간색 글자 */}
       <div
         style={{
-          fontSize: scaled(64),
+          fontSize: scaled(30),
           fontWeight: FONT_WEIGHTS.bold,
           color: '#F44336', // 빨간색
           fontFamily: FONTS.primary,
@@ -37,7 +37,7 @@ const Feedback: React.FC<FeedbackProps> = ({ text, message }) => {
       {/* 오른쪽: 영어 피드백 텍스트 */}
       <div
         style={{
-          fontSize: FONT_SIZES.md,
+          fontSize: scaled(20),
           fontWeight: FONT_WEIGHTS.normal,
           color: COLORS.dark,
           fontFamily: FONTS.primary,
