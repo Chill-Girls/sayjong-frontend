@@ -9,6 +9,7 @@ export function useCalibrationData() {
   const [data, setData] = useState<CalibrationDataResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthError, setIsAuthError] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchCalibrationData = async () => {
@@ -32,17 +33,20 @@ export function useCalibrationData() {
         setData(calibrationData);
         setError(null);
       } catch (error: any) {
+        setIsAuthError(false);
         // 에러 처리
         if (error.response && error.response.status === 404) {
           // console.log('저장된 캘리브레이션 데이터가 없습니다. (404)');
           localStorage.removeItem('target_vowels');
           localStorage.removeItem('vowel_calibration');
           setError(null); // 404는 에러로 처리하지 않음
-        } else if (error.response && error.response.status === 401) {
-          // console.log('인증 만료(401).');
+        } else if (
+          error.response &&
+          (error.response.status === 401 || error.response.status === 403)
+        ) {
           setError('인증이 만료되었습니다.');
+          setIsAuthError(true);
         } else {
-          // console.error('캘리브레이션 데이터 로드 중 알 수 없는 오류:', error);
           setError('캘리브레이션 데이터를 로드하는 데 실패했습니다.');
         }
       } finally {
@@ -53,5 +57,5 @@ export function useCalibrationData() {
     fetchCalibrationData();
   }, []);
 
-  return { data, loading, error };
+  return { data, loading, error, isAuthError };
 }
