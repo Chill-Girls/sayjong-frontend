@@ -69,7 +69,7 @@ const SyllablePractice: React.FC = () => {
   useEffect(() => {
     setMode('syllable');
     return () => setMode(null);
-  }, [setMode]);
+  }, [setMode]); // 모드
 
   useEffect(() => {
     if (lyricData) {
@@ -81,24 +81,25 @@ const SyllablePractice: React.FC = () => {
     } else if (lyricError || !songId) {
       setSongTitle('');
       setSinger('');
-    }
+    } // 가사 데이터 로드
   }, [lyricData, lyricError, apiSongTitle, apiSinger, songId]);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
-  }, [initialIndex]);
+  }, [initialIndex]); // 현재 인덱스 설정
 
   useEffect(() => {
     setCyclingIndex(0);
-  }, [currentData?.lineNo]);
+  }, [currentData?.lineNo]); // 라인 변경 시 첫 번째 음절 선택
 
   useEffect(() => {
     if (!isRecording) {
       setCyclingIndex(0);
       setIsOverlayActive(false);
-    }
+    } // 녹음 중지 시 오버레이 비활성화
   }, [isRecording]);
 
+  /*
   useEffect(() => {
     if (!isOverlayActive) return;
     if (activeLineSyllables.length <= 1) return;
@@ -107,6 +108,7 @@ const SyllablePractice: React.FC = () => {
     }, 1500);
     return () => window.clearInterval(id);
   }, [activeLineSyllables, isOverlayActive]);
+*/
 
   useEffect(() => {
     const updateCameraWidth = () => {
@@ -131,7 +133,7 @@ const SyllablePractice: React.FC = () => {
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateCameraWidth);
     };
-  }, []);
+  }, []); // 카메라 너비 업데이트
 
   const updateIndex = useCallback(
     (nextIndex: number) => {
@@ -172,7 +174,7 @@ const SyllablePractice: React.FC = () => {
     }
 
     updateIndex(targetIndex === currentIndex ? currentIndex - 1 : targetIndex);
-  }, [currentData, currentIndex, syllables, updateIndex]);
+  }, [currentData, currentIndex, syllables, updateIndex]); // 이전 음절 이동
 
   const handleNext = useCallback(() => {
     if (syllables.length === 0) return;
@@ -194,12 +196,7 @@ const SyllablePractice: React.FC = () => {
     }
 
     updateIndex(targetIndex === currentIndex ? currentIndex + 1 : targetIndex);
-  }, [currentData, currentIndex, syllables, updateIndex]);
-
-  const handleOverlayCountdownComplete = useCallback(() => {
-    setCyclingIndex(0);
-    setIsOverlayActive(true);
-  }, []);
+  }, [currentData, currentIndex, syllables, updateIndex]); // 다음 음절 이동
 
   useEffect(
     () => () => {
@@ -249,17 +246,18 @@ const SyllablePractice: React.FC = () => {
   // 같은 라인 내에서 다음 음절로 이동
   const handleNextSyllableInLine = useCallback(() => {
     if (activeLineSyllables.length === 0) return;
-    
+
     const currentSyllable = selectedSyllable || currentData;
     const currentIndexInLine = activeLineSyllables.findIndex(
-      s => s.sylNo === currentSyllable?.sylNo && 
-           (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId || 
-            s.lineNo === currentSyllable?.lineNo)
+      s =>
+        s.sylNo === currentSyllable?.sylNo &&
+        (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId ||
+          s.lineNo === currentSyllable?.lineNo),
     );
-    
+
     const nextIndex = (currentIndexInLine + 1) % activeLineSyllables.length;
     const nextSyllable = activeLineSyllables[nextIndex];
-    
+
     if (nextSyllable) {
       handleSyllableClick(nextSyllable);
     }
@@ -268,26 +266,38 @@ const SyllablePractice: React.FC = () => {
   // 같은 라인 내에서 이전 음절로 이동
   const handlePrevSyllableInLine = useCallback(() => {
     if (activeLineSyllables.length === 0) return;
-    
+
     const currentSyllable = selectedSyllable || currentData; // 선택된 음절 또는 현재 페이지의 기본 음절
     const currentIndexInLine = activeLineSyllables.findIndex(
-      s => s.sylNo === currentSyllable?.sylNo && 
-           (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId || 
-            s.lineNo === currentSyllable?.lineNo)
+      s =>
+        s.sylNo === currentSyllable?.sylNo &&
+        (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId ||
+          s.lineNo === currentSyllable?.lineNo),
     );
-     
+
     let prevIndex;
     if (currentIndexInLine === -1) {
       prevIndex = activeLineSyllables.length - 1;
     } else {
-      prevIndex = (currentIndexInLine - 1 + activeLineSyllables.length) % activeLineSyllables.length;
+      prevIndex =
+        (currentIndexInLine - 1 + activeLineSyllables.length) % activeLineSyllables.length;
     }
     const prevSyllable = activeLineSyllables[prevIndex];
-    
+
     if (prevSyllable) {
       handleSyllableClick(prevSyllable);
     }
   }, [activeLineSyllables, selectedSyllable, currentData, handleSyllableClick]);
+
+  useEffect(() => {
+    if (activeLineSyllables.length > 0) {
+      const firstSyllable = activeLineSyllables[0];
+      if (firstSyllable) {
+        // 첫번 째 음절이면 바로 라인 바뀌어도 ar 바로 뜨도록
+        handleSyllableClick(firstSyllable);
+      }
+    }
+  }, [currentData?.lineNo, activeLineSyllables, handleSyllableClick]);
 
   const effectiveIndex =
     activeLineSyllables.length > 0
@@ -484,7 +494,6 @@ const SyllablePractice: React.FC = () => {
                 activeSyllable={shouldShowAR ? currentDisplaySyllable : null}
                 activeVowel={displayVowel}
                 shouldStartOverlay={isRecording}
-                onCountdownComplete={handleOverlayCountdownComplete}
               />
             </div>
           </div>
@@ -504,28 +513,17 @@ const SyllablePractice: React.FC = () => {
               position: 'relative',
             }}
           >
-            <button
-              type="button"
+            <BtnPrev
               onClick={handlePrev}
-              style={{
+              ariaLabel="Previous syllable"
+              buttonStyle={{
                 width: scaled(100),
                 height: scaled(100),
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                padding: 0,
-                flexShrink: 0,
               }}
-              aria-label="Previous syllable"
-            >
-              <BtnPrev
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  filter: 'brightness(0.5)',
-                }}
-              />
-            </button>
+              imgStyle={{
+                filter: 'brightness(0.5)',
+              }}
+            />
 
             <div
               style={{
@@ -636,32 +634,15 @@ const SyllablePractice: React.FC = () => {
                       gap: scaled(20),
                     }}
                   >
-                    <button
-                      type="button"
+                    <BtnPrev
                       onClick={handlePrevSyllableInLine}
                       disabled={activeLineSyllables.length <= 1}
-                      style={{
+                      ariaLabel="Previous syllable in line"
+                      buttonStyle={{
                         width: scaled(60),
                         height: scaled(60),
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: activeLineSyllables.length > 1 ? 'pointer' : 'not-allowed',
-                        padding: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: activeLineSyllables.length > 1 ? 1 : 0.3,
-                        flexShrink: 0,
                       }}
-                      aria-label="Previous syllable in line"
-                    >
-                      <BtnPrev
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                        }}
-                      />
-                    </button>
+                    />
                     <b
                       style={{
                         fontSize: scaled(72),
@@ -674,32 +655,15 @@ const SyllablePractice: React.FC = () => {
                     >
                       {cyclingHangul || '-'}
                     </b>
-                    <button
-                      type="button"
+                    <BtnNext
                       onClick={handleNextSyllableInLine}
                       disabled={activeLineSyllables.length <= 1}
-                      style={{
+                      ariaLabel="Next syllable in line"
+                      buttonStyle={{
                         width: scaled(60),
                         height: scaled(60),
-                        border: 'none',
-                        background: 'transparent',
-                        cursor: activeLineSyllables.length > 1 ? 'pointer' : 'not-allowed',
-                        padding: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        opacity: activeLineSyllables.length > 1 ? 1 : 0.3,
-                        flexShrink: 0,
                       }}
-                      aria-label="Next syllable in line"
-                    >
-                      <BtnNext
-                        style={{
-                          width: '100%',
-                          height: '100%',
-                        }}
-                      />
-                    </button>
+                    />
                   </div>
                   <div
                     style={{
@@ -728,28 +692,17 @@ const SyllablePractice: React.FC = () => {
               </div>
             </div>
 
-            <button
-              type="button"
+            <BtnNext
               onClick={handleNext}
-              style={{
+              ariaLabel="Next syllable"
+              buttonStyle={{
                 width: scaled(100),
                 height: scaled(100),
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                padding: 0,
-                flexShrink: 0,
               }}
-              aria-label="Next syllable"
-            >
-              <BtnNext
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  filter: 'brightness(0.5)',
-                }}
-              />
-            </button>
+              imgStyle={{
+                filter: 'brightness(0.5)',
+              }}
+            />
           </div>
         </div>
       </div>
