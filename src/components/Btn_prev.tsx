@@ -1,5 +1,6 @@
 import React from 'react';
 import btn_prev from '../assets/btn_prev.svg';
+import { COLORS } from '../styles/theme';
 
 interface BtnPrevProps {
   onClick?: () => void;
@@ -22,6 +23,7 @@ const Btn_prev: React.FC<BtnPrevProps> = ({
     width: '100%',
     height: '100%',
     border: 'none',
+    outline: 'none',
     background: 'transparent',
     cursor: disabled ? 'not-allowed' : 'pointer',
     padding: 0,
@@ -36,6 +38,8 @@ const Btn_prev: React.FC<BtnPrevProps> = ({
   const defaultImgStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
+    filter: `brightness(0) saturate(100%) invert(31%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)`,
+    color: COLORS.textSecondary,
     ...imgStyle,
     ...style,
   };

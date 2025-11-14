@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
+import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
@@ -65,7 +65,7 @@ const SyllablePractice: React.FC = () => {
   const lastUpdateTimeRef = useRef<number>(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
-  const [cameraWidth, setCameraWidth] = useState<string>(scaled(600));
+  const [cameraWidth, setCameraWidth] = useState<string>(scaled(700));
 
   useEffect(() => {
     setMode('syllable');
@@ -114,11 +114,16 @@ const SyllablePractice: React.FC = () => {
   useEffect(() => {
     const updateCameraWidth = () => {
       if (!cameraContainerRef.current) return;
-      const rect = cameraContainerRef.current.getBoundingClientRect();
-      setCameraWidth(`${rect.width}px`);
+      // Use requestAnimationFrame to ensure layout has updated
+      requestAnimationFrame(() => {
+        if (!cameraContainerRef.current) return;
+        const rect = cameraContainerRef.current.getBoundingClientRect();
+        setCameraWidth(`${rect.width}px`);
+      });
     };
 
-    updateCameraWidth();
+    // Initial update after render
+    const timeoutId = setTimeout(updateCameraWidth, 0);
 
     const resizeObserver = new ResizeObserver(() => {
       updateCameraWidth();
@@ -131,6 +136,7 @@ const SyllablePractice: React.FC = () => {
     window.addEventListener('resize', updateCameraWidth);
 
     return () => {
+      clearTimeout(timeoutId);
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateCameraWidth);
     };
@@ -359,7 +365,7 @@ const SyllablePractice: React.FC = () => {
       >
         <Header />
         <div style={{ marginTop: scaled(80) }}>가사와 음절 데이터를 불러오는 중입니다...</div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -380,7 +386,7 @@ const SyllablePractice: React.FC = () => {
         <div style={{ marginTop: scaled(80) }}>
           가사 데이터를 불러오는 중 오류가 발생했습니다: {errorState}
         </div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -398,7 +404,7 @@ const SyllablePractice: React.FC = () => {
       >
         <Header />
         <div style={{ marginTop: scaled(80) }}>연습 가능한 음절이 없습니다.</div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -421,19 +427,25 @@ const SyllablePractice: React.FC = () => {
       <Header />
 
       <div style={{ alignSelf: 'stretch', ...flexColumn, alignItems: 'center', zIndex: 1 }}>
-        <div style={{ position: 'relative', fontSize: scaled(40), fontWeight: FONT_WEIGHTS.light }}>
+        <div
+          style={{
+            position: 'relative',
+            fontSize: scaled(40),
+            fontWeight: FONT_WEIGHTS.bold,
+            color: COLORS.dark,
+          }}
+        >
           {songTitle} {displaySinger}
         </div>
-
         <div
           style={{
             marginTop: scaled(8),
-            fontSize: scaled(14),
+            fontSize: scaled(20),
             color: COLORS.textSecondary,
-            fontWeight: FONT_WEIGHTS.light,
+            fontWeight: FONT_WEIGHTS.semibold,
           }}
         >
-          {totalSyllables > 0 ? `Syllable ${displayIndex} / ${totalSyllables}` : ''}
+          {totalSyllables > 0 ? `${Math.round((displayIndex / totalSyllables) * 100)}%` : ''}
         </div>
       </div>
 
@@ -463,10 +475,10 @@ const SyllablePractice: React.FC = () => {
             display: 'flex',
             alignItems: 'flex-start',
             justifyContent: 'center',
-            gap: scaled(200),
+            gap: scaled(100),
             flex: 1,
             minHeight: 0,
-            margin: '0 auto',
+            margin: `auto 0`,
           }}
         >
           <div
@@ -475,18 +487,19 @@ const SyllablePractice: React.FC = () => {
               ...flexColumn,
               alignItems: 'center',
               justifyContent: 'center',
-              width: scaled(600),
+              width: scaled(700),
             }}
           >
             <div
               ref={cameraContainerRef}
               style={{
                 width: '100%',
-                aspectRatio: '1 / 1.58',
+                aspectRatio: '1 / 1.4',
                 position: 'relative',
                 backgroundColor: 'transparent',
                 borderRadius: BORDER_RADIUS.lg,
                 overflow: 'hidden',
+                margin: `${scaled(50)} auto 0`,
               }}
             >
               <CameraComponent
@@ -503,29 +516,26 @@ const SyllablePractice: React.FC = () => {
             style={{
               flex: 1,
               display: 'flex',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               justifyContent: 'center',
-              gap: scaled(27),
+              gap: scaled(30),
               minWidth: scaled(540),
               maxWidth: scaled(800),
               height: '100%',
               overflowY: 'auto',
               overflowX: 'hidden',
               position: 'relative',
+              margin: `${scaled(-65)} auto 0`,
             }}
           >
             <BtnPrev
               onClick={handlePrev}
               ariaLabel="Previous syllable"
               buttonStyle={{
-                width: scaled(100),
-                height: scaled(100),
-              }}
-              imgStyle={{
-                filter: 'brightness(0.5)',
+                width: scaled(60),
+                height: scaled(60),
               }}
             />
-
             <div
               style={{
                 ...flexColumn,
@@ -674,7 +684,6 @@ const SyllablePractice: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: `${scaled(1)} solid ${COLORS.primary}`,
                     }}
                   >
                     <div
@@ -692,23 +701,19 @@ const SyllablePractice: React.FC = () => {
                 </div>
               </div>
             </div>
-
             <BtnNext
               onClick={handleNext}
               ariaLabel="Next syllable"
               buttonStyle={{
-                width: scaled(100),
-                height: scaled(100),
-              }}
-              imgStyle={{
-                filter: 'brightness(0.5)',
+                width: scaled(60),
+                height: scaled(60),
               }}
             />
           </div>
         </div>
       </div>
 
-      <Footer />
+      <FooterCopyright />
     </div>
   );
 };

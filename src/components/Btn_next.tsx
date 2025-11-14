@@ -1,5 +1,6 @@
 import React from 'react';
 import btn_next from '../assets/btn_next.svg';
+import { COLORS } from '../styles/theme';
 
 interface BtnNextProps {
   onClick?: () => void;
@@ -22,6 +23,7 @@ const BtnNext: React.FC<BtnNextProps> = ({
     width: '100%',
     height: '100%',
     border: 'none',
+    outline: 'none',
     background: 'transparent',
     cursor: disabled ? 'not-allowed' : 'pointer',
     padding: 0,
@@ -36,6 +38,8 @@ const BtnNext: React.FC<BtnNextProps> = ({
   const defaultImgStyle: React.CSSProperties = {
     width: '100%',
     height: '100%',
+    filter: `brightness(0) saturate(100%) invert(31%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(100%) contrast(100%)`,
+    color: COLORS.textSecondary,
     ...imgStyle,
     ...style,
   };

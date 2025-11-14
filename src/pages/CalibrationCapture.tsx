@@ -339,7 +339,7 @@ const CalibrationCapture: React.FC = () => {
                 width: scaled(800),
                 height: scaled(600),
                 backgroundColor: COLORS.gray,
-                borderRadius: scaled(10),
+                borderRadius: scaled(30),
                 overflow: 'hidden',
               }}
             >
@@ -355,7 +355,13 @@ const CalibrationCapture: React.FC = () => {
               />
               <canvas
                 ref={canvasRef}
-                style={{ position: 'absolute', width: '100%', height: '100%', objectFit: 'cover' }}
+                style={{
+                  position: 'absolute',
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: scaled(30),
+                }}
               />
               {countdown !== null && (
                 <div
