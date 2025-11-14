@@ -574,7 +574,7 @@ const LinePractice: React.FC = () => {
                 flex: 1,
                 maxWidth: scaled(540), // 600 * 0.9
                 paddingBottom: scaled(20),
-                paddingTop: scaled(80),
+                paddingTop: scaled(50),
                 paddingLeft: scaled(50),
                 paddingRight: scaled(50),
                 minHeight: 0, // Allow flex child to shrink
