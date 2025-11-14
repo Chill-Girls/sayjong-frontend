@@ -66,6 +66,7 @@ const SyllablePractice: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(700));
+  const [showLandmarkCoordinates, setShowLandmarkCoordinates] = useState<boolean>(false);
 
   useEffect(() => {
     setMode('syllable');
@@ -488,8 +489,33 @@ const SyllablePractice: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               width: scaled(700),
+              position: 'relative',
             }}
           >
+            {/* 랜드마크 좌표 토글 버튼 */}
+            <button
+              onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
+              style={{
+                position: 'absolute',
+                top: scaled(60),
+                right: scaled(10),
+                zIndex: 1000,
+                padding: `${scaled(8)} ${scaled(12)}`,
+                backgroundColor: showLandmarkCoordinates ? COLORS.primary : COLORS.background,
+                color: showLandmarkCoordinates ? COLORS.white : COLORS.dark,
+                border: `1px solid ${COLORS.primary}`,
+                borderRadius: BORDER_RADIUS.md,
+                cursor: 'pointer',
+                fontSize: scaled(12),
+                fontWeight: FONT_WEIGHTS.semibold,
+                fontFamily: FONTS.primary,
+                outline: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              aria-label="Toggle landmark coordinates"
+            >
+              {showLandmarkCoordinates ? 'Hide Coords' : 'Show Coords'}
+            </button>
             <div
               ref={cameraContainerRef}
               style={{
@@ -508,6 +534,7 @@ const SyllablePractice: React.FC = () => {
                 activeSyllable={shouldShowAR ? currentDisplaySyllable : null}
                 activeVowel={displayVowel}
                 shouldStartOverlay={isRecording}
+                showLandmarkCoordinates={showLandmarkCoordinates}
               />
             </div>
           </div>
@@ -600,7 +627,7 @@ const SyllablePractice: React.FC = () => {
                                     onClick={() => handleSyllableClick(syllable)}
                                     style={{
                                       cursor: 'pointer',
-                                      padding: '0 0.05em',
+                                      padding: '0 0.03em',
                                       color:
                                         displayTarget?.sylNo === syllable.sylNo
                                           ? COLORS.primary
@@ -712,6 +739,43 @@ const SyllablePractice: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* End Button - Bottom Right */}
+      <button
+        onClick={() => {
+          if (songIdParam) {
+            navigate(`/lesson/${songIdParam}`);
+          }
+        }}
+        style={{
+          position: 'fixed',
+          bottom: scaled(100),
+          right: scaled(50),
+          zIndex: 1000,
+          padding: `${scaled(12)} ${scaled(24)}`,
+          backgroundColor: COLORS.primary,
+          color: COLORS.white,
+          border: 'none',
+          borderRadius: BORDER_RADIUS.md,
+          cursor: 'pointer',
+          fontSize: scaled(16),
+          fontWeight: FONT_WEIGHTS.semibold,
+          fontFamily: FONTS.primary,
+          outline: 'none',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '0.9';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '1';
+        }}
+        aria-label="End practice and return to lesson mode"
+      >
+        End
+      </button>
 
       <FooterCopyright />
     </div>

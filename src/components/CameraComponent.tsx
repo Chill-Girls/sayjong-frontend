@@ -18,7 +18,7 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { useVowelOverlay } from '../hooks/useVowelOverlay';
 import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
-import { drawActiveSyllable } from '../utils/Draw';
+import { drawActiveSyllable, drawLandmarkCoordinates } from '../utils/Draw';
 import Canvas from './Canvas';
 import type { LandmarkPoint } from '../constants/landmarks';
 
@@ -42,6 +42,8 @@ interface CameraComponentProps {
   /** 카운트다운이 끝난 뒤 호출되는 콜백 */
   onCountdownComplete?: () => void;
   skipCountdown?: boolean;
+  /** 랜드마크 좌표 표시 여부 */
+  showLandmarkCoordinates?: boolean;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -52,6 +54,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   shouldStartOverlay = false,
   onCountdownComplete,
   skipCountdown = false,
+  showLandmarkCoordinates = false,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -184,9 +187,13 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
         if (activeSyllable) {
           drawActiveSyllable(canvasCtx, allLandmarks, toCanvas, activeSyllable);
         }
+        // 랜드마크 좌표 표시 (토글 활성화 시)
+        if (showLandmarkCoordinates) {
+          drawLandmarkCoordinates(canvasCtx, allLandmarks, toCanvas);
+        }
       }
     },
-    [renderOverlay, countdown, activeSyllable],
+    [renderOverlay, countdown, activeSyllable, showLandmarkCoordinates],
   );
 
   const prevShouldStartRef = useRef<boolean>(false);

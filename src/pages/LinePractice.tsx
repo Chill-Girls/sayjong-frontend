@@ -1,10 +1,10 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useSong, useSongLyricLines } from '../hooks/useSongs';
 import type { LyricLine } from '../api/songs/types';
 import { useMode } from '../constants/ModeContext';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
+import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import BtnMic from '../components/Btn_Mic';
 import BtnListenRecording from '../components/Btn_ListenRecording';
@@ -25,6 +25,7 @@ const HIGHLIGHT_COLOR = '#F04455';
 
 const LinePractice: React.FC = () => {
   const { songId: songIdParam } = useParams<{ songId: string }>();
+  const navigate = useNavigate();
   const { setMode } = useMode();
   const { isRecording, setRecordedAudioBlob, setIsRecording } = useRecording();
 
@@ -63,23 +64,24 @@ const LinePractice: React.FC = () => {
   const [showFeedback, setShowFeedback] = useState(false);
   const [segmentFeedbacks, setSegmentFeedbacks] = useState<SegmentFeedbackItem[]>([]);
   const cameraContainerRef = useRef<HTMLDivElement>(null);
-  const [cameraWidth, setCameraWidth] = useState<string>(scaled(600)); // 초기값을 600으로 변경
+  const [cameraWidth, setCameraWidth] = useState<string>(scaled(700));
+  const [showLandmarkCoordinates, setShowLandmarkCoordinates] = useState<boolean>(false);
 
   // 카메라 컨테이너 크기에 맞춰 CameraComponent 너비 업데이트
   useEffect(() => {
     const updateCameraWidth = () => {
-      if (cameraContainerRef.current) {
+      if (!cameraContainerRef.current) return;
+      // Use requestAnimationFrame to ensure layout has updated
+      requestAnimationFrame(() => {
+        if (!cameraContainerRef.current) return;
         const rect = cameraContainerRef.current.getBoundingClientRect();
-        const width = rect.width;
-        // px 단위로 변환하여 CameraComponent에 전달
-        setCameraWidth(`${width}px`);
-      }
+        setCameraWidth(`${rect.width}px`);
+      });
     };
 
-    // 초기 크기 설정
-    updateCameraWidth();
+    // Initial update after render
+    const timeoutId = setTimeout(updateCameraWidth, 0);
 
-    // ResizeObserver로 크기 변경 감지
     const resizeObserver = new ResizeObserver(() => {
       updateCameraWidth();
     });
@@ -88,10 +90,10 @@ const LinePractice: React.FC = () => {
       resizeObserver.observe(cameraContainerRef.current);
     }
 
-    // window resize 이벤트도 감지 (브라우저 zoom 포함)
     window.addEventListener('resize', updateCameraWidth);
 
     return () => {
+      clearTimeout(timeoutId);
       resizeObserver.disconnect();
       window.removeEventListener('resize', updateCameraWidth);
     };
@@ -189,6 +191,9 @@ const LinePractice: React.FC = () => {
           key={`${char}-${index}`}
           style={{
             color: showFeedback && isHighlighted ? HIGHLIGHT_COLOR : COLORS.dark,
+            fontSize: showFeedback && isHighlighted ? scaled(50) : 'inherit',
+            fontWeight: showFeedback && isHighlighted ? FONT_WEIGHTS.bold : 'inherit',
+            transition: 'all 0.2s ease',
           }}
         >
           {char}
@@ -233,7 +238,7 @@ const LinePractice: React.FC = () => {
   const totalLines = usableLines.length;
   const currentIndex = usableLines.findIndex(l => l.lyricLineId === displayLine.lyricLineId);
   const displayIndex = currentIndex >= 0 ? currentIndex + 1 : 0;
-  const { isLoading, score, error } = usePronunciationCheck(displayLine.originalText);
+  const { isLoading, score } = usePronunciationCheck(displayLine.originalText);
   //노래 점수
   const flagAccumulatorRef = useRef<number>(0);
   const mouthScoreRef = useRef<number | null>(null);
@@ -317,7 +322,7 @@ const LinePractice: React.FC = () => {
       >
         <Header />
         <div>캘리브레이션 데이터를 불러오는 중입니다...</div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -341,7 +346,7 @@ const LinePractice: React.FC = () => {
           <p>먼저 캘리브레이션 페이지에서 보정을 완료해주세요.</p>
           {/* (선택) 캘리브레이션 페이지로 가는 버튼을 추가할 수 있습니다. */}
         </div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -376,22 +381,23 @@ const LinePractice: React.FC = () => {
           style={{
             position: 'relative',
             fontSize: scaled(40),
-            fontWeight: FONT_WEIGHTS.light,
+            fontWeight: FONT_WEIGHTS.bold,
+            color: COLORS.dark,
           }}
         >
           {songTitle} {singer ? `- ${singer}` : null}
         </div>
 
-        {/* 현재 소절 위치 표시: "3 / 12" */}
+        {/* 현재 소절 위치 표시: percentage */}
         <div
           style={{
             marginTop: scaled(8),
-            fontSize: scaled(14),
+            fontSize: scaled(20),
             color: COLORS.textSecondary,
-            fontWeight: FONT_WEIGHTS.light,
+            fontWeight: FONT_WEIGHTS.semibold,
           }}
         >
-          {totalLines > 0 ? `Line ${displayIndex} / ${totalLines}` : 'No lyric lines'}
+          {totalLines > 0 ? `${Math.round((displayIndex / totalLines) * 100)}%` : ''}
         </div>
       </div>
 
@@ -404,8 +410,8 @@ const LinePractice: React.FC = () => {
           ...flexColumn,
           alignItems: 'center',
           justifyContent: 'center', // 세로 중앙 정렬
-          gap: scaled(20),
-          paddingLeft: scaled(50), // 좌측 마진
+          gap: scaled(10),
+          paddingLeft: scaled(150), // 좌측 마진
           paddingRight: scaled(50), // 우측 마진
           paddingTop: 0,
           paddingBottom: 0,
@@ -419,14 +425,15 @@ const LinePractice: React.FC = () => {
         <div
           style={{
             width: '100%',
-            maxWidth: scaled(1600), // 전체를 감싸는 컨테이너에 maxWidth를 주어 중앙 정렬 명확히
+            maxWidth: scaled(1800), // 전체를 감싸는 컨테이너에 maxWidth를 주어 중앙 정렬 명확히
             display: 'flex',
             alignItems: 'flex-start', // 상단 정렬로 일관성 유지
             justifyContent: 'center', // 가운데 정렬
-            gap: scaled(200), // 카메라와 가사 사이 간격 증가
+            gap: scaled(0), // 카메라와 가사 사이 간격
             flex: 1,
             minHeight: 0,
-            margin: '0 auto', // 양쪽 마진 균등
+            margin: 'auto 0',
+            paddingLeft: scaled(50), // 카메라를 오른쪽으로 이동
           }}
         >
           {/* 카메라 영역 */}
@@ -436,18 +443,44 @@ const LinePractice: React.FC = () => {
               ...flexColumn,
               alignItems: 'center',
               justifyContent: 'center',
-              width: scaled(600), // 고정 너비
+              width: scaled(700), // 고정 너비
+              position: 'relative',
             }}
           >
+            {/* 랜드마크 좌표 토글 버튼 */}
+            <button
+              onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
+              style={{
+                position: 'absolute',
+                top: scaled(30),
+                right: scaled(10),
+                zIndex: 1000,
+                padding: `${scaled(8)} ${scaled(12)}`,
+                backgroundColor: showLandmarkCoordinates ? COLORS.primary : COLORS.background,
+                color: showLandmarkCoordinates ? COLORS.white : COLORS.dark,
+                border: `1px solid ${COLORS.primary}`,
+                borderRadius: BORDER_RADIUS.md,
+                cursor: 'pointer',
+                fontSize: scaled(12),
+                fontWeight: FONT_WEIGHTS.semibold,
+                fontFamily: FONTS.primary,
+                outline: 'none',
+                transition: 'all 0.2s ease',
+              }}
+              aria-label="Toggle landmark coordinates"
+            >
+              {showLandmarkCoordinates ? 'COORDS' : 'COORDS'}
+            </button>
             <div
               ref={cameraContainerRef}
               style={{
                 width: '100%',
-                aspectRatio: '1 / 1.58', // 가로:세로 비율 1:1.58
+                aspectRatio: '1 / 1.4', // 가로:세로 비율 1:1.4
                 position: 'relative',
                 backgroundColor: 'transparent', // 회색 배경 제거
                 borderRadius: BORDER_RADIUS.lg, // 더 둥근 모서리
                 overflow: 'hidden', // 넘치는 부분 숨김
+                margin: `${scaled(20)} auto 0`,
               }}
             >
               <CameraComponent
@@ -458,6 +491,7 @@ const LinePractice: React.FC = () => {
                 activeVowel={isRecording && isTtsPlaying ? currentTtsVowel : null}
                 shouldStartOverlay={isRecording}
                 onCountdownComplete={handleCountdownComplete}
+                showLandmarkCoordinates={showLandmarkCoordinates}
               />
               {/* {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
                 <div
@@ -512,93 +546,110 @@ const LinePractice: React.FC = () => {
             style={{
               flex: 1, // 남은 공간을 차지하도록
               display: 'flex',
-              alignItems: 'flex-start', // 상단 정렬로 카메라와 일치
+              alignItems: 'center', // 세로 중앙 정렬
               justifyContent: 'center',
-              gap: scaled(27), // 30 * 0.9
+              gap: scaled(30),
               minWidth: scaled(540), // 최소 너비
               maxWidth: scaled(800), // 최대 너비
               height: '100%', // 전체 높이 사용
-              overflowY: 'auto', // 스크롤바를 가사 영역 외부에 표시
-              overflowX: 'hidden',
+              overflow: 'hidden', // Prevent outer scrolling
               position: 'relative',
+              margin: `${scaled(10)} auto 0`,
             }}
           >
-            {/* 이전 버튼 */}
-
-            <button
+            <BtnPrev
               onClick={handlePrevLine}
-              style={{
-                width: scaled(100),
-                height: scaled(100),
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                padding: 0,
-                marginTop: scaled(40),
-                flexShrink: 0,
+              ariaLabel="Previous line"
+              buttonStyle={{
+                width: scaled(60),
+                height: scaled(60),
               }}
-              aria-label="Previous line"
-            >
-              <BtnPrev
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  filter: 'brightness(0.5)',
-                }}
-              />
-            </button>
+            />
 
             {/* 가사 콘텐츠 */}
             <div
               style={{
                 ...flexColumn,
                 alignItems: 'center',
-                gap: scaled(18), // 20 * 0.9
                 flex: 1,
                 maxWidth: scaled(540), // 600 * 0.9
                 paddingBottom: scaled(20),
-                paddingTop: scaled(20),
+                paddingTop: scaled(80),
+                paddingLeft: scaled(50),
+                paddingRight: scaled(50),
+                minHeight: 0, // Allow flex child to shrink
+                overflow: 'hidden', // Prevent outer scrolling
+                height: '100%', // Ensure parent has height
+                backgroundColor: COLORS.white,
+                borderRadius: BORDER_RADIUS.lg,
+                boxShadow: '0 16px 32px rgba(0,0,0,0.06)',
               }}
             >
-              {/* 한글 가사 */}
+              {/* 고정된 가사 영역 */}
               <div
                 style={{
-                  fontSize: scaled(getAdaptiveFontSize(displayLine.originalText ?? '', 56, 56, 40)),
-                  fontWeight: FONT_WEIGHTS.semibold,
-                  letterSpacing: '0.05em',
-                  color: COLORS.dark,
-                  textAlign: 'center',
+                  ...flexColumn,
+                  alignItems: 'center',
+                  gap: scaled(18),
+                  flexShrink: 0, // Prevent lyrics from shrinking
+                  marginBottom: scaled(24),
                 }}
               >
-                {highlightedLyric}
+                {/* 한글 가사 */}
+                <div
+                  style={{
+                    fontSize: scaled(
+                      getAdaptiveFontSize(displayLine.originalText ?? '', 42, 42, 36),
+                    ),
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    letterSpacing: '0.03em',
+                    color: COLORS.dark,
+                    textAlign: 'center',
+                  }}
+                >
+                  {highlightedLyric}
+                </div>
+
+                {/* 영어 가사 */}
+                <div
+                  style={{
+                    fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 24, 24, 20)),
+                    fontWeight: FONT_WEIGHTS.light,
+                    color: COLORS.textSecondary,
+                    textAlign: 'center',
+                  }}
+                >
+                  {displayLine.textEng}
+                </div>
+
+                {/* 로마자 가사 */}
+                <div
+                  style={{
+                    fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 32, 32, 24)),
+                    fontWeight: FONT_WEIGHTS.semibold,
+                    color: COLORS.textSecondary,
+                    textAlign: 'center',
+                  }}
+                >
+                  {displayLine.textRomaja}
+                </div>
               </div>
 
-              {/* 영어 가사 */}
+              {/* 스크롤 가능한 피드백 영역 */}
               <div
                 style={{
-                  fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 32, 32, 24)),
-                  fontWeight: FONT_WEIGHTS.light,
-                  color: COLORS.textSecondary,
-                  textAlign: 'center',
+                  width: '100%',
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  position: 'relative',
+                  // Custom scrollbar styling
+                  scrollbarWidth: 'thin', // Firefox
+                  scrollbarColor: `${COLORS.textSecondary}40 transparent`, // Firefox: thumb and track
                 }}
+                className="transparent-scrollbar"
               >
-                {displayLine.textEng}
-              </div>
-
-              {/* 로마자 가사 */}
-              <div
-                style={{
-                  fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 40, 40, 28)),
-                  fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.textSecondary,
-                  textAlign: 'center',
-                }}
-              >
-                {displayLine.textRomaja}
-              </div>
-
-              {/* 모음 피드백 - 가사 아래에 여백과 함께 배치 */}
-              <div style={{ marginTop: scaled(24), width: '100%' }}>
                 <VowelFeedback
                   activeVowel={displayVowel}
                   currentBlendshapes={displayBlendshapes}
@@ -619,63 +670,153 @@ const LinePractice: React.FC = () => {
               </div>
             </div>
 
-            {/* 다음 버튼 */}
-
-            <button
+            <BtnNext
               onClick={handleNextLine}
-              style={{
-                width: scaled(100),
-                height: scaled(100),
-                border: 'none',
-                background: 'transparent',
-                cursor: 'pointer',
-                padding: 0,
-                marginTop: scaled(40),
-                flexShrink: 0,
+              ariaLabel="Next line"
+              buttonStyle={{
+                width: scaled(60),
+                height: scaled(60),
               }}
-              aria-label="Next line"
-            >
-              <BtnNext
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  filter: 'brightness(0.5)',
-                }}
-              />
-            </button>
+            />
           </div>
         </div>
 
-        {/* 임시: 발음 점수 표기 UI (TODO: 나중에 합쳐서 최종 점수로 나와야함, UI도 figma대로 변경해야함) */}
+        {/* 점수 표기 UI - Horizontal Score Bar */}
         <div
           style={{
             width: '100%',
-            height: scaled(60), // 예시 높이
+            maxWidth: scaled(630),
             ...flexColumn,
-            alignItems: 'center',
+            alignItems: 'flex-end',
             justifyContent: 'center',
-            fontSize: scaled(24),
+            gap: scaled(12),
             zIndex: 3,
-            padding: '0', // 패딩 제거
+            padding: `${scaled(20)} ${scaled(50)}`,
+            alignSelf: 'flex-end', // Move to left side
+            marginTop: scaled(10),
+            marginRight: scaled(190), // Additional left margin
           }}
         >
-          {isLoading && <p>채점 중...</p>}
-          {error && <p style={{ color: 'red' }}>오류: {error}</p>}
-          {!isLoading &&
-            !error &&
-            score !== null &&
-            mouthScoreRef.current !== null &&
-            (() => {
+          {(() => {
+            // Calculate score to display
+            let displayScore: number | null = null;
+            let showCalculating = false;
+
+            if (isLoading) {
+              showCalculating = true;
+            } else if (score !== null && mouthScoreRef.current !== null) {
               // 최종 점수 계산: (입모양 점수 * 100 * 0.4) + (소리 AI 서버 점수 * 0.6)
               const mouthScorePercentage = mouthScoreRef.current * 100;
               const finalScore = mouthScorePercentage * 0.4 + score * 0.6;
-              const roundedFinalScore = Math.round(finalScore);
+              displayScore = Math.round(finalScore);
+            } else if (score !== null) {
+              displayScore = score;
+            }
 
-              return <p style={{ color: COLORS.dark }}>🎉 최종 점수: {roundedFinalScore}점</p>;
-            })()}
-          {!isLoading && !error && score !== null && mouthScoreRef.current === null && (
-            <p style={{ color: COLORS.dark }}>🎉 발음 점수: {score}점</p>
-          )}
+            const scorePercentage =
+              displayScore !== null ? Math.min(100, Math.max(0, displayScore)) : 0;
+
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  ...flexColumn,
+                  gap: scaled(8),
+                }}
+              >
+                <div
+                  style={{
+                    width: '100%',
+                    height: scaled(24),
+                    backgroundColor: COLORS.background,
+                    borderRadius: BORDER_RADIUS.lg,
+                    overflow: 'hidden',
+                    position: 'relative',
+                    outline: `${scaled(1)} solid ${COLORS.primary}`,
+                    outlineColor: COLORS.primary,
+                  }}
+                >
+                  {scorePercentage > 0 && !showCalculating && (
+                    <div
+                      style={{
+                        width: `${scorePercentage}%`,
+                        height: '100%',
+                        backgroundColor:
+                          scorePercentage >= 80
+                            ? '#4CAF50'
+                            : scorePercentage >= 60
+                              ? '#FFC107'
+                              : '#F44336',
+                        borderRadius: BORDER_RADIUS.lg,
+                        transition: 'width 0.3s ease',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'flex-end',
+                        paddingRight: scaled(8),
+                      }}
+                    >
+                      {scorePercentage > 15 && (
+                        <span
+                          style={{
+                            fontSize: scaled(14),
+                            fontWeight: FONT_WEIGHTS.semibold,
+                            color: COLORS.white,
+                          }}
+                        >
+                          {scorePercentage}%
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {scorePercentage <= 15 && displayScore !== null && !showCalculating && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: scaled(8),
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        fontSize: scaled(14),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.primary,
+                      }}
+                    >
+                      {scorePercentage}%
+                    </div>
+                  )}
+                  {showCalculating && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: scaled(8),
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        fontSize: scaled(14),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.primary,
+                      }}
+                    >
+                      Calculating...
+                    </div>
+                  )}
+                  {displayScore === null && !showCalculating && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        left: scaled(8),
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        fontSize: scaled(14),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.primary,
+                      }}
+                    >
+                      0%
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
         </div>
         {/* 버튼 영역 */}
         <div
@@ -697,6 +838,7 @@ const LinePractice: React.FC = () => {
               width: scaled(80),
               height: scaled(80),
               border: 'none',
+              outline: 'none',
               background: 'transparent',
               cursor: 'pointer',
               padding: 0,
@@ -721,6 +863,7 @@ const LinePractice: React.FC = () => {
               width: scaled(80),
               height: scaled(80),
               border: 'none',
+              outline: 'none',
               background: 'transparent',
               cursor: 'pointer',
               padding: 0,
@@ -763,6 +906,7 @@ const LinePractice: React.FC = () => {
                 width: scaled(80),
                 height: scaled(80),
                 border: 'none',
+                outline: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
                 padding: 0,
@@ -795,6 +939,7 @@ const LinePractice: React.FC = () => {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 border: 'none',
+                outline: 'none',
                 background: 'transparent',
                 cursor: 'pointer',
                 padding: `${scaled(4)} ${scaled(8)}`,
@@ -811,7 +956,45 @@ const LinePractice: React.FC = () => {
         </div>
       </div>
 
-      <Footer />
+      {/* End Button - Bottom Right */}
+      <button
+        onClick={() => {
+          if (songIdParam) {
+            navigate(`/lesson/${songIdParam}`);
+          }
+        }}
+        style={{
+          position: 'fixed',
+          bottom: scaled(70),
+          right: scaled(100),
+          zIndex: 1000,
+          padding: `${scaled(12)} ${scaled(24)}`,
+          backgroundColor: COLORS.primary,
+          color: COLORS.white,
+          border: 'none',
+          borderRadius: BORDER_RADIUS.md,
+          cursor: 'pointer',
+          fontSize: scaled(16),
+          fontWeight: FONT_WEIGHTS.semibold,
+          fontFamily: FONTS.primary,
+          outline: 'none',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '0.9';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '1';
+        }}
+        aria-label="End practice and return to lesson mode"
+      >
+        END
+      </button>
+
+      <FooterCopyright />
     </div>
   );
 };

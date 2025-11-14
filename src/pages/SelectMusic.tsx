@@ -136,10 +136,88 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
             scrollbar-width: thin;
             scrollbar-color: darkgray transparent;
           }
+          input::placeholder {
+            color: ${COLORS.primary};
+            opacity: 0.6;
+          }
         `}
       </style>
       <div style={{ ...containerFullscreen, paddingTop: scaled(55.5) }}>
         <Header />
+
+        {/* 검색 바 - Fixed Position */}
+        <div
+          style={{
+            position: 'fixed',
+            bottom: scaled(100),
+            right: scaled(200),
+            width: 'auto',
+            maxWidth: '20rem',
+            zIndex: 1000,
+            display: 'flex',
+            justifyContent: 'flex-end',
+          }}
+        >
+          <div
+            style={{
+              width: 'auto',
+              maxWidth: '20rem',
+              borderRadius: BORDER_RADIUS.md,
+              backgroundColor: COLORS.background,
+              border: `0.0625rem solid ${COLORS.primary}`,
+              display: 'flex',
+              alignItems: 'center',
+              gap: scaled(12),
+              padding: `${scaled(12)} ${scaled(16)}`,
+              boxSizing: 'border-box',
+            }}
+          >
+            <svg
+              width={scaled(20)}
+              height={scaled(20)}
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              style={{
+                flexShrink: 0,
+                color: COLORS.primary,
+              }}
+            >
+              <circle
+                cx="11"
+                cy="11"
+                r="7"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="m20 20-4-4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Search for a song or artist"
+              style={{
+                flex: 1,
+                border: 'none',
+                outline: 'none',
+                backgroundColor: 'transparent',
+                fontFamily: FONTS.primary,
+                fontSize: FONT_SIZES.base,
+                color: COLORS.primary,
+                padding: 0,
+              }}
+            />
+          </div>
+        </div>
 
         <div
           style={{
@@ -217,79 +295,6 @@ const SelectMusic: FunctionComponent<SelectMusicProps> = () => {
                 />
               </div>
             ))}
-          </div>
-
-          {/* 검색 바 */}
-          <div
-            style={{
-              width: '100%',
-              maxWidth: '75rem',
-              padding: `0 ${scaled(24)}`,
-              boxSizing: 'border-box',
-              marginTop: scaled(10),
-              display: 'flex',
-              justifyContent: 'flex-end',
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                maxWidth: '14.0625rem',
-                borderRadius: BORDER_RADIUS.md,
-                backgroundColor: 'transparent',
-                border: `0.0625rem solid ${COLORS.textSecondary}`,
-                display: 'flex',
-                alignItems: 'center',
-                gap: scaled(12),
-                padding: `${scaled(12)} ${scaled(16)}`,
-                boxSizing: 'border-box',
-              }}
-            >
-              <svg
-                width={scaled(20)}
-                height={scaled(20)}
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                style={{
-                  flexShrink: 0,
-                  color: COLORS.textSecondary,
-                }}
-              >
-                <circle
-                  cx="11"
-                  cy="11"
-                  r="7"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="m20 20-4-4"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Search for a song or artist"
-                style={{
-                  flex: 1,
-                  border: 'none',
-                  outline: 'none',
-                  backgroundColor: 'transparent',
-                  fontFamily: FONTS.primary,
-                  fontSize: FONT_SIZES.base,
-                  color: COLORS.dark,
-                  padding: 0,
-                }}
-              />
-            </div>
           </div>
         </div>
       </div>

@@ -104,6 +104,52 @@ export function drawLandmarkPoints(
 }
 
 /**
+ * 랜드마크 좌표 값을 캔버스에 그립니다 (그리드 형식)
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @param _toCanvas - 캔버스 좌표 변환 함수 (현재 사용되지 않음, 그리드 레이아웃 사용)
+ */
+export function drawLandmarkCoordinates(
+  ctx: CanvasRenderingContext2D,
+  landmarks: LandmarkPoint[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+) {
+  ctx.save();
+  ctx.scale(-1, 1); // 좌우 반전 (비디오와 맞추기 위해)
+  ctx.font = '13px monospace';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+
+  // 그리드 설정
+  const startX = -600; // 왼쪽 여백 (반전된 좌표계)
+  const startY = 40; // 상단 여백
+  const colWidth = 200; // 컬럼 너비
+  const rowHeight = 30; // 행 높이
+  const colsPerRow = 3; // 한 행에 표시할 컬럼 수
+  const sortedLandmarks = [...MOUTH_LANDMARKS].sort((a, b) => a - b); // 인덱스 순서대로 정렬
+
+  // 그리드 형식으로 좌표 표시
+  sortedLandmarks.forEach((index, i) => {
+    const landmark = landmarks[index];
+    const row = Math.floor(i / colsPerRow);
+    const col = i % colsPerRow;
+
+    const x = startX + col * colWidth;
+    const y = startY + row * rowHeight;
+
+    const text = `${index}: (${landmark.x.toFixed(2)}, ${landmark.y.toFixed(2)}, ${landmark.z.toFixed(2)})`;
+
+    // 흰색 텍스트만 표시 (투명 배경)
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillText(text, x, y);
+  });
+
+  ctx.restore();
+}
+
+/**
  * 목표 입술 윤곽선 그리기 (녹색)
  * @param ctx - 캔버스 렌더링 컨텍스트
  * @param targetLandmarks - 목표 랜드마크 좌표 맵
