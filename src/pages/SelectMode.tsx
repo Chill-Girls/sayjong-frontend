@@ -177,7 +177,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
             style={{
               fontSize: FONT_SIZES.xl,
               fontWeight: FONT_WEIGHTS.bold,
-              color: COLORS.primary,
+              color: COLORS.dark,
               margin: 0,
               zIndex: 0,
             }}
