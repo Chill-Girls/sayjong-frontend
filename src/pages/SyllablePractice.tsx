@@ -5,9 +5,6 @@ import Footer from '../components/Footer';
 import CameraComponent from '../components/CameraComponent';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
-import BtnMic from '../components/Btn_Mic';
-import BtnListenRecording from '../components/Btn_ListenRecording';
-import BtnTts from '../components/Btn_Tts';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { useMode } from '../constants/ModeContext';
@@ -204,47 +201,6 @@ const SyllablePractice: React.FC = () => {
     setIsOverlayActive(true);
   }, []);
 
-  const handleMicClick = useCallback(() => {
-    if (isRecording) {
-      setIsRecording(false);
-      setRecordedAudioBlob(null);
-      setIsOverlayActive(false);
-    } else {
-      setIsRecording(true);
-      setIsOverlayActive(false);
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    }
-  }, [isRecording, setIsRecording, setRecordedAudioBlob]);
-
-  const handlePlayNative = useCallback(() => {
-    const url = currentData?.nativeAudioUrl;
-    if (!url) return;
-
-    setSelectedSyllable(null);
-
-    setIsRecording(false);
-    setIsOverlayActive(false);
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    audio.play().catch(err => {
-      console.error('native audio play error', err);
-      audioRef.current = null;
-    });
-    audio.onended = () => {
-      audioRef.current = null;
-    };
-    audio.onerror = () => {
-      audioRef.current = null;
-    };
-  }, [currentData?.nativeAudioUrl, setIsRecording]);
-
   useEffect(
     () => () => {
       if (audioRef.current) {
@@ -290,6 +246,49 @@ const SyllablePractice: React.FC = () => {
     };
   }, []);
 
+  // 같은 라인 내에서 다음 음절로 이동
+  const handleNextSyllableInLine = useCallback(() => {
+    if (activeLineSyllables.length === 0) return;
+    
+    const currentSyllable = selectedSyllable || currentData;
+    const currentIndexInLine = activeLineSyllables.findIndex(
+      s => s.sylNo === currentSyllable?.sylNo && 
+           (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId || 
+            s.lineNo === currentSyllable?.lineNo)
+    );
+    
+    const nextIndex = (currentIndexInLine + 1) % activeLineSyllables.length;
+    const nextSyllable = activeLineSyllables[nextIndex];
+    
+    if (nextSyllable) {
+      handleSyllableClick(nextSyllable);
+    }
+  }, [activeLineSyllables, selectedSyllable, currentData, handleSyllableClick]);
+
+  // 같은 라인 내에서 이전 음절로 이동
+  const handlePrevSyllableInLine = useCallback(() => {
+    if (activeLineSyllables.length === 0) return;
+    
+    const currentSyllable = selectedSyllable || currentData; // 선택된 음절 또는 현재 페이지의 기본 음절
+    const currentIndexInLine = activeLineSyllables.findIndex(
+      s => s.sylNo === currentSyllable?.sylNo && 
+           (s.line?.lyricLineId === currentSyllable?.line?.lyricLineId || 
+            s.lineNo === currentSyllable?.lineNo)
+    );
+     
+    let prevIndex;
+    if (currentIndexInLine === -1) {
+      prevIndex = activeLineSyllables.length - 1;
+    } else {
+      prevIndex = (currentIndexInLine - 1 + activeLineSyllables.length) % activeLineSyllables.length;
+    }
+    const prevSyllable = activeLineSyllables[prevIndex];
+    
+    if (prevSyllable) {
+      handleSyllableClick(prevSyllable);
+    }
+  }, [activeLineSyllables, selectedSyllable, currentData, handleSyllableClick]);
+
   const effectiveIndex =
     activeLineSyllables.length > 0
       ? isOverlayActive
@@ -309,7 +308,9 @@ const SyllablePractice: React.FC = () => {
   const displaySinger = singer ? `- ${singer}` : '';
 
   const currentDisplaySyllable = displayTarget?.textKor ?? '';
-  const displayVowel = isOverlayActive ? extractVowel(currentDisplaySyllable) : null;
+  // selectedSyllable이 있거나 isOverlayActive일 때 AR 표시
+  const shouldShowAR = selectedSyllable !== null || isOverlayActive;
+  const displayVowel = shouldShowAR ? extractVowel(currentDisplaySyllable) : null;
 
   const totalSyllables = syllables.length;
 
@@ -480,7 +481,7 @@ const SyllablePractice: React.FC = () => {
               <CameraComponent
                 width={cameraWidth}
                 onResults={handleCameraResults}
-                activeSyllable={isOverlayActive ? currentDisplaySyllable : null}
+                activeSyllable={shouldShowAR ? currentDisplaySyllable : null}
                 activeVowel={displayVowel}
                 shouldStartOverlay={isRecording}
                 onCountdownComplete={handleOverlayCountdownComplete}
@@ -627,17 +628,79 @@ const SyllablePractice: React.FC = () => {
                     marginTop: scaled(12),
                   }}
                 >
-                  <b
+                  <div
                     style={{
-                      fontSize: scaled(72),
-                      fontWeight: FONT_WEIGHTS.bold,
-                      letterSpacing: '0.12em',
-                      color: COLORS.primary,
-                      textAlign: 'center',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: scaled(20),
                     }}
                   >
-                    {cyclingHangul || '-'}
-                  </b>
+                    <button
+                      type="button"
+                      onClick={handlePrevSyllableInLine}
+                      disabled={activeLineSyllables.length <= 1}
+                      style={{
+                        width: scaled(60),
+                        height: scaled(60),
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: activeLineSyllables.length > 1 ? 'pointer' : 'not-allowed',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: activeLineSyllables.length > 1 ? 1 : 0.3,
+                        flexShrink: 0,
+                      }}
+                      aria-label="Previous syllable in line"
+                    >
+                      <BtnPrev
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      />
+                    </button>
+                    <b
+                      style={{
+                        fontSize: scaled(72),
+                        fontWeight: FONT_WEIGHTS.bold,
+                        letterSpacing: '0.12em',
+                        color: COLORS.primary,
+                        textAlign: 'center',
+                        minWidth: scaled(100),
+                      }}
+                    >
+                      {cyclingHangul || '-'}
+                    </b>
+                    <button
+                      type="button"
+                      onClick={handleNextSyllableInLine}
+                      disabled={activeLineSyllables.length <= 1}
+                      style={{
+                        width: scaled(60),
+                        height: scaled(60),
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: activeLineSyllables.length > 1 ? 'pointer' : 'not-allowed',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        opacity: activeLineSyllables.length > 1 ? 1 : 0.3,
+                        flexShrink: 0,
+                      }}
+                      aria-label="Next syllable in line"
+                    >
+                      <BtnNext
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                        }}
+                      />
+                    </button>
+                  </div>
                   <div
                     style={{
                       padding: `${scaled(6)} ${scaled(16)}`,
@@ -688,100 +751,6 @@ const SyllablePractice: React.FC = () => {
               />
             </button>
           </div>
-        </div>
-
-        <div
-          style={{
-            width: '100%',
-            overflow: 'visible',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: `${scaled(20)} 0`,
-            gap: scaled(80),
-            minHeight: scaled(120),
-            zIndex: 3,
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleMicClick}
-            style={{
-              width: scaled(80),
-              height: scaled(80),
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <BtnMic
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          </button>
-
-          <button
-            type="button"
-            style={{
-              width: scaled(80),
-              height: scaled(80),
-              border: 'none',
-              background: 'transparent',
-              cursor: 'pointer',
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-            aria-label="Listen recording"
-          >
-            <BtnListenRecording
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          </button>
-
-          <button
-            type="button"
-            onClick={handlePlayNative}
-            disabled={!currentData.nativeAudioUrl}
-            style={{
-              width: scaled(80),
-              height: scaled(80),
-              border: 'none',
-              background: 'transparent',
-              cursor: currentData.nativeAudioUrl ? 'pointer' : 'not-allowed',
-              opacity: currentData.nativeAudioUrl ? 1 : 0.5,
-              padding: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
-            <BtnTts
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'contain',
-                display: 'block',
-              }}
-            />
-          </button>
         </div>
       </div>
 
