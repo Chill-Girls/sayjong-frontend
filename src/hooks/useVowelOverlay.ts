@@ -31,6 +31,7 @@ export function useVowelOverlay({
   const [arVowel, setArVowel] = useState<string | null>(null); // AR에 표시할 모음
   const isCountdownCancelledRef = useRef<boolean>(false); // 카운트다운 취소 플래그
   const similarityScoreRef = useRef<number | null>(null); // 유사도 점수 ref
+  const smoothedSimilarityRef = useRef<number | null>(null); // 평활화된 유사도 점수 ref
   const lastBlendshapeCalcTimeRef = useRef<number>(0); // 블렌드쉐이프 계산 throttling용 ref
 
   // 모음 업데이트
@@ -43,6 +44,10 @@ export function useVowelOverlay({
       // 기존 인스턴스가 있으면 모음만 업데이트
       targetLandmarksComputer.current.setTargetVowel(currentVowel);
     }
+
+    // Reset smoothed similarity when vowel changes to prevent carryover
+    smoothedSimilarityRef.current = null;
+    similarityScoreRef.current = null;
   }, [currentVowel]);
 
   useEffect(() => {
@@ -147,10 +152,53 @@ export function useVowelOverlay({
           if (targetBlendshapes) {
             similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
             similarityScoreRef.current = similarity;
+
+            // Debug logging for ㅘ vowel to verify it's using 'a' blendshapes correctly
+            if (currentTargetVowel === 'ㅘ') {
+              console.log('[ㅘ Debug]', {
+                vowel: currentTargetVowel,
+                similarity,
+                targetBlendshapes,
+                currentBlendshapes: filteredBlendshapes,
+                // Show key blendshapes comparison
+                jawOpen: {
+                  target: targetBlendshapes.jawOpen ?? 0,
+                  current: filteredBlendshapes.jawOpen ?? 0,
+                  diff: Math.abs(
+                    (targetBlendshapes.jawOpen ?? 0) - (filteredBlendshapes.jawOpen ?? 0),
+                  ),
+                },
+                mouthPucker: {
+                  target: targetBlendshapes.mouthPucker ?? 0,
+                  current: filteredBlendshapes.mouthPucker ?? 0,
+                  diff: Math.abs(
+                    (targetBlendshapes.mouthPucker ?? 0) - (filteredBlendshapes.mouthPucker ?? 0),
+                  ),
+                },
+                // Verify it's using 'a' calibration (should have high jawOpen)
+                usingACalibration: (targetBlendshapes.jawOpen ?? 0) > 0.3,
+                // Check if target is close to neutral (which would indicate old precomputed data)
+                targetMagnitude: Object.values(targetBlendshapes).reduce(
+                  (sum, val) => sum + Math.abs(val),
+                  0,
+                ),
+              });
+            }
+
+            // Apply exponential moving average smoothing to prevent brief spikes
+            // Alpha = 0.3 means new values have 30% weight, old values have 70% weight
+            // This makes the score more stable and prevents brief false positives
+            const alpha = 0.3;
+            if (smoothedSimilarityRef.current === null) {
+              smoothedSimilarityRef.current = similarity;
+            } else {
+              smoothedSimilarityRef.current =
+                alpha * similarity + (1 - alpha) * smoothedSimilarityRef.current;
+            }
           }
         } else {
           // 이전 계산 결과 재사용 (throttling 중)
-          similarity = similarityScoreRef.current;
+          similarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
         }
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
@@ -188,7 +236,22 @@ export function useVowelOverlay({
 
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
-        if (similarityScoreRef.current && similarityScoreRef.current >= 0.75) {
+        // Use smoothed similarity with threshold of 0.80 for green overlay
+        // This prevents brief false positives from noise
+        const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
+
+        // Debug logging for ㅘ vowel color decision
+        if (currentTargetVowel === 'ㅘ') {
+          console.log('[ㅘ Color Debug]', {
+            vowel: currentTargetVowel,
+            displaySimilarity,
+            threshold: 0.8,
+            isGreen: displaySimilarity && displaySimilarity >= 0.8,
+            color: displaySimilarity && displaySimilarity >= 0.8 ? 'GREEN' : 'ORANGE',
+          });
+        }
+
+        if (displaySimilarity && displaySimilarity >= 0.8) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
         } else {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황

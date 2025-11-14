@@ -195,7 +195,59 @@ export function calculateBlendshapeSimilarity(
 
   const averageSquaredError = totalWeightedSquaredError / totalWeight;
   const rmse = Math.sqrt(averageSquaredError);
-  const strictError = Math.pow(rmse, 1.2);
+
+  // Check individual blendshape requirements to catch cases where specific movements are needed
+  // This is especially important for compound vowels that might have low overall magnitude
+  // but require specific blendshape values
+  let individualPenalty = 0;
+  const MIN_ACTIVE_THRESHOLD = 0.12; // Minimum value to consider a blendshape "active" (lowered to catch more cases)
+  const MAX_INACTIVE_VALUE = 0.06; // Maximum value to consider a blendshape "inactive" (raised slightly)
+
+  for (let i = 0; i < TARGET_BLENDSHAPES.length; i++) {
+    const blendshapeName = TARGET_BLENDSHAPES[i];
+    const targetValue = targetBlendshapes[blendshapeName] ?? 0;
+    const currentValue = currentBlendshapes[blendshapeName] ?? 0;
+
+    // If target requires this blendshape to be active but current is inactive, add penalty
+    if (targetValue >= MIN_ACTIVE_THRESHOLD && currentValue <= MAX_INACTIVE_VALUE) {
+      // Weight the penalty by how important this blendshape is
+      // Increased multiplier from 0.5 to 0.8 for more aggressive penalties
+      const weight = BLENDSHAPE_WEIGHTS[blendshapeName] || 1.0;
+      individualPenalty += (targetValue - currentValue) * weight * 0.8;
+    }
+    // If target is inactive but current is active, also add penalty
+    else if (targetValue <= MAX_INACTIVE_VALUE && currentValue >= MIN_ACTIVE_THRESHOLD) {
+      const weight = BLENDSHAPE_WEIGHTS[blendshapeName] || 1.0;
+      individualPenalty += (currentValue - targetValue) * weight * 0.8;
+    }
+  }
+
+  // Calculate total target magnitude to detect if mouth should be active
+  const targetMagnitude = Object.values(targetBlendshapes).reduce(
+    (sum, val) => sum + Math.abs(val),
+    0,
+  );
+  const currentMagnitude = Object.values(currentBlendshapes).reduce(
+    (sum, val) => sum + Math.abs(val),
+    0,
+  );
+
+  // Penalty if target requires significant movement but current is inactive (or vice versa)
+  // This prevents high similarity when both are near zero
+  let magnitudePenalty = 0;
+  if (targetMagnitude > 0.25 && currentMagnitude < 0.12) {
+    // Target requires movement but current is inactive (lowered thresholds for stricter detection)
+    magnitudePenalty = 0.4; // Increased penalty
+  } else if (targetMagnitude < 0.12 && currentMagnitude > 0.25) {
+    // Target is inactive but current is active
+    magnitudePenalty = 0.4; // Increased penalty
+  }
+
+  // Combine penalties - individual penalty is more important as it catches specific requirements
+  const totalPenalty = Math.max(individualPenalty, magnitudePenalty);
+
+  // Make the error calculation stricter - increased power from 1.5 to 1.8
+  const strictError = Math.pow(rmse + totalPenalty, 1.8);
   const similarity = Math.max(0, Math.min(1, 1 - strictError));
 
   return similarity;
