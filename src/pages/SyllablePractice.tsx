@@ -10,7 +10,7 @@ import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { useMode } from '../constants/ModeContext';
 import { useRecording } from '../constants/RecordingContext';
 import { extractVowel } from '../utils/hangul';
-import { useSongLyricLines } from '../hooks/useSongs';
+import { useSong, useSongLyricLines } from '../hooks/useSongs';
 import { useSyllablePractice, type PracticeSyllable } from '../hooks/useSyllablePractice';
 
 const SyllablePractice: React.FC = () => {
@@ -31,6 +31,7 @@ const SyllablePractice: React.FC = () => {
   }, [pageParam]);
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const { song } = useSong(songId);
   const { lyricData, loading: lyricLoading, error: lyricError } = useSongLyricLines(songId);
   const {
     syllables,
@@ -73,7 +74,7 @@ const SyllablePractice: React.FC = () => {
 
   useEffect(() => {
     if (lyricData) {
-      setSongTitle(lyricData.title ?? '');
+      setSongTitle(song?.titleEng ?? '');
       setSinger(lyricData.singer ?? '');
     } else if (apiSongTitle) {
       setSongTitle(apiSongTitle ?? '');
@@ -81,8 +82,8 @@ const SyllablePractice: React.FC = () => {
     } else if (lyricError || !songId) {
       setSongTitle('');
       setSinger('');
-    } // 가사 데이터 로드
-  }, [lyricData, lyricError, apiSongTitle, apiSinger, songId]);
+    }
+  }, [lyricData, lyricError, apiSongTitle, apiSinger, songId, song]);
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
@@ -140,7 +141,7 @@ const SyllablePractice: React.FC = () => {
       if (!songIdParam || syllables.length === 0) return;
       const bounded = ((nextIndex % syllables.length) + syllables.length) % syllables.length;
       setCurrentIndex(bounded);
-      navigate(`/lesson/${songIdParam}/syllable/${bounded + 1}`, { replace: true });
+      navigate(`/lesson/${songIdParam}/syllable`, { replace: true });
       setRecordedAudioBlob(null);
       setIsRecording(false);
       setSelectedSyllable(null);

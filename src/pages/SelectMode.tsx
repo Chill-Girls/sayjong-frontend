@@ -53,9 +53,9 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
     if (!songId) return;
 
     if (lessonType === 'syllable') {
-      navigate(`/lesson/${songId}/syllable/1`);
+      navigate(`/lesson/${songId}/syllable`);
     } else if (lessonType === 'line') {
-      navigate(`/lesson/${songId}/line/1`);
+      navigate(`/lesson/${songId}/line`);
     } else if (lessonType === 'singalong') {
       navigate(`/lesson/${songId}/sing`);
     }
@@ -135,7 +135,16 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
               margin: 0,
             }}
           >
-            {song?.title || 'Song Not Found'}
+            {song?.titleEng || 'Song Not Found'}
+          </div>
+          <div
+            style={{
+              fontSize: FONT_SIZES.lg,
+              color: COLORS.dark,
+              margin: 0,
+            }}
+          >
+            {song?.title || '...'}
           </div>
           <div
             style={{

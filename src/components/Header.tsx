@@ -4,6 +4,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import accountIcon from '../assets/account_circle.svg';
 import { useMode, MODE_LABEL } from '../constants/ModeContext';
 import { COLORS } from '../styles/theme';
+import { logout } from '../api/auth';
 
 type HeaderProps = Record<string, never>;
 
@@ -140,10 +141,20 @@ const Header: FunctionComponent<HeaderProps> = () => {
     navigate(path);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsProfileMenuOpen(false);
-    localStorage.removeItem('accessToken');
-    navigate('/login');
+
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Server logout failed:', error);
+    } finally {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('target_vowels');
+      localStorage.removeItem('vowel_calibration');
+      navigate('/login');
+    }
   };
 
   const dropdownItems: Array<{
