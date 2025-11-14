@@ -44,6 +44,7 @@ const VOWEL_COEFFS_MONO: Record<string, VowelCoeffs> = {
   ㅚ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we]/[ø] ㅗ + ㅣ
   ㅝ: { open: 0.75, spread: 0.15, round: 0.5 }, // [wʌ] ㅜ + ㅓ
   ㅞ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we] ㅜ + ㅔ
+  ㅟ: { open: 0.35, spread: 0.6, round: 0.5 }, // [wi] ㅜ + ㅣ (combines round from ㅜ and spread from ㅣ)
   ㅢ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɰi] ㅡ + ㅣ
 };
 
@@ -196,13 +197,24 @@ export function buildTargetVowelBlendshapes(
     return {}; // 빈 객체 반환
   }
 
+  // ㅘ uses 'a' calibration for landmarks, so it should also use 'a' blendshapes directly
+  // This matches the landmark behavior and ensures consistency
   const isCalibratedVowel =
-    vowel === 'ㅏ' || vowel === 'ㅜ' || vowel === 'ㅣ' || vowel === 'ㅑ' || vowel === 'ㅠ';
+    vowel === 'ㅏ' ||
+    vowel === 'ㅜ' ||
+    vowel === 'ㅣ' ||
+    vowel === 'ㅑ' ||
+    vowel === 'ㅠ' ||
+    vowel === 'ㅘ';
 
   if (isCalibratedVowel) {
     // 보정된 데이터 직접 사용
     const calibratedKey =
-      vowel === 'ㅏ' || vowel === 'ㅑ' ? 'a' : vowel === 'ㅜ' || vowel === 'ㅠ' ? 'u' : 'i';
+      vowel === 'ㅏ' || vowel === 'ㅑ' || vowel === 'ㅘ'
+        ? 'a'
+        : vowel === 'ㅜ' || vowel === 'ㅠ'
+          ? 'u'
+          : 'i';
     return calibData[calibratedKey].blendshapes || {};
   }
 
