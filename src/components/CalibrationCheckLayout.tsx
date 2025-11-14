@@ -2,8 +2,14 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useCalibrationData } from '../hooks/useCalibration';
 
 function CalibrationCheckLayout() {
-  const { data, loading, error } = useCalibrationData();
+  const { data, loading, error, isAuthError } = useCalibrationData();
   const location = useLocation();
+
+  if (isAuthError) {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    return <Navigate to="/login" replace />;
+  }
 
   if (loading) {
     return (
