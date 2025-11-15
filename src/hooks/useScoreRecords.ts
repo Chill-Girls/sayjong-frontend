@@ -48,23 +48,21 @@ export function useScoreRecords(): UseScoreRecordsResult {
     fetchScoreRecords();
   }, [fetchScoreRecords]);
 
-  const saveScore = useCallback(
-    async (data: CreateScoreRequest): Promise<ScoreRecord | null> => {
-      try {
-        setError(null);
-        const newRecord = await createScoreRecord(data);
-        // 새 기록을 목록에 추가
-        setScoreRecords(prev => [newRecord, ...prev]);
-        return newRecord;
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : '점수 기록을 저장하는 데 실패했습니다.';
-        setError(errorMessage);
-        console.error('Failed to save score:', err);
-        return null;
-      }
-    },
-    [],
-  );
+  const saveScore = useCallback(async (data: CreateScoreRequest): Promise<ScoreRecord | null> => {
+    try {
+      setError(null);
+      const newRecord = await createScoreRecord(data);
+      // 새 기록을 목록에 추가
+      setScoreRecords(prev => [newRecord, ...prev]);
+      return newRecord;
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : '점수 기록을 저장하는 데 실패했습니다.';
+      setError(errorMessage);
+      console.error('Failed to save score:', err);
+      return null;
+    }
+  }, []);
 
   return {
     scoreRecords,
@@ -74,4 +72,3 @@ export function useScoreRecords(): UseScoreRecordsResult {
     saveScore,
   };
 }
-

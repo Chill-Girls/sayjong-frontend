@@ -29,7 +29,20 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
 }) => {
   // 월별 그래프 데이터 계산
   const graphData = useMemo<GraphData[]>(() => {
-    const monthNames = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const monthNames = [
+      'JAN',
+      'FEB',
+      'MAR',
+      'APR',
+      'MAY',
+      'JUN',
+      'JUL',
+      'AUG',
+      'SEP',
+      'OCT',
+      'NOV',
+      'DEC',
+    ];
     const now = new Date();
     const monthData = new Map<string, number[]>();
 

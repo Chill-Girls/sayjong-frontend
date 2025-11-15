@@ -32,4 +32,3 @@ export async function createScoreRecord(data: CreateScoreRequest): Promise<Score
     throw new Error('점수 기록을 저장하는 데 실패했습니다.');
   }
 }
-
