@@ -182,7 +182,7 @@ const SelectMode: FunctionComponent<SelectModeProps> = () => {
               zIndex: 0,
             }}
           >
-            Choose your lesson
+            Choose Your Lesson
           </div>
 
           {/* 레슨 카드들 */}
