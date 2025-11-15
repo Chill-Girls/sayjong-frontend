@@ -33,4 +33,3 @@ const LyricsCard: React.FC<LyricsCardProps> = ({ children }) => {
 };
 
 export default LyricsCard;
-

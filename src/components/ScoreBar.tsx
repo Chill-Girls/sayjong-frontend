@@ -55,11 +55,7 @@ const ScoreBar: React.FC<ScoreBarProps> = ({ isLoading, score, mouthScore }) => 
               width: `${scorePercentage}%`,
               height: '100%',
               backgroundColor:
-                scorePercentage >= 80
-                  ? '#4CAF50'
-                  : scorePercentage >= 60
-                    ? '#FFC107'
-                    : '#F44336',
+                scorePercentage >= 80 ? '#4CAF50' : scorePercentage >= 60 ? '#FFC107' : '#F44336',
               borderRadius: BORDER_RADIUS.lg,
               transition: 'width 0.3s ease',
               display: 'flex',
@@ -132,4 +128,3 @@ const ScoreBar: React.FC<ScoreBarProps> = ({ isLoading, score, mouthScore }) => 
 };
 
 export default ScoreBar;
-

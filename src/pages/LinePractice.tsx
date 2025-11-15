@@ -589,64 +589,61 @@ const LinePractice: React.FC = () => {
               className="transparent-scrollbar"
             >
               <LyricsCard>
-              {/* 고정된 가사 영역 */}
-              <div
-                style={{
-                  ...flexColumn,
-                  alignItems: 'center',
-                  gap: scaled(18),
-                  flexShrink: 0, // Prevent lyrics from shrinking
-                  marginBottom: scaled(24),
-                }}
-              >
-                {/* 한글 가사 */}
+                {/* 고정된 가사 영역 */}
                 <div
                   style={{
-                    fontSize: scaled(
-                      getAdaptiveFontSize(displayLine.originalText ?? '', 42, 42, 36),
-                    ),
-                    fontWeight: FONT_WEIGHTS.semibold,
-                    letterSpacing: '0.03em',
-                    color: COLORS.dark,
-                    textAlign: 'center',
+                    ...flexColumn,
+                    alignItems: 'center',
+                    gap: scaled(18),
+                    flexShrink: 0, // Prevent lyrics from shrinking
+                    marginBottom: scaled(24),
                   }}
                 >
-                  {highlightedLyric}
-                </div>
+                  {/* 한글 가사 */}
+                  <div
+                    style={{
+                      fontSize: scaled(
+                        getAdaptiveFontSize(displayLine.originalText ?? '', 42, 42, 36),
+                      ),
+                      fontWeight: FONT_WEIGHTS.semibold,
+                      letterSpacing: '0.03em',
+                      color: COLORS.dark,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {highlightedLyric}
+                  </div>
 
-                {/* 영어 가사 */}
-                <div
-                  style={{
-                    fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 24, 24, 20)),
-                    fontWeight: FONT_WEIGHTS.light,
-                    color: COLORS.textSecondary,
-                    textAlign: 'center',
-                  }}
-                >
-                  {displayLine.textEng}
-                </div>
+                  {/* 영어 가사 */}
+                  <div
+                    style={{
+                      fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 24, 24, 20)),
+                      fontWeight: FONT_WEIGHTS.light,
+                      color: COLORS.textSecondary,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {displayLine.textEng}
+                  </div>
 
-                {/* 로마자 가사 */}
-                <div
-                  style={{
-                    fontSize: scaled(getAdaptiveFontSize(displayLine.textRomaja ?? '', 32, 32, 24)),
-                    fontWeight: FONT_WEIGHTS.semibold,
-                    color: COLORS.textSecondary,
-                    textAlign: 'center',
-                  }}
-                >
-                  {displayLine.textRomaja}
+                  {/* 로마자 가사 */}
+                  <div
+                    style={{
+                      fontSize: scaled(
+                        getAdaptiveFontSize(displayLine.textRomaja ?? '', 32, 32, 24),
+                      ),
+                      fontWeight: FONT_WEIGHTS.semibold,
+                      color: COLORS.textSecondary,
+                      textAlign: 'center',
+                    }}
+                  >
+                    {displayLine.textRomaja}
+                  </div>
                 </div>
-              </div>
-
               </LyricsCard>
 
               {/* 점수 바 */}
-              <ScoreBar
-                isLoading={isLoading}
-                score={score}
-                mouthScore={mouthScoreRef.current}
-              />
+              <ScoreBar isLoading={isLoading} score={score} mouthScore={mouthScoreRef.current} />
 
               {/* 피드백 영역 */}
               <div

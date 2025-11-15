@@ -23,7 +23,11 @@ interface TrainingRecord {
 
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
-  const { scoreRecords, loading: scoreRecordsLoading, error: scoreRecordsError } = useScoreRecords();
+  const {
+    scoreRecords,
+    loading: scoreRecordsLoading,
+    error: scoreRecordsError,
+  } = useScoreRecords();
   const { songs: allSongs, loading: songsLoading, error: songsError } = useSongs();
 
   // 노래 정보를 Map으로 변환 (songId를 키로 사용)
@@ -150,7 +154,6 @@ const History: React.FC = () => {
     return Math.round(totalAverage);
   }, [filteredRecords]);
 
-
   if (loading) {
     return (
       <div
@@ -204,7 +207,7 @@ const History: React.FC = () => {
       }}
     >
       <Header />
-      
+
       <div
         style={{
           width: '100%',
@@ -220,306 +223,304 @@ const History: React.FC = () => {
           paddingBottom: scaled(35),
         }}
       >
-
-      {/* User Profile Section */}
-      <div
-        style={{
-          width: scaled(571),
-          height: scaled(337),
-          position: 'relative',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          textAlign: 'center',
-        }}
-      >
+        {/* User Profile Section */}
         <div
           style={{
-            width: scaled(120),
-            height: scaled(120),
-            borderRadius: '50%',
-            backgroundColor: COLORS.gray,
-            marginBottom: scaled(35),
-          }}
-        />
-        <div
-          style={{
-            fontSize: scaled(36),
-            fontWeight: FONT_WEIGHTS.semibold,
-            color: COLORS.dark,
-            marginTop: scaled(61),
-            fontFamily: FONTS.primary,
-          }}
-        >
-          userNickname
-        </div>
-        <div
-          style={{
-            fontSize: scaled(24),
-            color: COLORS.textSecondary,
-            marginTop: scaled(8),
-            fontFamily: FONTS.primary,
-          }}
-        >
-          @userID
-        </div>
-      </div>
-
-      {/* Training Log Section */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: scaled(1200),
-          minWidth: scaled(1100),
-          padding: `${scaled(45)} ${scaled(45)} ${scaled(0)}`,
-        }}
-      >
-        <div
-          style={{
-            fontSize: scaled(30),
-            fontWeight: FONT_WEIGHTS.semibold,
-            color: COLORS.dark,
-            letterSpacing: scaled(1),
-            marginBottom: scaled(27),
-            fontFamily: FONTS.primary,
-          }}
-        >
-          My Training Log
-        </div>
-        <div
-          style={{
+            width: scaled(571),
+            height: scaled(337),
+            position: 'relative',
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
-            gap: scaled(10),
+            textAlign: 'center',
           }}
         >
-          {(['ALL', 'LAST_7_DAYS', 'LAST_30_DAYS'] as FilterPeriod[]).map(period => (
-            <button
-              key={period}
-              type="button"
-              onClick={() => setFilterPeriod(period)}
-              style={{
-                borderRadius: BORDER_RADIUS.xl,
-                backgroundColor: filterPeriod === period ? COLORS.primary : COLORS.background,
-                color: filterPeriod === period ? COLORS.white : COLORS.dark,
-                border: 'none',
-                padding: `${scaled(11)} ${scaled(39)}`,
-                fontSize: scaled(15),
-                fontWeight: FONT_WEIGHTS.semibold,
-                letterSpacing: scaled(1),
-                cursor: 'pointer',
-                fontFamily: FONTS.primary,
-              }}
-            >
-              {period.replace('_', ' ')}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Training Records Grid */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: scaled(1200),
-          minWidth: scaled(1100),
-          ...flexColumn,
-          gap: scaled(22),
-          padding: `0 ${scaled(32)}`,
-        }}
-      >
-        {trainingRecords.length === 0 ? (
           <div
             style={{
-              width: '100%',
-              padding: scaled(40),
-              textAlign: 'center',
-              fontSize: scaled(24),
-              color: COLORS.textSecondary,
+              width: scaled(120),
+              height: scaled(120),
+              borderRadius: '50%',
+              backgroundColor: COLORS.gray,
+              marginBottom: scaled(35),
+            }}
+          />
+          <div
+            style={{
+              fontSize: scaled(36),
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.dark,
+              marginTop: scaled(61),
               fontFamily: FONTS.primary,
             }}
           >
-            기록이 없습니다.
+            userNickname
           </div>
-        ) : (
-          trainingRecords.map((record, index) => (
-            <div
-              key={record.songId}
+          <div
             style={{
-              width: '100%',
-              height: scaled(224),
-              borderRadius: BORDER_RADIUS.xl,
-              backgroundColor: COLORS.white,
-              border: `1px solid ${COLORS.textSecondary}`,
-              boxShadow: index > 0 ? SHADOWS.card : 'none',
-              padding: `${scaled(24)} ${scaled(36)} ${scaled(24)} ${scaled(57)}`,
-              position: 'relative',
-              display: 'flex',
-              alignItems: 'center',
-              gap: scaled(36),
+              fontSize: scaled(24),
+              color: COLORS.textSecondary,
+              marginTop: scaled(8),
+              fontFamily: FONTS.primary,
             }}
           >
-            {record.imageUrl && (
-              <img
-                src={record.imageUrl}
-                alt={record.title}
+            @userID
+          </div>
+        </div>
+
+        {/* Training Log Section */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: scaled(1200),
+            minWidth: scaled(1100),
+            padding: `${scaled(45)} ${scaled(45)} ${scaled(0)}`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: scaled(30),
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.dark,
+              letterSpacing: scaled(1),
+              marginBottom: scaled(27),
+              fontFamily: FONTS.primary,
+            }}
+          >
+            My Training Log
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: scaled(10),
+            }}
+          >
+            {(['ALL', 'LAST_7_DAYS', 'LAST_30_DAYS'] as FilterPeriod[]).map(period => (
+              <button
+                key={period}
+                type="button"
+                onClick={() => setFilterPeriod(period)}
                 style={{
-                  width: scaled(176),
-                  height: scaled(176),
                   borderRadius: BORDER_RADIUS.xl,
-                  objectFit: 'cover',
-                  flexShrink: 0,
-                }}
-              />
-            )}
-            <div style={{ ...flexColumn, gap: scaled(8), flex: 1 }}>
-              <div
-                style={{
-                  fontSize: scaled(40),
+                  backgroundColor: filterPeriod === period ? COLORS.primary : COLORS.background,
+                  color: filterPeriod === period ? COLORS.white : COLORS.dark,
+                  border: 'none',
+                  padding: `${scaled(11)} ${scaled(39)}`,
+                  fontSize: scaled(15),
                   fontWeight: FONT_WEIGHTS.semibold,
-                  color: COLORS.dark,
-                  letterSpacing: scaled(-0.02),
+                  letterSpacing: scaled(1),
+                  cursor: 'pointer',
                   fontFamily: FONTS.primary,
                 }}
               >
-                {record.title}
-              </div>
-              {record.artist && (
-                <div
-                  style={{
-                    fontSize: scaled(24),
-                    fontWeight: FONT_WEIGHTS.semibold,
-                    color: COLORS.dark,
-                    letterSpacing: scaled(-0.02),
-                    fontFamily: FONTS.primary,
-                  }}
-                >
-                  {record.artist}
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: scaled(25), marginTop: scaled(8) }}>
-                {record.score !== undefined && (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: scaled(20),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.dark,
-                        letterSpacing: scaled(-0.02),
-                        marginBottom: scaled(4),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      Score
-                    </div>
-                    <div
-                      style={{
-                        fontSize: scaled(32),
-                        fontWeight: FONT_WEIGHTS.extrabold,
-                        color: COLORS.primary,
-                        letterSpacing: scaled(-0.02),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      {record.score}%
-                    </div>
-                  </div>
-                )}
-                {record.bestScore !== undefined && (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: scaled(20),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.dark,
-                        letterSpacing: scaled(-0.02),
-                        marginBottom: scaled(4),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      Best Score
-                    </div>
-                    <div
-                      style={{
-                        fontSize: scaled(32),
-                        fontWeight: FONT_WEIGHTS.extrabold,
-                        color: COLORS.primary,
-                        letterSpacing: scaled(-0.02),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      {record.bestScore}%
-                    </div>
-                  </div>
-                )}
-                {record.recentScore !== undefined && (
-                  <div>
-                    <div
-                      style={{
-                        fontSize: scaled(20),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.dark,
-                        letterSpacing: scaled(-0.02),
-                        marginBottom: scaled(4),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      Recent Score
-                    </div>
-                    <div
-                      style={{
-                        fontSize: scaled(32),
-                        fontWeight: FONT_WEIGHTS.extrabold,
-                        color: COLORS.primary,
-                        letterSpacing: scaled(-0.02),
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      {record.recentScore}%
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+                {period.replace('_', ' ')}
+              </button>
+            ))}
           </div>
-          ))
-        )}
-      </div>
+        </div>
 
-
-      <div
-        style={{
-          width: '100%',
-          maxWidth: scaled(1200),
-          minWidth: scaled(1100),
-          padding: `${scaled(45)} ${scaled(45)} ${scaled(0)}`,
-        }}
-      >
+        {/* Training Records Grid */}
         <div
           style={{
-            fontSize: scaled(30),
-            fontWeight: FONT_WEIGHTS.semibold,
-            color: COLORS.dark,
-            letterSpacing: scaled(1),
-            marginBottom: scaled(27),
-            fontFamily: FONTS.primary,
+            width: '100%',
+            maxWidth: scaled(1200),
+            minWidth: scaled(1100),
+            ...flexColumn,
+            gap: scaled(22),
+            padding: `0 ${scaled(32)}`,
           }}
         >
-          Pronunciation Improvement Trend
+          {trainingRecords.length === 0 ? (
+            <div
+              style={{
+                width: '100%',
+                padding: scaled(40),
+                textAlign: 'center',
+                fontSize: scaled(24),
+                color: COLORS.textSecondary,
+                fontFamily: FONTS.primary,
+              }}
+            >
+              기록이 없습니다.
+            </div>
+          ) : (
+            trainingRecords.map((record, index) => (
+              <div
+                key={record.songId}
+                style={{
+                  width: '100%',
+                  height: scaled(224),
+                  borderRadius: BORDER_RADIUS.xl,
+                  backgroundColor: COLORS.white,
+                  border: `1px solid ${COLORS.textSecondary}`,
+                  boxShadow: index > 0 ? SHADOWS.card : 'none',
+                  padding: `${scaled(24)} ${scaled(36)} ${scaled(24)} ${scaled(57)}`,
+                  position: 'relative',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: scaled(36),
+                }}
+              >
+                {record.imageUrl && (
+                  <img
+                    src={record.imageUrl}
+                    alt={record.title}
+                    style={{
+                      width: scaled(176),
+                      height: scaled(176),
+                      borderRadius: BORDER_RADIUS.xl,
+                      objectFit: 'cover',
+                      flexShrink: 0,
+                    }}
+                  />
+                )}
+                <div style={{ ...flexColumn, gap: scaled(8), flex: 1 }}>
+                  <div
+                    style={{
+                      fontSize: scaled(40),
+                      fontWeight: FONT_WEIGHTS.semibold,
+                      color: COLORS.dark,
+                      letterSpacing: scaled(-0.02),
+                      fontFamily: FONTS.primary,
+                    }}
+                  >
+                    {record.title}
+                  </div>
+                  {record.artist && (
+                    <div
+                      style={{
+                        fontSize: scaled(24),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.dark,
+                        letterSpacing: scaled(-0.02),
+                        fontFamily: FONTS.primary,
+                      }}
+                    >
+                      {record.artist}
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: scaled(25), marginTop: scaled(8) }}>
+                    {record.score !== undefined && (
+                      <div>
+                        <div
+                          style={{
+                            fontSize: scaled(20),
+                            fontWeight: FONT_WEIGHTS.semibold,
+                            color: COLORS.dark,
+                            letterSpacing: scaled(-0.02),
+                            marginBottom: scaled(4),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          Score
+                        </div>
+                        <div
+                          style={{
+                            fontSize: scaled(32),
+                            fontWeight: FONT_WEIGHTS.extrabold,
+                            color: COLORS.primary,
+                            letterSpacing: scaled(-0.02),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          {record.score}%
+                        </div>
+                      </div>
+                    )}
+                    {record.bestScore !== undefined && (
+                      <div>
+                        <div
+                          style={{
+                            fontSize: scaled(20),
+                            fontWeight: FONT_WEIGHTS.semibold,
+                            color: COLORS.dark,
+                            letterSpacing: scaled(-0.02),
+                            marginBottom: scaled(4),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          Best Score
+                        </div>
+                        <div
+                          style={{
+                            fontSize: scaled(32),
+                            fontWeight: FONT_WEIGHTS.extrabold,
+                            color: COLORS.primary,
+                            letterSpacing: scaled(-0.02),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          {record.bestScore}%
+                        </div>
+                      </div>
+                    )}
+                    {record.recentScore !== undefined && (
+                      <div>
+                        <div
+                          style={{
+                            fontSize: scaled(20),
+                            fontWeight: FONT_WEIGHTS.semibold,
+                            color: COLORS.dark,
+                            letterSpacing: scaled(-0.02),
+                            marginBottom: scaled(4),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          Recent Score
+                        </div>
+                        <div
+                          style={{
+                            fontSize: scaled(32),
+                            fontWeight: FONT_WEIGHTS.extrabold,
+                            color: COLORS.primary,
+                            letterSpacing: scaled(-0.02),
+                            fontFamily: FONTS.primary,
+                          }}
+                        >
+                          {record.recentScore}%
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
         </div>
-      </div>
 
-      {/*Graph*/}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: scaled(1200),
-          minWidth: scaled(1100),
-          padding: `0 ${scaled(45)}`,
-        }}
-      >
-        <TrainingLogChart scoreRecords={filteredRecords} averageScore={averageScore} />
-      </div>
+        <div
+          style={{
+            width: '100%',
+            maxWidth: scaled(1200),
+            minWidth: scaled(1100),
+            padding: `${scaled(45)} ${scaled(45)} ${scaled(0)}`,
+          }}
+        >
+          <div
+            style={{
+              fontSize: scaled(30),
+              fontWeight: FONT_WEIGHTS.semibold,
+              color: COLORS.dark,
+              letterSpacing: scaled(1),
+              marginBottom: scaled(27),
+              fontFamily: FONTS.primary,
+            }}
+          >
+            Pronunciation Improvement Trend
+          </div>
+        </div>
+
+        {/*Graph*/}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: scaled(1200),
+            minWidth: scaled(1100),
+            padding: `0 ${scaled(45)}`,
+          }}
+        >
+          <TrainingLogChart scoreRecords={filteredRecords} averageScore={averageScore} />
+        </div>
       </div>
       <FooterCopyright />
     </div>

@@ -43,4 +43,3 @@ const CoordsButton: React.FC<CoordsButtonProps> = ({
 };
 
 export default CoordsButton;
-
