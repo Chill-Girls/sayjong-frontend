@@ -6,7 +6,7 @@ import CameraComponent from '../components/CameraComponent';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
 import LyricsCard from '../components/LyricsCard';
-import CoordsButton from '../components/CoordsButton';
+import CoordsButton from '../components/Btn_Coords';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { useMode } from '../constants/ModeContext';

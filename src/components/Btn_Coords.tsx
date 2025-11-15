@@ -13,7 +13,7 @@ const CoordsButton: React.FC<CoordsButtonProps> = ({
   isActive,
   onClick,
   top = 30,
-  showText = false,
+
 }) => {
   return (
     <button
@@ -37,7 +37,7 @@ const CoordsButton: React.FC<CoordsButtonProps> = ({
       }}
       aria-label="Toggle landmark coordinates"
     >
-      {showText ? (isActive ? 'Hide Coords' : 'Show Coords') : 'COORDS'}
+     COORDS
     </button>
   );
 };

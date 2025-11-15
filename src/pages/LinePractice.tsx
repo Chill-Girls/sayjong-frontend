@@ -21,7 +21,7 @@ import { useTts, PLAYBACK_RATES } from '../hooks/useTts';
 import VowelFeedback, { type SegmentFeedbackItem } from '../components/VowelFeedback';
 import ScoreBar from '../components/ScoreBar';
 import LyricsCard from '../components/LyricsCard';
-import CoordsButton from '../components/CoordsButton';
+import CoordsButton from '../components/Btn_Coords';
 import { mapCharsWithMask } from '../utils/highlight';
 
 const HIGHLIGHT_COLOR = '#F04455';
