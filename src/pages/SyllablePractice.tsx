@@ -499,7 +499,6 @@ const SyllablePractice: React.FC = () => {
               isActive={showLandmarkCoordinates}
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
               top={60}
-              showText={true}
             />
             <div
               ref={cameraContainerRef}

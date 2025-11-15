@@ -455,7 +455,6 @@ const LinePractice: React.FC = () => {
               isActive={showLandmarkCoordinates}
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
               top={30}
-              showText={false}
             />
             <div
               ref={cameraContainerRef}

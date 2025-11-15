@@ -6,7 +6,6 @@ interface CoordsButtonProps {
   isActive: boolean;
   onClick: () => void;
   top?: number;
-  showText?: boolean; // true면 'Show Coords' / 'Hide Coords', false면 항상 'COORDS'
 }
 
 const CoordsButton: React.FC<CoordsButtonProps> = ({
