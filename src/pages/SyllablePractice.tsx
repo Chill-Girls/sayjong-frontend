@@ -5,6 +5,8 @@ import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
+import LyricsCard from '../components/LyricsCard';
+import CoordsButton from '../components/CoordsButton';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { useMode } from '../constants/ModeContext';
@@ -493,29 +495,12 @@ const SyllablePractice: React.FC = () => {
             }}
           >
             {/* 랜드마크 좌표 토글 버튼 */}
-            <button
+            <CoordsButton
+              isActive={showLandmarkCoordinates}
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
-              style={{
-                position: 'absolute',
-                top: scaled(60),
-                right: scaled(10),
-                zIndex: 1000,
-                padding: `${scaled(8)} ${scaled(12)}`,
-                backgroundColor: showLandmarkCoordinates ? COLORS.primary : COLORS.background,
-                color: showLandmarkCoordinates ? COLORS.white : COLORS.dark,
-                border: `1px solid ${COLORS.primary}`,
-                borderRadius: BORDER_RADIUS.md,
-                cursor: 'pointer',
-                fontSize: scaled(12),
-                fontWeight: FONT_WEIGHTS.semibold,
-                fontFamily: FONTS.primary,
-                outline: 'none',
-                transition: 'all 0.2s ease',
-              }}
-              aria-label="Toggle landmark coordinates"
-            >
-              {showLandmarkCoordinates ? 'Hide Coords' : 'Show Coords'}
-            </button>
+              top={60}
+              showText={true}
+            />
             <div
               ref={cameraContainerRef}
               style={{
@@ -539,6 +524,7 @@ const SyllablePractice: React.FC = () => {
             </div>
           </div>
 
+          {/* 가사 영역 */}
           <div
             style={{
               flex: 1,
@@ -546,47 +532,55 @@ const SyllablePractice: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
               gap: scaled(30),
-              minWidth: scaled(540),
-              maxWidth: scaled(800),
+              minWidth: scaled(600),
+              maxWidth: scaled(900),
               height: '100%',
-              overflowY: 'auto',
-              overflowX: 'hidden',
+              overflow: 'visible',
               position: 'relative',
-              margin: `${scaled(-65)} auto 0`,
+              margin: `${scaled(50)} auto 0`,
             }}
           >
-            <BtnPrev
-              onClick={handlePrev}
-              ariaLabel="Previous syllable"
-              buttonStyle={{
-                width: scaled(60),
-                height: scaled(60),
+            {/* 화살표 버튼 - 왼쪽 */}
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: '35%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'auto',
+                zIndex: 10,
               }}
-            />
+            >
+              <BtnPrev
+                onClick={handlePrev}
+                ariaLabel="Previous syllable"
+                buttonStyle={{
+                  width: scaled(60),
+                  height: scaled(60),
+                }}
+              />
+            </div>
+
+            {/* 가사 콘텐츠 */}
             <div
               style={{
                 ...flexColumn,
                 alignItems: 'center',
-                gap: scaled(32),
                 flex: 1,
-                maxWidth: scaled(540),
+                maxWidth: scaled(600),
                 paddingBottom: scaled(20),
                 paddingTop: scaled(20),
+                paddingLeft: scaled(50),
+                paddingRight: scaled(50),
+                minHeight: 0,
+                overflow: 'visible',
+                height: '100%',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
-              <div
-                style={{
-                  ...flexColumn,
-                  alignItems: 'stretch',
-                  gap: scaled(16),
-                  padding: scaled(32),
-                  borderRadius: BORDER_RADIUS.lg,
-                  boxShadow: '0 16px 32px rgba(0,0,0,0.06)',
-                  background: COLORS.white,
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
+              <LyricsCard>
                 <div
                   style={{
                     display: 'flex',
@@ -726,16 +720,29 @@ const SyllablePractice: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              </div>
+              </LyricsCard>
             </div>
-            <BtnNext
-              onClick={handleNext}
-              ariaLabel="Next syllable"
-              buttonStyle={{
-                width: scaled(60),
-                height: scaled(60),
+
+            {/* 화살표 버튼 - 오른쪽 */}
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: '35%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'auto',
+                zIndex: 10,
               }}
-            />
+            >
+              <BtnNext
+                onClick={handleNext}
+                ariaLabel="Next syllable"
+                buttonStyle={{
+                  width: scaled(60),
+                  height: scaled(60),
+                }}
+              />
+            </div>
           </div>
         </div>
       </div>

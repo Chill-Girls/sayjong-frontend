@@ -19,6 +19,9 @@ import { filterTargetBlendshapes } from '../utils/blendshapeProcessor';
 import { usePronunciationCheck } from '../hooks/usePronunciationCheck';
 import { useTts, PLAYBACK_RATES } from '../hooks/useTts';
 import VowelFeedback, { type SegmentFeedbackItem } from '../components/VowelFeedback';
+import ScoreBar from '../components/ScoreBar';
+import LyricsCard from '../components/LyricsCard';
+import CoordsButton from '../components/CoordsButton';
 import { mapCharsWithMask } from '../utils/highlight';
 
 const HIGHLIGHT_COLOR = '#F04455';
@@ -448,29 +451,12 @@ const LinePractice: React.FC = () => {
             }}
           >
             {/* 랜드마크 좌표 토글 버튼 */}
-            <button
+            <CoordsButton
+              isActive={showLandmarkCoordinates}
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
-              style={{
-                position: 'absolute',
-                top: scaled(30),
-                right: scaled(10),
-                zIndex: 1000,
-                padding: `${scaled(8)} ${scaled(12)}`,
-                backgroundColor: showLandmarkCoordinates ? COLORS.primary : COLORS.background,
-                color: showLandmarkCoordinates ? COLORS.white : COLORS.dark,
-                border: `1px solid ${COLORS.primary}`,
-                borderRadius: BORDER_RADIUS.md,
-                cursor: 'pointer',
-                fontSize: scaled(12),
-                fontWeight: FONT_WEIGHTS.semibold,
-                fontFamily: FONTS.primary,
-                outline: 'none',
-                transition: 'all 0.2s ease',
-              }}
-              aria-label="Toggle landmark coordinates"
-            >
-              {showLandmarkCoordinates ? 'COORDS' : 'COORDS'}
-            </button>
+              top={30}
+              showText={false}
+            />
             <div
               ref={cameraContainerRef}
               style={{
@@ -544,27 +530,39 @@ const LinePractice: React.FC = () => {
           {/* 가사 영역 */}
           <div
             style={{
-              flex: 1, // 남은 공간을 차지하도록
+              flex: 1,
               display: 'flex',
-              alignItems: 'center', // 세로 중앙 정렬
+              alignItems: 'center',
               justifyContent: 'center',
               gap: scaled(30),
-              minWidth: scaled(540), // 최소 너비
-              maxWidth: scaled(800), // 최대 너비
-              height: '100%', // 전체 높이 사용
-              overflow: 'hidden', // Prevent outer scrolling
+              minWidth: scaled(600),
+              maxWidth: scaled(900),
+              height: '100%',
+              overflow: 'visible',
               position: 'relative',
-              margin: `${scaled(10)} auto 0`,
+              margin: `${scaled(20)} auto 0`,
             }}
           >
-            <BtnPrev
-              onClick={handlePrevLine}
-              ariaLabel="Previous line"
-              buttonStyle={{
-                width: scaled(60),
-                height: scaled(60),
+            {/* 화살표 버튼 - 왼쪽 */}
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                top: '35%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'auto',
+                zIndex: 10,
               }}
-            />
+            >
+              <BtnPrev
+                onClick={handlePrevLine}
+                ariaLabel="Previous line"
+                buttonStyle={{
+                  width: scaled(60),
+                  height: scaled(60),
+                }}
+              />
+            </div>
 
             {/* 가사 콘텐츠 */}
             <div
@@ -572,19 +570,25 @@ const LinePractice: React.FC = () => {
                 ...flexColumn,
                 alignItems: 'center',
                 flex: 1,
-                maxWidth: scaled(540), // 600 * 0.9
+                maxWidth: scaled(600),
                 paddingBottom: scaled(20),
-                paddingTop: scaled(50),
+                paddingTop: scaled(20),
                 paddingLeft: scaled(50),
                 paddingRight: scaled(50),
-                minHeight: 0, // Allow flex child to shrink
-                overflow: 'hidden', // Prevent outer scrolling
-                height: '100%', // Ensure parent has height
-                backgroundColor: COLORS.white,
-                borderRadius: BORDER_RADIUS.lg,
-                boxShadow: '0 16px 32px rgba(0,0,0,0.06)',
+                minHeight: 0,
+                overflowY: 'auto',
+                overflowX: 'hidden',
+                height: '100%',
+                position: 'relative',
+                display: 'flex',
+                flexDirection: 'column',
+                // Custom scrollbar styling
+                scrollbarWidth: 'thin', // Firefox
+                scrollbarColor: `${COLORS.textSecondary}40 transparent`, // Firefox: thumb and track
               }}
+              className="transparent-scrollbar"
             >
+              <LyricsCard>
               {/* 고정된 가사 영역 */}
               <div
                 style={{
@@ -635,20 +639,22 @@ const LinePractice: React.FC = () => {
                 </div>
               </div>
 
-              {/* 스크롤 가능한 피드백 영역 */}
+              </LyricsCard>
+
+              {/* 점수 바 */}
+              <ScoreBar
+                isLoading={isLoading}
+                score={score}
+                mouthScore={mouthScoreRef.current}
+              />
+
+              {/* 피드백 영역 */}
               <div
                 style={{
                   width: '100%',
-                  flex: 1,
-                  minHeight: 0,
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
                   position: 'relative',
-                  // Custom scrollbar styling
-                  scrollbarWidth: 'thin', // Firefox
-                  scrollbarColor: `${COLORS.textSecondary}40 transparent`, // Firefox: thumb and track
+                  marginTop: scaled(16),
                 }}
-                className="transparent-scrollbar"
               >
                 <VowelFeedback
                   activeVowel={displayVowel}
@@ -670,153 +676,27 @@ const LinePractice: React.FC = () => {
               </div>
             </div>
 
-            <BtnNext
-              onClick={handleNextLine}
-              ariaLabel="Next line"
-              buttonStyle={{
-                width: scaled(60),
-                height: scaled(60),
+            {/* 화살표 버튼 - 오른쪽 */}
+            <div
+              style={{
+                position: 'absolute',
+                right: 0,
+                top: '35%',
+                transform: 'translateY(-50%)',
+                pointerEvents: 'auto',
+                zIndex: 10,
               }}
-            />
-          </div>
-        </div>
-
-        {/* 점수 표기 UI - Horizontal Score Bar */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: scaled(630),
-            ...flexColumn,
-            alignItems: 'flex-end',
-            justifyContent: 'center',
-            gap: scaled(12),
-            zIndex: 3,
-            padding: `${scaled(20)} ${scaled(50)}`,
-            alignSelf: 'flex-end', // Move to left side
-            marginTop: scaled(10),
-            marginRight: scaled(190), // Additional left margin
-          }}
-        >
-          {(() => {
-            // Calculate score to display
-            let displayScore: number | null = null;
-            let showCalculating = false;
-
-            if (isLoading) {
-              showCalculating = true;
-            } else if (score !== null && mouthScoreRef.current !== null) {
-              // 최종 점수 계산: (입모양 점수 * 100 * 0.4) + (소리 AI 서버 점수 * 0.6)
-              const mouthScorePercentage = mouthScoreRef.current * 100;
-              const finalScore = mouthScorePercentage * 0.4 + score * 0.6;
-              displayScore = Math.round(finalScore);
-            } else if (score !== null) {
-              displayScore = score;
-            }
-
-            const scorePercentage =
-              displayScore !== null ? Math.min(100, Math.max(0, displayScore)) : 0;
-
-            return (
-              <div
-                style={{
-                  width: '100%',
-                  ...flexColumn,
-                  gap: scaled(8),
+            >
+              <BtnNext
+                onClick={handleNextLine}
+                ariaLabel="Next line"
+                buttonStyle={{
+                  width: scaled(60),
+                  height: scaled(60),
                 }}
-              >
-                <div
-                  style={{
-                    width: '100%',
-                    height: scaled(24),
-                    backgroundColor: COLORS.background,
-                    borderRadius: BORDER_RADIUS.lg,
-                    overflow: 'hidden',
-                    position: 'relative',
-                    outline: `${scaled(1)} solid ${COLORS.primary}`,
-                    outlineColor: COLORS.primary,
-                  }}
-                >
-                  {scorePercentage > 0 && !showCalculating && (
-                    <div
-                      style={{
-                        width: `${scorePercentage}%`,
-                        height: '100%',
-                        backgroundColor:
-                          scorePercentage >= 80
-                            ? '#4CAF50'
-                            : scorePercentage >= 60
-                              ? '#FFC107'
-                              : '#F44336',
-                        borderRadius: BORDER_RADIUS.lg,
-                        transition: 'width 0.3s ease',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'flex-end',
-                        paddingRight: scaled(8),
-                      }}
-                    >
-                      {scorePercentage > 15 && (
-                        <span
-                          style={{
-                            fontSize: scaled(14),
-                            fontWeight: FONT_WEIGHTS.semibold,
-                            color: COLORS.white,
-                          }}
-                        >
-                          {scorePercentage}%
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {scorePercentage <= 15 && displayScore !== null && !showCalculating && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: scaled(8),
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        fontSize: scaled(14),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.primary,
-                      }}
-                    >
-                      {scorePercentage}%
-                    </div>
-                  )}
-                  {showCalculating && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: scaled(8),
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        fontSize: scaled(14),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.primary,
-                      }}
-                    >
-                      Calculating...
-                    </div>
-                  )}
-                  {displayScore === null && !showCalculating && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        left: scaled(8),
-                        top: '50%',
-                        transform: 'translateY(-50%)',
-                        fontSize: scaled(14),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.primary,
-                      }}
-                    >
-                      0%
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+              />
+            </div>
+          </div>
         </div>
         {/* 버튼 영역 */}
         <div
@@ -826,7 +706,7 @@ const LinePractice: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            padding: `${scaled(20)} 0 ${scaled(32)}`, // 좌우 패딩 제거, 아래쪽 패딩 추가
+            padding: `${scaled(60)} 0 ${scaled(32)}`, // 상단 패딩 증가
             gap: scaled(80),
             minHeight: scaled(120),
             zIndex: 3,
