@@ -15,16 +15,7 @@ import { useCalibrationData } from './hooks/useCalibration';
 import SyllablePractice from './pages/SyllablePractice.tsx';
 import ProtectedRoute from './components/ProtectedRoute.tsx';
 import CalibrationCheckLayout from './components/CalibrationCheckLayout.tsx';
-
-// 임시 History 페이지
-// eslint-disable-next-line react-refresh/only-export-components
-function HistoryPage() {
-  return (
-    <div style={{ padding: '80px', textAlign: 'center' }}>
-      <h2>History Page (구현 예정)</h2>
-    </div>
-  );
-}
+import History from './pages/History.tsx';
 
 // eslint-disable-next-line react-refresh/only-export-components
 function AppRouter() {
@@ -54,7 +45,7 @@ function AppRouter() {
           <Route path="/lesson/:songId/syllable" element={<SyllablePractice />} />
           <Route path="/lesson/:songId/line" element={<LinePractice />} />
           <Route path="/lesson/:songId/sing" element={<SingAlong />} />
-          <Route path="/history" element={<HistoryPage />} />
+          <Route path="/history" element={<History />} />
         </Route>
       </Route>
     </Routes>

@@ -7,6 +7,7 @@ import CameraComponent from '../components/CameraComponent';
 import KaraokeLine from '../components/KaraokeLine';
 import VowelFeedback from '../components/VowelFeedback';
 import { useKaraoke } from '../hooks/useKaraoke';
+import { useScoreRecords } from '../hooks/useScoreRecords';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
@@ -24,6 +25,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const songIdNum = songId ? (Number.isNaN(Number(songId)) ? null : Number(songId)) : null;
   const { songInfo, playback, lyrics, overlay, isLoading, error } = useKaraoke(songIdNum);
   const { isPlaying: isPlaybackPlaying, isPaused: isPlaybackPaused, playOverlayOnly } = playback;
+  const { saveScore } = useScoreRecords();
 
   const activeSyllableFromIndex = useMemo(() => {
     if (!lyrics.currentLine || lyrics.activeSyllableIndex === null) {
@@ -58,7 +60,8 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   );
 
   // 최종 점수 표시 상태
-  const [finalScore, setFinalScore] = useState<number | null>(null); // 이거 연동하면 될듯
+  const [finalScore, setFinalScore] = useState<number | null>(null);
+  const scoreSavedRef = useRef<boolean>(false); // 점수 저장 여부 추적
 
   // 노래가 끝났을 때 점수 계산 및 표시
   const prevIsPlayingRef = useRef<boolean>(false);
@@ -72,15 +75,27 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
       const roundedScore = Math.round(scorePercentage);
       // 점수 표시
       setFinalScore(roundedScore);
+
+      // 점수를 데이터베이스에 저장
+      if (songIdNum && !scoreSavedRef.current) {
+        scoreSavedRef.current = true;
+        saveScore({
+          score: roundedScore,
+          songId: songIdNum,
+        }).catch(err => {
+          console.error('Failed to save score:', err);
+        });
+      }
     }
 
-    // 재생이 시작될 때 점수 숨기기
+    // 재생이 시작될 때 점수 숨기기 및 저장 플래그 리셋
     if (!wasPlaying && isNowPlaying) {
       setFinalScore(null);
+      scoreSavedRef.current = false;
     }
 
     prevIsPlayingRef.current = isNowPlaying;
-  }, [isPlaybackPlaying]);
+  }, [isPlaybackPlaying, songIdNum, saveScore]);
 
   const handleCountdownComplete = useCallback(() => {
     if (!isPlaybackPlaying) {
