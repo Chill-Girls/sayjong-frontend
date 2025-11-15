@@ -8,12 +8,7 @@ interface CoordsButtonProps {
   top?: number;
 }
 
-const CoordsButton: React.FC<CoordsButtonProps> = ({
-  isActive,
-  onClick,
-  top = 30,
-
-}) => {
+const CoordsButton: React.FC<CoordsButtonProps> = ({ isActive, onClick, top = 30 }) => {
   return (
     <button
       onClick={onClick}
@@ -36,7 +31,7 @@ const CoordsButton: React.FC<CoordsButtonProps> = ({
       }}
       aria-label="Toggle landmark coordinates"
     >
-     COORDS
+      COORDS
     </button>
   );
 };
