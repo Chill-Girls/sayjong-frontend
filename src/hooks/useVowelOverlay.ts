@@ -153,38 +153,6 @@ export function useVowelOverlay({
             similarity = calculateBlendshapeSimilarity(filteredBlendshapes, targetBlendshapes);
             similarityScoreRef.current = similarity;
 
-            // Debug logging for ㅘ vowel to verify it's using 'a' blendshapes correctly
-            if (currentTargetVowel === 'ㅘ') {
-              console.log('[ㅘ Debug]', {
-                vowel: currentTargetVowel,
-                similarity,
-                targetBlendshapes,
-                currentBlendshapes: filteredBlendshapes,
-                // Show key blendshapes comparison
-                jawOpen: {
-                  target: targetBlendshapes.jawOpen ?? 0,
-                  current: filteredBlendshapes.jawOpen ?? 0,
-                  diff: Math.abs(
-                    (targetBlendshapes.jawOpen ?? 0) - (filteredBlendshapes.jawOpen ?? 0),
-                  ),
-                },
-                mouthPucker: {
-                  target: targetBlendshapes.mouthPucker ?? 0,
-                  current: filteredBlendshapes.mouthPucker ?? 0,
-                  diff: Math.abs(
-                    (targetBlendshapes.mouthPucker ?? 0) - (filteredBlendshapes.mouthPucker ?? 0),
-                  ),
-                },
-                // Verify it's using 'a' calibration (should have high jawOpen)
-                usingACalibration: (targetBlendshapes.jawOpen ?? 0) > 0.3,
-                // Check if target is close to neutral (which would indicate old precomputed data)
-                targetMagnitude: Object.values(targetBlendshapes).reduce(
-                  (sum, val) => sum + Math.abs(val),
-                  0,
-                ),
-              });
-            }
-
             // Apply exponential moving average smoothing to prevent brief spikes
             // Alpha = 0.3 means new values have 30% weight, old values have 70% weight
             // This makes the score more stable and prevents brief false positives
@@ -236,22 +204,11 @@ export function useVowelOverlay({
 
       if (targetLandmarks) {
         // 목표 랜드마크가 있으면 그림
-        // Use smoothed similarity with threshold of 0.80 for green overlay
+        // Use smoothed similarity with threshold of 0.75 for green overlay
         // This prevents brief false positives from noise
         const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
 
-        // Debug logging for ㅘ vowel color decision
-        if (currentTargetVowel === 'ㅘ') {
-          console.log('[ㅘ Color Debug]', {
-            vowel: currentTargetVowel,
-            displaySimilarity,
-            threshold: 0.8,
-            isGreen: displaySimilarity && displaySimilarity >= 0.8,
-            color: displaySimilarity && displaySimilarity >= 0.8 ? 'GREEN' : 'ORANGE',
-          });
-        }
-
-        if (displaySimilarity && displaySimilarity >= 0.8) {
+        if (displaySimilarity && displaySimilarity >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
         } else {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
