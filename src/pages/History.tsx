@@ -288,7 +288,7 @@ const History: React.FC = () => {
                             fontFamily: FONTS.primary,
                           }}
                         >
-                          Score
+                          Average
                         </div>
                         <div
                           style={{
