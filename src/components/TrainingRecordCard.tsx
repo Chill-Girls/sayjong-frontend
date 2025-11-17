@@ -41,14 +41,14 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
       <div style={{ ...flexColumn, gap: scaled(8), flex: 1 }}>
         <div
           style={{
-            fontSize: scaled(40),
+            fontSize: scaled(30),
             fontWeight: FONT_WEIGHTS.semibold,
             color: COLORS.dark,
             letterSpacing: scaled(-0.02),
             fontFamily: FONTS.primary,
           }}
         >
-          {record.title}
+          {record.titleEng}
         </div>
         {record.artist && (
           <div
