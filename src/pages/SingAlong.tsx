@@ -1,14 +1,14 @@
 import type { FunctionComponent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
-import Footer from '../components/Footer';
+import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import KaraokeLine from '../components/KaraokeLine';
 import VowelFeedback from '../components/VowelFeedback';
 import { useKaraoke } from '../hooks/useKaraoke';
 import { useScoreRecords } from '../hooks/useScoreRecords';
-import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS } from '../styles/theme';
+import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { useMode } from '../constants/ModeContext';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 
@@ -16,6 +16,7 @@ type SingAlongProps = object;
 
 const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const { setMode } = useMode();
+  const navigate = useNavigate();
   useEffect(() => {
     setMode('singalong');
     return () => setMode(null);
@@ -175,7 +176,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             {error}
           </div>
         </div>
-        <Footer />
+        <FooterCopyright />
       </div>
     );
   }
@@ -224,13 +225,14 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
         <div
           style={{
             position: 'relative',
-            fontSize: FONT_SIZES.lg,
-            fontWeight: FONT_WEIGHTS.light,
+            fontSize: FONT_SIZES.xxl,
+            fontWeight: FONT_WEIGHTS.bold,
+            color: COLORS.primary,
             textAlign: 'left',
             margin: 0,
           }}
         >
-          "{songInfo.title || 'Song Not Found'} - {songInfo.singer || '...'}"
+          {songInfo.title || 'Song Not Found'} - {songInfo.singer || '...'}
         </div>
       </div>
 
@@ -276,7 +278,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             >
               <div
                 style={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  backgroundColor: 'transparent',
                   padding: `${scaled(40)} ${scaled(60)}`,
                   borderRadius: scaled(20),
                   minWidth: scaled(300),
@@ -291,17 +293,17 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
                     marginBottom: scaled(10),
                   }}
                 >
-                  {finalScore}점
+                  {finalScore} Points
                 </div>
                 <div
                   style={{
                     fontSize: scaled(32),
                     fontWeight: FONT_WEIGHTS.bold,
-                    color: COLORS.white,
+                    color: COLORS.primary,
                     textShadow: '0 0 10px rgba(0, 0, 0, 0.5)',
                   }}
                 >
-                  최종 점수
+                  Final Score
                 </div>
               </div>
             </div>
@@ -355,11 +357,14 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               border: 'none',
               background: COLORS.primary,
               color: COLORS.white,
-              fontWeight: FONT_WEIGHTS.medium,
+              fontSize: scaled(20),
+              fontWeight: FONT_WEIGHTS.semibold,
+              fontFamily: FONTS.primary,
               cursor: 'pointer',
+              outline: 'none',
             }}
           >
-            {isPlaybackPlaying ? 'restart' : isPlaybackPaused ? 'resume' : 'start'}
+            {isPlaybackPlaying ? 'RESTART' : isPlaybackPaused ? 'RESUME' : 'START'}
           </button>
           <button
             type="button"
@@ -370,16 +375,57 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               border: `1px solid ${COLORS.primary}`,
               background: 'transparent',
               color: COLORS.primary,
-              fontWeight: FONT_WEIGHTS.medium,
+              fontSize: scaled(20),
+              fontWeight: FONT_WEIGHTS.semibold,
+              fontFamily: FONTS.primary,
               cursor: 'pointer',
+              outline: 'none',
             }}
           >
-            pause
+            PAUSE
           </button>
         </div>
       </div>
 
-      <Footer />
+      {/* 종료 버튼 - 우측 하단 */}
+      <button
+        onClick={() => {
+          if (songIdNum) {
+            navigate(`/lesson/${songIdNum}`);
+          }
+        }}
+        style={{
+          position: 'fixed',
+          bottom: scaled(100),
+          right: scaled(50),
+          zIndex: 1000,
+          padding: `${scaled(12)} ${scaled(24)}`,
+          backgroundColor: COLORS.primary,
+          color: COLORS.white,
+          border: 'none',
+          borderRadius: BORDER_RADIUS.md,
+          cursor: 'pointer',
+          fontSize: scaled(16),
+          fontWeight: FONT_WEIGHTS.semibold,
+          fontFamily: FONTS.primary,
+          outline: 'none',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        }}
+        onMouseEnter={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '0.9';
+        }}
+        onMouseLeave={e => {
+          e.currentTarget.style.backgroundColor = COLORS.primary;
+          e.currentTarget.style.opacity = '1';
+        }}
+        aria-label="연습 종료 및 레슨 모드로 돌아가기"
+      >
+        END
+      </button>
+
+      <FooterCopyright />
     </div>
   );
 };
