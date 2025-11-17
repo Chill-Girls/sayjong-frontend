@@ -14,7 +14,7 @@ interface UseScoreRecordsResult {
 const mockData: ScoreRecord[] = [
   {
     id: 1,
-    score: 88,
+    score: 41,
     scoredAt: '2025-11-17T00:00:00',
     userId: 1,
     songId: 2,
