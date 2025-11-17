@@ -17,7 +17,7 @@ const mockData: ScoreRecord[] = [
     score: 88,
     scoredAt: '2025-11-17T00:00:00',
     userId: 1,
-    songId: 3,
+    songId: 2,
     sessionId: 101,
   },
   {
@@ -25,7 +25,7 @@ const mockData: ScoreRecord[] = [
     score: 92,
     scoredAt: '2025-11-16T00:00:00',
     userId: 1,
-    songId: 2,
+    songId: 3,
     sessionId: 100,
   },
   {
