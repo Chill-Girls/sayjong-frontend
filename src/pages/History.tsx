@@ -9,12 +9,14 @@ import { useTrainingRecords } from '../hooks/useTrainingRecords';
 import TrainingLogChart from '../components/Graph';
 import FooterCopyright from '../components/FooterCopyright';
 import TrainingRecordCard from '../components/TrainingRecordCard';
+import { useUser } from '../hooks/useUser';
 import avatarImage from '../assets/avatar.png';
 
 type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
+  const { userInfo, loading: userInfoLoading, error: userInfoError } = useUser();
   const {
     scoreRecords,
     loading: scoreRecordsLoading,
@@ -22,8 +24,8 @@ const History: React.FC = () => {
   } = useScoreRecords();
   const { songs: allSongs, loading: songsLoading, error: songsError } = useSongs();
 
-  const loading = scoreRecordsLoading || songsLoading;
-  const error = scoreRecordsError || songsError;
+  const loading = scoreRecordsLoading || songsLoading || userInfoLoading;
+  const error = scoreRecordsError || songsError || userInfoError;
 
   // 트레이닝 기록 계산 (필터링, 그룹화, 평균 계산 등)
   const { filteredRecords, trainingRecords, averageScore } = useTrainingRecords({
@@ -133,7 +135,7 @@ const History: React.FC = () => {
               fontFamily: FONTS.primary,
             }}
           >
-            @ChillGirl
+            {userInfo?.nickname}
           </div>
         </div>
 
