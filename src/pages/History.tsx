@@ -135,7 +135,6 @@ const History: React.FC = () => {
           >
             @ChillGirl
           </div>
-          
         </div>
 
         {/* Training Log Section */}
