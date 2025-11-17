@@ -7,6 +7,7 @@ type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 export interface TrainingRecord {
   songId: number;
   title: string;
+  titleEng: string;
   artist: string;
   imageUrl?: string;
   bestScore: number;
@@ -97,6 +98,7 @@ export function useTrainingRecords({
       records.push({
         songId,
         title: song.title,
+        titleEng: song.titleEng,
         artist: song.singer,
         imageUrl: song.coverUrl || undefined,
         bestScore,
