@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
-import { useScoreRecords } from '../hooks/useScoreRecords';
-import { useSongs } from '../hooks/useSongs';
+import { useTrainingSessions } from '../hooks/useTrainingSessions';
 import { useTrainingRecords } from '../hooks/useTrainingRecords';
+import { useUser } from '../hooks/useUser';
 import TrainingLogChart from '../components/Graph';
 import FooterCopyright from '../components/FooterCopyright';
 import TrainingRecordCard from '../components/TrainingRecordCard';
-import { useUser } from '../hooks/useUser';
 import avatarImage from '../assets/avatar.png';
 
 type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
@@ -17,22 +16,29 @@ type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
   const { userInfo, loading: userInfoLoading, error: userInfoError } = useUser();
-  const {
-    scoreRecords,
-    loading: scoreRecordsLoading,
-    error: scoreRecordsError,
-  } = useScoreRecords();
-  const { songs: allSongs, loading: songsLoading, error: songsError } = useSongs();
+  
+  // 학습 세션 목록 조회 (API 호출)
+  const { 
+    sessions, 
+    loading: sessionsLoading, 
+    error: sessionsError 
+  } = useTrainingSessions();
 
-  const loading = scoreRecordsLoading || songsLoading || userInfoLoading;
-  const error = scoreRecordsError || songsError || userInfoError;
-
-  // 트레이닝 기록 계산 (필터링, 그룹화, 평균 계산 등)
-  const { filteredRecords, trainingRecords, averageScore } = useTrainingRecords({
-    scoreRecords,
-    songs: allSongs,
+  // API로 받은 sessions 데이터와 필터 상태를 넘겨줌
+  const { trainingRecords, filteredSessions } = useTrainingRecords({
+    sessions,
     filterPeriod,
   });
+
+  // 차트 표시용 전체 평균 점수 계산
+  const overallAverageScore = useMemo(() => {
+    if (filteredSessions.length === 0) return 0;
+    const total = filteredSessions.reduce((sum, s) => sum + s.averageScore, 0);
+    return Math.round(total / filteredSessions.length);
+  }, [filteredSessions]);
+
+  const loading = sessionsLoading || userInfoLoading;
+  const error = sessionsError || userInfoError;
 
   if (loading) {
     return (
@@ -185,7 +191,7 @@ const History: React.FC = () => {
                   fontFamily: FONTS.primary,
                 }}
               >
-                {period.replace('_', ' ')}
+                {period.replace(/_/g, ' ').replace('LAST', 'Last').replace('DAYS', 'Days')}
               </button>
             ))}
           </div>
@@ -213,7 +219,7 @@ const History: React.FC = () => {
                 fontFamily: FONTS.primary,
               }}
             >
-              No records.
+              No records found.
             </div>
           ) : (
             trainingRecords.map((record, index) => (
@@ -222,6 +228,7 @@ const History: React.FC = () => {
           )}
         </div>
 
+        {/* Chart Title */}
         <div
           style={{
             width: '100%',
@@ -253,7 +260,11 @@ const History: React.FC = () => {
             padding: `0 ${scaled(45)}`,
           }}
         >
-          <TrainingLogChart scoreRecords={filteredRecords} averageScore={averageScore} />
+          {/* filteredSessions와 계산된 overallAverageScore 전달 */}
+          <TrainingLogChart 
+            scoreRecords={filteredSessions} 
+            averageScore={overallAverageScore} 
+          />
         </div>
       </div>
       <FooterCopyright />
