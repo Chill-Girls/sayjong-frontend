@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import { COLORS, FONTS, FONT_WEIGHTS } from '../styles/theme';
 import { scaled } from '../styles/mixins';
-import type { ScoreRecord } from '../api/scores/types';
+import type { TrainingSession } from '../api/scores/types';
 
 interface GraphData {
   month: string;
@@ -19,7 +19,7 @@ interface GraphData {
 }
 
 interface TrainingLogChartProps {
-  scoreRecords?: ScoreRecord[];
+  scoreRecords?: TrainingSession[];
   averageScore?: number;
 }
 
@@ -43,55 +43,49 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
       'NOV',
       'DEC',
     ];
+    const result: GraphData[] = [];
     const now = new Date();
-    const monthData = new Map<string, number[]>();
 
-    // 최근 12개월 데이터 수집
-    scoreRecords.forEach(record => {
-      const scoredDate = new Date(record.scoredAt);
-      const monthKey = `${scoredDate.getFullYear()}-${scoredDate.getMonth()}`;
-      const existing = monthData.get(monthKey) || [];
-      existing.push(record.score);
-      monthData.set(monthKey, existing);
+    // 최근 12개월의 'YYYY-M' 키와 초기 데이터 생성
+    const monthKeys: string[] = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthKeys.push(`${d.getFullYear()}-${d.getMonth()}`);
+
+      // 초기값 0으로 설정
+      result.push({
+        month: monthNames[d.getMonth()],
+        score: 0,
+      });
+    }
+
+    // 데이터를 월별로 그룹화 (해당 월에 연습한 노래들의 평균 점수 합산)
+    const groupedData = new Map<string, { sum: number; count: number }>();
+
+    scoreRecords.forEach(session => {
+      const date = new Date(session.lastPlayedAt);
+      const key = `${date.getFullYear()}-${date.getMonth()}`;
+
+      // 그래프에 표시할 12개월 범위 내인지 확인
+      if (monthKeys.includes(key)) {
+        const current = groupedData.get(key) || { sum: 0, count: 0 };
+
+        // 해당 노래의 '평균 점수'를 더함
+        current.sum += session.averageScore;
+        current.count += 1;
+
+        groupedData.set(key, current);
+      }
     });
 
-    // 최근 12개월 데이터 생성
-    const result: GraphData[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(now);
-      date.setMonth(date.getMonth() - i);
-      const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
-      const scores = monthData.get(monthKey) || [];
-
-      if (scores.length > 0) {
-        // 노래별로 그룹화하여 평균 계산
-        const groupedBySong = new Map<number, number[]>();
-        scoreRecords
-          .filter(r => {
-            const rDate = new Date(r.scoredAt);
-            return `${rDate.getFullYear()}-${rDate.getMonth()}` === monthKey;
-          })
-          .forEach(record => {
-            const existing = groupedBySong.get(record.songId) || [];
-            existing.push(record.score);
-            groupedBySong.set(record.songId, existing);
-          });
-
-        const songAverages: number[] = [];
-        groupedBySong.forEach(songScores => {
-          const songAvg = songScores.reduce((sum, s) => sum + s, 0) / songScores.length;
-          songAverages.push(songAvg);
-        });
-
-        const monthAvg =
-          songAverages.length > 0
-            ? Math.round(songAverages.reduce((sum, avg) => sum + avg, 0) / songAverages.length)
-            : Math.round(scores.reduce((sum, s) => sum + s, 0) / scores.length);
-        result.push({ month: monthNames[date.getMonth()], score: monthAvg });
-      } else {
-        result.push({ month: monthNames[date.getMonth()], score: 0 });
+    // 합산된 데이터를 나누어 '월별 평균' 계산
+    monthKeys.forEach((key, index) => {
+      const data = groupedData.get(key);
+      if (data && data.count > 0) {
+        // (모든 노래 평균 점수의 합) / (노래 개수)
+        result[index].score = Math.round(data.sum / data.count);
       }
-    }
+    });
 
     return result;
   }, [scoreRecords]);
@@ -99,7 +93,11 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
   const avg =
     averageScore !== undefined
       ? averageScore
-      : Math.round(graphData.slice(-6).reduce((sum, d) => sum + d.score, 0) / 6);
+      : Math.round(
+          graphData
+            .filter(d => d.score > 0)
+            .reduce((sum, d, _, arr) => sum + d.score / arr.length, 0) || 0,
+        );
 
   return (
     <div
@@ -140,10 +138,14 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
           <XAxis
             dataKey="month"
             tick={{ fill: COLORS.textSecondary, fontSize: scaled(11), fontFamily: FONTS.primary }}
+            axisLine={false}
+            tickLine={false}
           />
           <YAxis
             tick={{ fill: COLORS.textSecondary, fontSize: scaled(11), fontFamily: FONTS.primary }}
             domain={[0, 100]}
+            axisLine={false}
+            tickLine={false}
           />
           <Tooltip
             contentStyle={{
@@ -158,7 +160,8 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
             dataKey="score"
             stroke={COLORS.primary}
             strokeWidth={3}
-            dot={{ r: 4, strokeWidth: 2, stroke: COLORS.primary, fill: COLORS.primary }}
+            activeDot={{ r: 6 }}
+            dot={{ r: 4, strokeWidth: 2, stroke: COLORS.primary, fill: COLORS.white }}
           />
         </LineChart>
       </ResponsiveContainer>
