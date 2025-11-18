@@ -371,7 +371,7 @@ export function drawFinalScore(
   ctx.lineWidth = 4;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const scoreText = `${Math.round(score)}점`;
+  const scoreText = `${Math.round(score)} Points`;
   ctx.strokeText(scoreText, centerX, centerY - 20);
   ctx.fillText(scoreText, centerX, centerY - 20);
 
@@ -380,8 +380,8 @@ export function drawFinalScore(
   ctx.fillStyle = '#FFFFFF';
   ctx.strokeStyle = '#000000';
   ctx.lineWidth = 2;
-  ctx.strokeText('최종 점수', centerX, centerY + 40);
-  ctx.fillText('최종 점수', centerX, centerY + 40);
+  ctx.strokeText('Final Score', centerX, centerY + 40);
+  ctx.fillText('Final Score', centerX, centerY + 40);
 
   ctx.restore();
 }

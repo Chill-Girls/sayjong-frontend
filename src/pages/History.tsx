@@ -9,11 +9,14 @@ import { useTrainingRecords } from '../hooks/useTrainingRecords';
 import TrainingLogChart from '../components/Graph';
 import FooterCopyright from '../components/FooterCopyright';
 import TrainingRecordCard from '../components/TrainingRecordCard';
+import { useUser } from '../hooks/useUser';
+import avatarImage from '../assets/avatar.png';
 
 type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
+  const { userInfo, loading: userInfoLoading, error: userInfoError } = useUser();
   const {
     scoreRecords,
     loading: scoreRecordsLoading,
@@ -21,8 +24,8 @@ const History: React.FC = () => {
   } = useScoreRecords();
   const { songs: allSongs, loading: songsLoading, error: songsError } = useSongs();
 
-  const loading = scoreRecordsLoading || songsLoading;
-  const error = scoreRecordsError || songsError;
+  const loading = scoreRecordsLoading || songsLoading || userInfoLoading;
+  const error = scoreRecordsError || songsError || userInfoError;
 
   // 트레이닝 기록 계산 (필터링, 그룹화, 평균 계산 등)
   const { filteredRecords, trainingRecords, averageScore } = useTrainingRecords({
@@ -112,12 +115,14 @@ const History: React.FC = () => {
             textAlign: 'center',
           }}
         >
-          <div
+          <img
+            src={avatarImage}
+            alt="User avatar"
             style={{
-              width: scaled(120),
-              height: scaled(120),
+              width: scaled(170),
+              height: scaled(170),
               borderRadius: '50%',
-              backgroundColor: COLORS.gray,
+              objectFit: 'cover',
               marginBottom: scaled(35),
             }}
           />
@@ -126,21 +131,11 @@ const History: React.FC = () => {
               fontSize: scaled(36),
               fontWeight: FONT_WEIGHTS.semibold,
               color: COLORS.dark,
-              marginTop: scaled(61),
+              marginTop: scaled(10),
               fontFamily: FONTS.primary,
             }}
           >
-            userNickname
-          </div>
-          <div
-            style={{
-              fontSize: scaled(24),
-              color: COLORS.textSecondary,
-              marginTop: scaled(8),
-              fontFamily: FONTS.primary,
-            }}
-          >
-            @userID
+            {userInfo?.nickname}
           </div>
         </div>
 
@@ -218,7 +213,7 @@ const History: React.FC = () => {
                 fontFamily: FONTS.primary,
               }}
             >
-              기록이 없습니다.
+              No records.
             </div>
           ) : (
             trainingRecords.map((record, index) => (

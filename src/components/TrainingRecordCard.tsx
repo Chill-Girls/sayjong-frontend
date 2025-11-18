@@ -18,7 +18,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
         backgroundColor: COLORS.white,
         border: `1px solid ${COLORS.textSecondary}`,
         boxShadow: index > 0 ? SHADOWS.card : 'none',
-        padding: `${scaled(24)} ${scaled(36)} ${scaled(24)} ${scaled(57)}`,
+        padding: `${scaled(24)} ${scaled(36)} ${scaled(24)} ${scaled(30)}`,
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
@@ -41,14 +41,14 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
       <div style={{ ...flexColumn, gap: scaled(8), flex: 1 }}>
         <div
           style={{
-            fontSize: scaled(40),
+            fontSize: scaled(30),
             fontWeight: FONT_WEIGHTS.semibold,
             color: COLORS.dark,
             letterSpacing: scaled(-0.02),
             fontFamily: FONTS.primary,
           }}
         >
-          {record.title}
+          {record.titleEng}
         </div>
         {record.artist && (
           <div
@@ -80,7 +80,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
               </div>
               <div
                 style={{
-                  fontSize: scaled(32),
+                  fontSize: scaled(27),
                   fontWeight: FONT_WEIGHTS.extrabold,
                   color: COLORS.primary,
                   letterSpacing: scaled(-0.02),
@@ -107,7 +107,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
               </div>
               <div
                 style={{
-                  fontSize: scaled(32),
+                  fontSize: scaled(27),
                   fontWeight: FONT_WEIGHTS.extrabold,
                   color: COLORS.primary,
                   letterSpacing: scaled(-0.02),
@@ -134,7 +134,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
               </div>
               <div
                 style={{
-                  fontSize: scaled(32),
+                  fontSize: scaled(27),
                   fontWeight: FONT_WEIGHTS.extrabold,
                   color: COLORS.primary,
                   letterSpacing: scaled(-0.02),
