@@ -3,7 +3,7 @@ import { createScoreRecord } from '../api/scores';
 import type { ScoreRecord, CreateScoreRequest } from '../api/scores/types';
 
 interface UseScoreRecordsResult {
-  latestRecord: ScoreRecord | null; 
+  latestRecord: ScoreRecord | null;
   loading: boolean;
   error: string | null;
   saveScore: (data: CreateScoreRequest) => Promise<ScoreRecord | null>;
@@ -22,7 +22,7 @@ export function useScoreRecords(): UseScoreRecordsResult {
       setError(null);
       const newRecord = await createScoreRecord(data);
       setLatestRecord(newRecord);
-      
+
       return newRecord;
     } catch (err) {
       const errorMessage =

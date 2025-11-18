@@ -16,13 +16,9 @@ type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
   const { userInfo, loading: userInfoLoading, error: userInfoError } = useUser();
-  
+
   // 학습 세션 목록 조회 (API 호출)
-  const { 
-    sessions, 
-    loading: sessionsLoading, 
-    error: sessionsError 
-  } = useTrainingSessions();
+  const { sessions, loading: sessionsLoading, error: sessionsError } = useTrainingSessions();
 
   // API로 받은 sessions 데이터와 필터 상태를 넘겨줌
   const { trainingRecords, filteredSessions } = useTrainingRecords({
@@ -261,10 +257,7 @@ const History: React.FC = () => {
           }}
         >
           {/* filteredSessions와 계산된 overallAverageScore 전달 */}
-          <TrainingLogChart 
-            scoreRecords={filteredSessions} 
-            averageScore={overallAverageScore} 
-          />
+          <TrainingLogChart scoreRecords={filteredSessions} averageScore={overallAverageScore} />
         </div>
       </div>
       <FooterCopyright />

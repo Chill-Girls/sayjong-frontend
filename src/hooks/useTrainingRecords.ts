@@ -29,7 +29,6 @@ export function useTrainingRecords({
   sessions,
   filterPeriod,
 }: UseTrainingRecordsParams): UseTrainingRecordsResult {
-
   // 날짜 필터링
   const filteredSessions = useMemo(() => {
     if (!sessions || !Array.isArray(sessions)) return [];
@@ -59,15 +58,15 @@ export function useTrainingRecords({
 
     return filteredSessions.map(session => ({
       songId: session.songId,
-  
-      title: session.titleEng, 
+
+      title: session.titleEng,
       titleEng: session.titleEng,
-      
+
       artist: session.singer,
       imageUrl: session.coverUrl,
       bestScore: session.bestScore,
       recentScore: session.recentScore,
-      averageScore: session.averageScore, 
+      averageScore: session.averageScore,
       lastPlayedAt: session.lastPlayedAt,
     }));
   }, [filteredSessions]);

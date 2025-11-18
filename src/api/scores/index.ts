@@ -1,6 +1,6 @@
 import { apiClient } from '../client';
 import {
-  trainingSessionListSchema, 
+  trainingSessionListSchema,
   scoreRecordSchema,
   createScoreRequestSchema,
   type TrainingSession,

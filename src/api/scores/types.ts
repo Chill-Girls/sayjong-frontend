@@ -19,9 +19,9 @@ export const trainingSessionSchema = z.object({
   bestScore: z.number(),
   recentScore: z.number(),
   lastPlayedAt: z.string(),
-  
+
   songId: z.number(),
-  titleEng: z.string(), 
+  titleEng: z.string(),
   singer: z.string(),
   coverUrl: z.string(),
 }); // 학습 기록 조회

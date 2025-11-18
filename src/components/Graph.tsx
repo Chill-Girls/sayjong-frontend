@@ -19,7 +19,7 @@ interface GraphData {
 }
 
 interface TrainingLogChartProps {
-  scoreRecords?: TrainingSession[]; 
+  scoreRecords?: TrainingSession[];
   averageScore?: number;
 }
 
@@ -45,35 +45,35 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
     ];
     const result: GraphData[] = [];
     const now = new Date();
-    
+
     // 최근 12개월의 'YYYY-M' 키와 초기 데이터 생성
     const monthKeys: string[] = [];
     for (let i = 11; i >= 0; i--) {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       monthKeys.push(`${d.getFullYear()}-${d.getMonth()}`);
-      
+
       // 초기값 0으로 설정
-      result.push({ 
-        month: monthNames[d.getMonth()], 
-        score: 0 
+      result.push({
+        month: monthNames[d.getMonth()],
+        score: 0,
       });
     }
 
     // 데이터를 월별로 그룹화 (해당 월에 연습한 노래들의 평균 점수 합산)
     const groupedData = new Map<string, { sum: number; count: number }>();
 
-    scoreRecords.forEach((session) => {
+    scoreRecords.forEach(session => {
       const date = new Date(session.lastPlayedAt);
       const key = `${date.getFullYear()}-${date.getMonth()}`;
-      
+
       // 그래프에 표시할 12개월 범위 내인지 확인
       if (monthKeys.includes(key)) {
         const current = groupedData.get(key) || { sum: 0, count: 0 };
-        
+
         // 해당 노래의 '평균 점수'를 더함
-        current.sum += session.averageScore; 
+        current.sum += session.averageScore;
         current.count += 1;
-        
+
         groupedData.set(key, current);
       }
     });
@@ -95,8 +95,8 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
       ? averageScore
       : Math.round(
           graphData
-            .filter((d) => d.score > 0)
-            .reduce((sum, d, _, arr) => sum + d.score / arr.length, 0) || 0
+            .filter(d => d.score > 0)
+            .reduce((sum, d, _, arr) => sum + d.score / arr.length, 0) || 0,
         );
 
   return (

@@ -21,13 +21,14 @@ export function useTrainingSessions(): UseTrainingSessionsResult {
       setError(null);
 
       const data = await getTrainingSessions();
-      
+
       setSessions(data);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : '학습 기록을 불러오는 데 실패했습니다.';
+      const errorMessage =
+        err instanceof Error ? err.message : '학습 기록을 불러오는 데 실패했습니다.';
       console.error('Failed to fetch sessions:', err);
       setError(errorMessage);
-      setSessions([]); 
+      setSessions([]);
     } finally {
       setLoading(false);
     }
