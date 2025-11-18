@@ -20,6 +20,7 @@ const mockData: ScoreRecord[] = [
     songId: 1,
     sessionId: 1,
   },
+
 ];
 
 //점수기록 가져오기 & 저장

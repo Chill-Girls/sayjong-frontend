@@ -265,6 +265,7 @@ export function calculateHybridRotationAngles(
  * @param baseDepth - 기본 깊이
  * @returns 추정
  */
+
 export function estimateDepthFromRotation(
   rotationAngles: RotationAngles,
   baseDepth: number = 0.1,
@@ -276,9 +277,8 @@ export function estimateDepthFromRotation(
   const yawDepth = baseDepth * Math.sin(Math.abs(yawRad));
   const pitchDepth = baseDepth * Math.sin(Math.abs(pitchRad));
 
-  // 두 깊이의 합성
+  // 두 깊이를 합침
   const totalDepth = Math.sqrt(yawDepth * yawDepth + pitchDepth * pitchDepth);
-
   return totalDepth;
 }
 
