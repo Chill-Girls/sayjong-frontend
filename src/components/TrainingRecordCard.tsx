@@ -64,7 +64,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
           </div>
         )}
         <div style={{ display: 'flex', gap: scaled(25), marginTop: scaled(8) }}>
-          {record.score !== undefined && (
+          {record.averageScore !== undefined && (
             <div>
               <div
                 style={{
@@ -87,7 +87,7 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
                   fontFamily: FONTS.primary,
                 }}
               >
-                {record.score}%
+                {record.averageScore}%
               </div>
             </div>
           )}
