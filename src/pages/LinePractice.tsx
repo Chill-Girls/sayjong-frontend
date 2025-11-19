@@ -575,100 +575,121 @@ const LinePractice: React.FC = () => {
                 paddingLeft: scaled(50),
                 paddingRight: scaled(50),
                 minHeight: 0,
-                overflowY: 'auto',
-                overflowX: 'hidden',
                 height: '100%',
                 position: 'relative',
                 display: 'flex',
                 flexDirection: 'column',
-                // Custom scrollbar styling
-                scrollbarWidth: 'thin', // Firefox
-                scrollbarColor: `${COLORS.textSecondary}40 transparent`, // Firefox: thumb and track
               }}
-              className="transparent-scrollbar"
             >
-              <LyricsCard>
-                {/* 고정된 가사 영역 */}
-                <div
-                  style={{
-                    ...flexColumn,
-                    alignItems: 'center',
-                    gap: scaled(18),
-                    flexShrink: 0, // Prevent lyrics from shrinking
-                    marginBottom: scaled(24),
-                  }}
-                >
-                  {/* 한글 가사 */}
-                  <div
-                    style={{
-                      fontSize: scaled(
-                        getAdaptiveFontSize(displayLine.originalText ?? '', 42, 42, 36),
-                      ),
-                      fontWeight: FONT_WEIGHTS.semibold,
-                      letterSpacing: '0.03em',
-                      color: COLORS.dark,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {highlightedLyric}
-                  </div>
-
-                  {/* 영어 가사 */}
-                  <div
-                    style={{
-                      fontSize: scaled(getAdaptiveFontSize(displayLine.textEng ?? '', 24, 24, 20)),
-                      fontWeight: FONT_WEIGHTS.light,
-                      color: COLORS.textSecondary,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {displayLine.textEng}
-                  </div>
-
-                  {/* 로마자 가사 */}
-                  <div
-                    style={{
-                      fontSize: scaled(
-                        getAdaptiveFontSize(displayLine.textRomaja ?? '', 32, 32, 24),
-                      ),
-                      fontWeight: FONT_WEIGHTS.semibold,
-                      color: COLORS.textSecondary,
-                      textAlign: 'center',
-                    }}
-                  >
-                    {displayLine.textRomaja}
-                  </div>
-                </div>
-              </LyricsCard>
-
-              {/* 점수 바 */}
-              <ScoreBar isLoading={isLoading} score={score} mouthScore={mouthScoreRef.current} />
-
-              {/* 피드백 영역 */}
+              {/* 스크롤 가능한 가사 영역 */}
               <div
                 style={{
                   width: '100%',
-                  position: 'relative',
-                  marginTop: scaled(16),
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  // Custom scrollbar styling
+                  scrollbarWidth: 'thin', // Firefox
+                  scrollbarColor: `${COLORS.textSecondary}40 transparent`, // Firefox: thumb and track
+                  marginBottom: scaled(16),
+                }}
+                className="transparent-scrollbar"
+              >
+                <LyricsCard>
+                  {/* 고정된 가사 영역 */}
+                  <div
+                    style={{
+                      ...flexColumn,
+                      alignItems: 'center',
+                      gap: scaled(18),
+                      flexShrink: 0, // Prevent lyrics from shrinking
+                      marginBottom: scaled(24),
+                    }}
+                  >
+                    {/* 한글 가사 */}
+                    <div
+                      style={{
+                        fontSize: scaled(
+                          getAdaptiveFontSize(displayLine.originalText ?? '', 42, 42, 36),
+                        ),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        letterSpacing: '0.03em',
+                        color: COLORS.dark,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {highlightedLyric}
+                    </div>
+
+                    {/* 영어 가사 */}
+                    <div
+                      style={{
+                        fontSize: scaled(
+                          getAdaptiveFontSize(displayLine.textEng ?? '', 24, 24, 20),
+                        ),
+                        fontWeight: FONT_WEIGHTS.light,
+                        color: COLORS.textSecondary,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {displayLine.textEng}
+                    </div>
+
+                    {/* 로마자 가사 */}
+                    <div
+                      style={{
+                        fontSize: scaled(
+                          getAdaptiveFontSize(displayLine.textRomaja ?? '', 32, 32, 24),
+                        ),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.textSecondary,
+                        textAlign: 'center',
+                      }}
+                    >
+                      {displayLine.textRomaja}
+                    </div>
+                  </div>
+                </LyricsCard>
+
+                {/* 피드백 영역 (스크롤 가능) */}
+                <div
+                  style={{
+                    width: '100%',
+                    position: 'relative',
+                    marginTop: scaled(16),
+                  }}
+                >
+                  <VowelFeedback
+                    activeVowel={displayVowel}
+                    currentBlendshapes={displayBlendshapes}
+                    currentIndex={
+                      isRecording && isTtsPlaying && currentTtsIndex !== null
+                        ? currentTtsIndex
+                        : null
+                    }
+                    lyricChars={lyricChars}
+                    feedbackItems={segmentFeedbacks}
+                    shouldDisplay={showFeedback}
+                    onSegmentFeedback={handleSegmentFeedback}
+                    onReset={handleResetSegmentFeedbacks}
+                    resetKey={selected?.lyricLineId}
+                    flagAccumulatorRef={flagAccumulatorRef}
+                    mouthScoreRef={mouthScoreRef}
+                    totalVowelCountRef={totalVowelCountRef}
+                    isActive={isRecording}
+                  />
+                </div>
+              </div>
+
+              {/* 점수 바 (항상 보이도록 고정) */}
+              <div
+                style={{
+                  width: '100%',
+                  flexShrink: 0,
                 }}
               >
-                <VowelFeedback
-                  activeVowel={displayVowel}
-                  currentBlendshapes={displayBlendshapes}
-                  currentIndex={
-                    isRecording && isTtsPlaying && currentTtsIndex !== null ? currentTtsIndex : null
-                  }
-                  lyricChars={lyricChars}
-                  feedbackItems={segmentFeedbacks}
-                  shouldDisplay={showFeedback}
-                  onSegmentFeedback={handleSegmentFeedback}
-                  onReset={handleResetSegmentFeedbacks}
-                  resetKey={selected?.lyricLineId}
-                  flagAccumulatorRef={flagAccumulatorRef}
-                  mouthScoreRef={mouthScoreRef}
-                  totalVowelCountRef={totalVowelCountRef}
-                  isActive={isRecording}
-                />
+                <ScoreBar isLoading={isLoading} score={score} mouthScore={mouthScoreRef.current} />
               </div>
             </div>
 

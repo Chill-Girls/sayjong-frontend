@@ -171,6 +171,7 @@ export function useVowelOverlay({
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
+     
       if (showAROverlay) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
@@ -194,7 +195,6 @@ export function useVowelOverlay({
       }
 
       let targetLandmarks = cachedResultsRef.current?.lastTargetLandmarks;
-
       if (timeSinceLastDetection >= 8 || !targetLandmarks) {
         // 마지막 감지 이후 8ms 이상이거나 목표 랜드마크가 없으면 계산
         targetLandmarks = targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
@@ -203,9 +203,6 @@ export function useVowelOverlay({
       }
 
       if (targetLandmarks) {
-        // 목표 랜드마크가 있으면 그림
-        // Use smoothed similarity with threshold of 0.75 for green overlay
-        // This prevents brief false positives from noise
         const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
 
         if (displaySimilarity && displaySimilarity >= 0.75) {
