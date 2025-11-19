@@ -682,7 +682,7 @@ const LinePractice: React.FC = () => {
                 </div>
               </div>
 
-              {/* 점수 바 (항상 보이도록 고정) */}
+              
               <div
                 style={{
                   width: '100%',

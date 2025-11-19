@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { drawTargetMouthContours, drawLiveMouthContours } from '../utils/Draw';
+import { drawTargetMouthContours, drawLiveMouthContoursTwinkling, drawLiveMouthContours } from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -11,9 +11,7 @@ import type { LandmarkPoint } from '../constants/landmarks';
 
 interface UseVowelOverlayProps {
   currentVowel: string | null;
-  /** 목표 블렌드쉐이프를 가져오는 함수 */
   getTargetBlendshapes?: (vowel: string | null) => Record<string, number> | null;
-  /** 현재 블렌드쉐이프 데이터 */
   currentBlendshapes?: Record<string, number> | null;
   skipCountdown?: boolean;
 }
@@ -172,9 +170,13 @@ export function useVowelOverlay({
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
      
-      if (showAROverlay) {
+      // 카운트다운 중에는 반짝이는 입술 윤곽선 그리기
+      
+      if (showAROverlay ) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
+      // AR 오버레이 활성화 중에는 일반 입술 윤곽선 그리기 (반짝이지 않음)
+      // 필요하면 drawLiveMouthContours를 사용하거나 아예 그리지 않을 수도 있음
 
       // 목표 모음 오버레이 그리기
       // currentTargetVowel이 없으면 오버레이를 그리지 않음 (하지만 실시간 입술 윤곽선은 그려야 함)
@@ -201,20 +203,18 @@ export function useVowelOverlay({
         if (!cachedResultsRef.current) cachedResultsRef.current = {}; // 캐시된 결과가 없으면 초기화
         cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
       }
-
       if (targetLandmarks) {
         const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
-
         if (displaySimilarity && displaySimilarity >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
-        } else {
+        } else if (displaySimilarity && displaySimilarity >= 0.60) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
+        } else {
+          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
         }
-        // drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas); // 정답 입술 윤곽선 그리기
-        //drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas); // 정답 모음 라벨 그리기
       }
     },
-    [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],
+    [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes, countdown],
   );
   return {
     renderOverlay,
