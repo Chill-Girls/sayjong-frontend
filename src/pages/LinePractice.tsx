@@ -282,7 +282,6 @@ const LinePractice: React.FC = () => {
       setIsRecording(false);
       stopTts();
       setShowFeedback(true);
-      // 녹음 종료 시 입모양 점수 계산완료
       if (mouthScoreRef.current !== null) {
         console.log('녹음 종료 - 입모양 점수:', {
           mouthScore: mouthScoreRef.current,
@@ -292,15 +291,13 @@ const LinePractice: React.FC = () => {
         });
       }
     } else {
-      // 녹음 시작
-      setIsRecording(true);
       setShowFeedback(false);
       setFailedMask(prev => prev.map(() => 0));
       handleResetSegmentFeedbacks();
-      // 점수 초기화
       flagAccumulatorRef.current = 0;
       mouthScoreRef.current = null;
       totalVowelCountRef.current = 0;
+      setIsRecording(true);
     }
   }, [handleResetSegmentFeedbacks, isRecording, setIsRecording, stopTts]);
 
@@ -682,7 +679,6 @@ const LinePractice: React.FC = () => {
                 </div>
               </div>
 
-              
               <div
                 style={{
                   width: '100%',
@@ -869,7 +865,9 @@ const LinePractice: React.FC = () => {
           zIndex: 1000,
         }}
       >
-        <div style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}>
+        <div
+          style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}
+        >
           © {new Date().getFullYear()} SayJong. All rights reserved.
         </div>
         <button

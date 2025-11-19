@@ -1,6 +1,9 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { drawTargetMouthContours,/* drawLiveMouthContoursTwinkling,*/ drawLiveMouthContours } from '../utils/Draw';
+import {
+  drawTargetMouthContours,
+  /* drawLiveMouthContoursTwinkling,*/ drawLiveMouthContours,
+} from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -174,7 +177,6 @@ export function useVowelOverlay({
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
-     
 
       if (currentTargetVowel) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
@@ -205,14 +207,14 @@ export function useVowelOverlay({
         const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
         if (displaySimilarity && displaySimilarity >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
-        } else if (displaySimilarity && displaySimilarity >= 0.60) {
+        } else if (displaySimilarity && displaySimilarity >= 0.6) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
         } else {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
         }
       }
     },
-    [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes, countdown],
+    [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],
   );
   return {
     renderOverlay,

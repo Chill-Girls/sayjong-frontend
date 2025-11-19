@@ -403,7 +403,9 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
           zIndex: 1000,
         }}
       >
-        <div style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}>
+        <div
+          style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}
+        >
           © {new Date().getFullYear()} SayJong. All rights reserved.
         </div>
         <button
