@@ -103,7 +103,7 @@ export function useTrainingRecords({
         imageUrl: song.coverUrl || undefined,
         bestScore,
         recentScore,
-        score: recordsForSong.length === 1 ? recentScore : undefined, // 단일 기록일 때만 score 표시
+        score: scores.reduce((sum, score) => sum + score, 0) / scores.length,
       });
     });
 
