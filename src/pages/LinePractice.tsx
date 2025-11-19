@@ -853,45 +853,57 @@ const LinePractice: React.FC = () => {
         </div>
       </div>
 
-      {/* End Button - Bottom Right */}
-      <button
-        onClick={() => {
-          if (songIdParam) {
-            navigate(`/lesson/${songIdParam}`);
-          }
-        }}
+      <footer
         style={{
           position: 'fixed',
-          bottom: scaled(70),
-          right: scaled(100),
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: `${scaled(8)} ${scaled(27)}`,
+          boxSizing: 'border-box',
+          backgroundColor: '#f8f6f7',
           zIndex: 1000,
-          padding: `${scaled(12)} ${scaled(24)}`,
-          backgroundColor: COLORS.primary,
-          color: COLORS.white,
-          border: 'none',
-          borderRadius: BORDER_RADIUS.md,
-          cursor: 'pointer',
-          fontSize: scaled(16),
-          fontWeight: FONT_WEIGHTS.semibold,
-          fontFamily: FONTS.primary,
-          outline: 'none',
-          transition: 'all 0.2s ease',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.opacity = '0.9';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.opacity = '1';
-        }}
-        aria-label="End practice and return to lesson mode"
       >
-        END
-      </button>
-
-      <FooterCopyright />
+        <div style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}>
+          © {new Date().getFullYear()} SayJong. All rights reserved.
+        </div>
+        <button
+          onClick={() => {
+            if (songIdParam) {
+              navigate(`/lesson/${songIdParam}`);
+            }
+          }}
+          style={{
+            padding: `${scaled(12)} ${scaled(24)}`,
+            backgroundColor: COLORS.primary,
+            color: COLORS.white,
+            border: 'none',
+            borderRadius: BORDER_RADIUS.md,
+            cursor: 'pointer',
+            fontSize: scaled(16),
+            fontWeight: FONT_WEIGHTS.semibold,
+            fontFamily: FONTS.primary,
+            outline: 'none',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.opacity = '0.9';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.opacity = '1';
+          }}
+          aria-label="End practice and return to lesson mode"
+        >
+          END
+        </button>
+      </footer>
     </div>
   );
 };
