@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { drawTargetMouthContours, drawLiveMouthContoursTwinkling, drawLiveMouthContours } from '../utils/Draw';
+import { drawTargetMouthContours,/* drawLiveMouthContoursTwinkling,*/ drawLiveMouthContours } from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -136,6 +136,11 @@ export function useVowelOverlay({
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
       const currentTargetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
 
+      // currentVowel이 null이면 오버레이를 그리지 않음
+      if (!currentTargetVowel) {
+        return;
+      }
+
       // 블렌드쉐이프 유사도 계산 및 실시간 입술 윤곽선 그리기
       if (currentBlendshapes && getTargetBlendshapes && currentTargetVowel) {
         let similarity: number | null = null;
@@ -170,19 +175,12 @@ export function useVowelOverlay({
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
      
-      // 카운트다운 중에는 반짝이는 입술 윤곽선 그리기
-      
-      if (showAROverlay ) {
+
+      if (currentTargetVowel) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
-      // AR 오버레이 활성화 중에는 일반 입술 윤곽선 그리기 (반짝이지 않음)
-      // 필요하면 drawLiveMouthContours를 사용하거나 아예 그리지 않을 수도 있음
 
       // 목표 모음 오버레이 그리기
-      // currentTargetVowel이 없으면 오버레이를 그리지 않음 (하지만 실시간 입술 윤곽선은 그려야 함)
-      if (!currentTargetVowel) {
-        return;
-      }
 
       // targetLandmarksComputer가 없으면 초기화
       if (!targetLandmarksComputer.current) {
