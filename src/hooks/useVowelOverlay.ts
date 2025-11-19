@@ -1,6 +1,9 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { TargetLandmarksComputer } from '../utils/targetLandmarksComputer';
-import { drawTargetMouthContours, drawLiveMouthContours } from '../utils/Draw';
+import {
+  drawTargetMouthContours,
+  /* drawLiveMouthContoursTwinkling,*/ drawLiveMouthContours,
+} from '../utils/Draw';
 
 import {
   filterTargetBlendshapes,
@@ -11,9 +14,7 @@ import type { LandmarkPoint } from '../constants/landmarks';
 
 interface UseVowelOverlayProps {
   currentVowel: string | null;
-  /** 목표 블렌드쉐이프를 가져오는 함수 */
   getTargetBlendshapes?: (vowel: string | null) => Record<string, number> | null;
-  /** 현재 블렌드쉐이프 데이터 */
   currentBlendshapes?: Record<string, number> | null;
   skipCountdown?: boolean;
 }
@@ -138,6 +139,11 @@ export function useVowelOverlay({
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
       const currentTargetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
 
+      // currentVowel이 null이면 오버레이를 그리지 않음
+      if (!currentTargetVowel) {
+        return;
+      }
+
       // 블렌드쉐이프 유사도 계산 및 실시간 입술 윤곽선 그리기
       if (currentBlendshapes && getTargetBlendshapes && currentTargetVowel) {
         let similarity: number | null = null;
@@ -171,15 +177,12 @@ export function useVowelOverlay({
 
         // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
-      if (showAROverlay) {
+
+      if (currentTargetVowel) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
 
       // 목표 모음 오버레이 그리기
-      // currentTargetVowel이 없으면 오버레이를 그리지 않음 (하지만 실시간 입술 윤곽선은 그려야 함)
-      if (!currentTargetVowel) {
-        return;
-      }
 
       // targetLandmarksComputer가 없으면 초기화
       if (!targetLandmarksComputer.current) {
@@ -194,27 +197,21 @@ export function useVowelOverlay({
       }
 
       let targetLandmarks = cachedResultsRef.current?.lastTargetLandmarks;
-
       if (timeSinceLastDetection >= 8 || !targetLandmarks) {
         // 마지막 감지 이후 8ms 이상이거나 목표 랜드마크가 없으면 계산
         targetLandmarks = targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
         if (!cachedResultsRef.current) cachedResultsRef.current = {}; // 캐시된 결과가 없으면 초기화
         cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
       }
-
       if (targetLandmarks) {
-        // 목표 랜드마크가 있으면 그림
-        // Use smoothed similarity with threshold of 0.75 for green overlay
-        // This prevents brief false positives from noise
         const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
-
         if (displaySimilarity && displaySimilarity >= 0.75) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
-        } else {
+        } else if (displaySimilarity && displaySimilarity >= 0.6) {
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
+        } else {
+          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
         }
-        // drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas); // 정답 입술 윤곽선 그리기
-        //drawVowelLabel(canvasCtx, targetLandmarks, currentTargetVowel, toCanvas); // 정답 모음 라벨 그리기
       }
     },
     [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],

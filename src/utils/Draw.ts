@@ -36,7 +36,7 @@ export function drawLiveMouthContours(
   ctx: CanvasRenderingContext2D,
   landmarks: LandmarkPoint[],
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
-  color = '#808080',
+  color = '#FFFFFF',
 ) {
   // 외부 입술 윤곽선
   ctx.strokeStyle = color;
@@ -58,6 +58,76 @@ export function drawLiveMouthContours(
 
   // 내부 입술 윤곽선
   ctx.strokeStyle = color;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
+    const index = INNER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+}
+
+/**
+ * 반짝이는 실시간 입술 윤곽선 그리기
+ * @param ctx - 캔버스 렌더링 컨텍스트
+ * @param landmarks - 얼굴 랜드마크 배열
+ * @param toCanvas - 캔버스 좌표 변환 함수
+ * @param time - 현재 시간 (밀리초) - 애니메이션을 위한 시간값
+ * @param baseColor - 기본 색상 (기본값: '#FFD700' - 황금색)
+ * @param speed - 반짝임 속도 (기본값: 500ms)
+ */
+export function drawLiveMouthContoursTwinkling(
+  ctx: CanvasRenderingContext2D,
+  landmarks: LandmarkPoint[],
+  toCanvas: (p: LandmarkPoint) => { x: number; y: number },
+  time: number,
+  baseColor = '#FFD700',
+  speed = 500,
+) {
+  // 시간에 따른 밝기 계산 (0.4 ~ 1.0 사이)
+  const intensity = (Math.sin((time / speed) * Math.PI * 2) + 1) / 2;
+  const minBrightness = 0.4;
+  const maxBrightness = 1.0;
+  const brightness = minBrightness + intensity * (maxBrightness - minBrightness);
+
+  // 색상을 RGB로 파싱하여 밝기 조절
+  const hex = baseColor.replace('#', '');
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+
+  const newR = Math.round(r * brightness);
+  const newG = Math.round(g * brightness);
+  const newB = Math.round(b * brightness);
+
+  const twinklingColor = `#${newR.toString(16).padStart(2, '0')}${newG.toString(16).padStart(2, '0')}${newB.toString(16).padStart(2, '0')}`;
+
+  // 외부 입술 윤곽선
+  ctx.strokeStyle = twinklingColor;
+  ctx.lineWidth = 2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  for (let i = 0; i < OUTER_LIP_LANDMARKS.length; i++) {
+    const index = OUTER_LIP_LANDMARKS[i];
+    const point = toCanvas(landmarks[index]);
+    if (i === 0) {
+      ctx.moveTo(point.x, point.y);
+    } else {
+      ctx.lineTo(point.x, point.y);
+    }
+  }
+  ctx.closePath();
+  ctx.stroke();
+
+  // 내부 입술 윤곽선
+  ctx.strokeStyle = twinklingColor;
   ctx.lineWidth = 1.5;
   ctx.beginPath();
   for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {

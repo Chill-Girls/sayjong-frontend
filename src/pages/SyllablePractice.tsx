@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Header from '../components/Header';
-import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
@@ -368,7 +367,6 @@ const SyllablePractice: React.FC = () => {
       >
         <Header />
         <div style={{ marginTop: scaled(80) }}>가사와 음절 데이터를 불러오는 중입니다...</div>
-        <FooterCopyright />
       </div>
     );
   }
@@ -389,7 +387,6 @@ const SyllablePractice: React.FC = () => {
         <div style={{ marginTop: scaled(80) }}>
           가사 데이터를 불러오는 중 오류가 발생했습니다: {errorState}
         </div>
-        <FooterCopyright />
       </div>
     );
   }
@@ -407,7 +404,6 @@ const SyllablePractice: React.FC = () => {
       >
         <Header />
         <div style={{ marginTop: scaled(80) }}>연습 가능한 음절이 없습니다.</div>
-        <FooterCopyright />
       </div>
     );
   }
@@ -747,43 +743,59 @@ const SyllablePractice: React.FC = () => {
       </div>
 
       {/* End Button - Bottom Right */}
-      <button
-        onClick={() => {
-          if (songIdParam) {
-            navigate(`/lesson/${songIdParam}`);
-          }
-        }}
+      <footer
         style={{
           position: 'fixed',
-          bottom: scaled(100),
-          right: scaled(50),
+          bottom: 0,
+          left: 0,
+          right: 0,
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: `${scaled(8)} ${scaled(27)}`,
+          boxSizing: 'border-box',
+          backgroundColor: '#f8f6f7',
           zIndex: 1000,
-          padding: `${scaled(12)} ${scaled(24)}`,
-          backgroundColor: COLORS.primary,
-          color: COLORS.white,
-          border: 'none',
-          borderRadius: BORDER_RADIUS.md,
-          cursor: 'pointer',
-          fontSize: scaled(16),
-          fontWeight: FONT_WEIGHTS.semibold,
-          fontFamily: FONTS.primary,
-          outline: 'none',
-          transition: 'all 0.2s ease',
         }}
-        onMouseEnter={e => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.opacity = '0.9';
-        }}
-        onMouseLeave={e => {
-          e.currentTarget.style.backgroundColor = COLORS.primary;
-          e.currentTarget.style.opacity = '1';
-        }}
-        aria-label="End practice and return to lesson mode"
       >
-        End
-      </button>
-
-      <FooterCopyright />
+        <div
+          style={{ opacity: 0.8, color: '#313131', fontFamily: FONTS.primary, fontSize: '12px' }}
+        >
+          © {new Date().getFullYear()} SayJong. All rights reserved.
+        </div>
+        <button
+          onClick={() => {
+            if (songIdParam) {
+              navigate(`/lesson/${songIdParam}`);
+            }
+          }}
+          style={{
+            padding: `${scaled(12)} ${scaled(24)}`,
+            backgroundColor: COLORS.primary,
+            color: COLORS.white,
+            border: 'none',
+            borderRadius: BORDER_RADIUS.md,
+            cursor: 'pointer',
+            fontSize: scaled(16),
+            fontWeight: FONT_WEIGHTS.semibold,
+            fontFamily: FONTS.primary,
+            outline: 'none',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.opacity = '0.9';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.backgroundColor = COLORS.primary;
+            e.currentTarget.style.opacity = '1';
+          }}
+          aria-label="End practice and return to lesson mode"
+        >
+          End
+        </button>
+      </footer>
     </div>
   );
 };
