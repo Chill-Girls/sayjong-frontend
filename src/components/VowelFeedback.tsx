@@ -41,9 +41,9 @@ export interface SegmentFeedbackItem {
 }
 
 /** 휴리스틱을 위한 단순 모음 그룹 */
-const ROUNDED_VOWELS = new Set(['ㅜ', 'ㅠ', 'ㅗ', 'ㅛ']);
+const ROUNDED_VOWELS = new Set(['ㅜ', 'ㅠ', 'ㅗ', 'ㅛ', 'ㅟ']);
 const OPEN_VOWELS = new Set(['ㅏ', 'ㅑ', 'ㅓ', 'ㅕ', 'ㅘ', 'ㅝ']);
-const SPREAD_VOWELS = new Set(['ㅣ', 'ㅒ', 'ㅖ', 'ㅛ', 'ㅚ', 'ㅙ', 'ㅚ', 'ㅟ', 'ㅞ', 'ㅢ']);
+const SPREAD_VOWELS = new Set(['ㅣ', 'ㅒ', 'ㅖ', 'ㅛ', 'ㅚ', 'ㅙ', 'ㅚ', 'ㅞ', 'ㅢ']);
 
 export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   activeVowel,

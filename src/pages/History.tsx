@@ -9,12 +9,15 @@ import { useUser } from '../hooks/useUser';
 import TrainingLogChart from '../components/Graph';
 import FooterCopyright from '../components/FooterCopyright';
 import TrainingRecordCard from '../components/TrainingRecordCard';
+import SongTrainingHistoryCard from '../components/SongTrainingHistoryCard';
 import avatarImage from '../assets/avatar.png';
 
 type FilterPeriod = 'ALL' | 'LAST_7_DAYS' | 'LAST_30_DAYS';
 
 const History: React.FC = () => {
   const [filterPeriod, setFilterPeriod] = useState<FilterPeriod>('ALL');
+  const [selectedSongId, setSelectedSongId] = useState<number | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { userInfo, loading: userInfoLoading, error: userInfoError } = useUser();
 
   // 학습 세션 목록 조회 (API 호출)
@@ -25,6 +28,34 @@ const History: React.FC = () => {
     sessions,
     filterPeriod,
   });
+
+  // 선택된 노래의 세션 필터링 (전체 세션에서 필터링하여 모든 기록 표시)
+  const selectedSongSessions = useMemo(() => {
+    if (!selectedSongId) return [];
+    const filtered = sessions.filter(session => session.songId === selectedSongId);
+    console.log(
+      `Selected song ID: ${selectedSongId}, Total sessions for this song: ${filtered.length}`,
+    );
+    return filtered;
+  }, [sessions, selectedSongId]);
+
+  // 선택된 노래 정보
+  const selectedRecord = useMemo(() => {
+    if (!selectedSongId) return null;
+    return trainingRecords.find(record => record.songId === selectedSongId);
+  }, [trainingRecords, selectedSongId]);
+
+  // 카드 클릭 핸들러
+  const handleCardClick = (songId: number) => {
+    setSelectedSongId(songId);
+    setIsModalOpen(true);
+  };
+
+  // 모달 닫기 핸들러
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedSongId(null);
+  };
 
   // 차트 표시용 전체 평균 점수 계산
   const overallAverageScore = useMemo(() => {
@@ -219,7 +250,12 @@ const History: React.FC = () => {
             </div>
           ) : (
             trainingRecords.map((record, index) => (
-              <TrainingRecordCard key={record.songId} record={record} index={index} />
+              <TrainingRecordCard
+                key={record.songId}
+                record={record}
+                index={index}
+                onClick={() => handleCardClick(record.songId)}
+              />
             ))
           )}
         </div>
@@ -261,6 +297,17 @@ const History: React.FC = () => {
         </div>
       </div>
       <FooterCopyright />
+
+      {/* 학습 기록 모달 */}
+      {selectedRecord && (
+        <SongTrainingHistoryCard
+          isClick={isModalOpen}
+          onClose={handleCloseModal}
+          songTitle={selectedRecord.titleEng}
+          songArtist={selectedRecord.artist}
+          sessions={selectedSongSessions}
+        />
+      )}
     </div>
   );
 };

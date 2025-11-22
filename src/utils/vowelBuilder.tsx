@@ -44,7 +44,7 @@ const VOWEL_COEFFS_MONO: Record<string, VowelCoeffs> = {
   ㅚ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we]/[ø] ㅗ + ㅣ
   ㅝ: { open: 0.75, spread: 0.15, round: 0.5 }, // [wʌ] ㅜ + ㅓ
   ㅞ: { open: 0.4, spread: 0.7, round: 0.0 }, // [we] ㅜ + ㅔ
-  ㅟ: { open: 0.35, spread: 0.6, round: 0.5 }, // [wi] ㅜ + ㅣ (combines round from ㅜ and spread from ㅣ)
+  ㅟ: { open: 0.35, spread: 0.6, round: 0.5 }, // [wi] → ㅜ와 동일하게 처리 (캘리브레이션 데이터 직접 사용)
   ㅢ: { open: 0.2, spread: 0.8, round: 0.0 }, // [ɰi] ㅡ + ㅣ
 };
 
@@ -102,7 +102,7 @@ export function buildTargetVowelShape(
       // 보정된 데이터 직접 사용
       const calibratedKey = ['ㅏ', 'ㅑ', 'ㅘ'].includes(vowel)
         ? 'a'
-        : ['ㅜ', 'ㅠ'].includes(vowel)
+        : ['ㅜ', 'ㅠ', 'ㅟ'].includes(vowel)
           ? 'u'
           : 'i';
       const coords = (calibData[calibratedKey].landmarks as any)[id.toString()];
@@ -205,14 +205,15 @@ export function buildTargetVowelBlendshapes(
     vowel === 'ㅣ' ||
     vowel === 'ㅑ' ||
     vowel === 'ㅠ' ||
-    vowel === 'ㅘ';
+    vowel === 'ㅘ' ||
+    vowel === 'ㅟ';
 
   if (isCalibratedVowel) {
     // 보정된 데이터 직접 사용
     const calibratedKey =
       vowel === 'ㅏ' || vowel === 'ㅑ' || vowel === 'ㅘ'
         ? 'a'
-        : vowel === 'ㅜ' || vowel === 'ㅠ'
+        : vowel === 'ㅜ' || vowel === 'ㅠ' || vowel === 'ㅟ'
           ? 'u'
           : 'i';
     return calibData[calibratedKey].blendshapes || {};
