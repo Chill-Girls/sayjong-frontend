@@ -24,14 +24,14 @@ export interface UseSongTrainingHistoryResult {
   // 상태 관리 (클릭 여부)
   isClick: boolean;
   setIsClick: (value: boolean) => void;
-  
+
   // 노래 정보
   songTitle: string | null;
   songArtist: string | null;
-  
+
   // 선택된 노래의 학습 기록
   sessions: TrainingSession[];
-  
+
   // 열기 닫기
   openModal: () => void;
   closeModal: () => void;

@@ -33,7 +33,9 @@ const History: React.FC = () => {
   const selectedSongSessions = useMemo(() => {
     if (!selectedSongId) return [];
     const filtered = sessions.filter(session => session.songId === selectedSongId);
-    console.log(`Selected song ID: ${selectedSongId}, Total sessions for this song: ${filtered.length}`);
+    console.log(
+      `Selected song ID: ${selectedSongId}, Total sessions for this song: ${filtered.length}`,
+    );
     return filtered;
   }, [sessions, selectedSongId]);
 

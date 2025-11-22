@@ -28,7 +28,7 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
   averageScore,
 }) => {
   const [weekOffset, setWeekOffset] = useState(0); // 현재 표시할 주의 오프셋 (0 = 현재 주)
-  
+
   // 7일 단위 주차 계산 및 그래프 데이터 생성
   const { graphData, currentWeekLabel } = useMemo(() => {
     const result: GraphData[] = [];
@@ -40,7 +40,7 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
       const year = date.getFullYear();
       const month = date.getMonth();
       const day = date.getDate();
-      
+
       // 월의 1일부터 시작해서 7일 단위로 주차 계산
       const weekNum = Math.floor((day - 1) / 7) + 1;
       return { weekNum, month, year };
@@ -63,17 +63,17 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
     const weekStartDate = getWeekStartDate(currentWeekDate);
     const weekEndDate = new Date(weekStartDate);
     weekEndDate.setDate(weekStartDate.getDate() + 6);
-    
+
     const dateKeys: string[] = [];
     for (let i = 0; i < 7; i++) {
       const date = new Date(weekStartDate);
       date.setDate(weekStartDate.getDate() + i);
-      
+
       // 날짜가 해당 월을 벗어나면 중단
       if (date.getMonth() !== currentMonth) {
         break;
       }
-      
+
       const month = date.getMonth() + 1;
       const day = date.getDate();
       const dateKey = `${month}/${day}`;
@@ -90,14 +90,17 @@ const TrainingLogChart: FunctionComponent<TrainingLogChartProps> = ({
     scoreRecords.forEach(session => {
       const sessionDate = new Date(session.lastPlayedAt);
       sessionDate.setHours(0, 0, 0, 0);
-      
+
       // 현재 주차 범위 내인지 확인
-      if (sessionDate >= weekStartDate && sessionDate <= weekEndDate && 
-          sessionDate.getMonth() === currentMonth) {
+      if (
+        sessionDate >= weekStartDate &&
+        sessionDate <= weekEndDate &&
+        sessionDate.getMonth() === currentMonth
+      ) {
         const month = sessionDate.getMonth() + 1;
         const day = sessionDate.getDate();
         const dateKey = `${month}/${day}`;
-        
+
         // 표시할 날짜 목록에 포함된 경우만 처리
         if (dateKeys.includes(dateKey)) {
           const current = groupedData.get(dateKey) || { sum: 0, count: 0 };

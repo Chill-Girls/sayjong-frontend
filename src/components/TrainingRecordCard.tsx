@@ -9,7 +9,11 @@ interface TrainingRecordCardProps {
   onClick?: () => void;
 }
 
-const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record, index, onClick }) => {
+const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({
+  record,
+  index,
+  onClick,
+}) => {
   return (
     <div
       onClick={onClick}

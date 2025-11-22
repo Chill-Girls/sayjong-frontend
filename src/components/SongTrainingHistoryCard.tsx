@@ -2,6 +2,7 @@ import React from 'react';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS, SHADOWS, Z_INDEX } from '../styles/theme';
 import { flexColumn, scaled } from '../styles/mixins';
 import type { SongTrainingHistoryCardProps } from '../hooks/useSongTrainingHistory';
+import { formatDate } from '../utils/dateUtils';
 
 const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
   isClick,
@@ -11,15 +12,6 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
   sessions,
 }) => {
   if (!isClick) return null;
-
-  // 날짜 형식 변환 함수
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}.${month}.${day}`;
-  };
 
   // 날짜 순 정렬
   const sortedSessions = [...sessions].sort((a, b) => {
@@ -164,16 +156,6 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                   <div style={{ ...flexColumn, gap: scaled(6) }}>
                     <div
                       style={{
-                        fontSize: scaled(22),
-                        fontWeight: FONT_WEIGHTS.semibold,
-                        color: COLORS.dark,
-                        fontFamily: FONTS.primary,
-                      }}
-                    >
-                      {formatDate(session.lastPlayedAt)}
-                    </div>
-                    <div
-                      style={{
                         fontSize: scaled(18),
                         fontWeight: FONT_WEIGHTS.normal,
                         color: COLORS.textSecondary,
@@ -181,6 +163,16 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                       }}
                     >
                       Training Date
+                    </div>
+                    <div
+                      style={{
+                        fontSize: scaled(22),
+                        fontWeight: FONT_WEIGHTS.semibold,
+                        color: COLORS.dark,
+                        fontFamily: FONTS.primary,
+                      }}
+                    >
+                      {formatDate(session.lastPlayedAt)}
                     </div>
                   </div>
                   <div
@@ -198,9 +190,9 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                           color: COLORS.dark,
                           fontFamily: FONTS.primary,
                         }}
-                        >
-                          Average Score
-                        </div>
+                      >
+                        Average Score
+                      </div>
                       <div
                         style={{
                           fontSize: scaled(28),
@@ -220,9 +212,9 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                           color: COLORS.dark,
                           fontFamily: FONTS.primary,
                         }}
-                        >
-                          Best Score
-                        </div>
+                      >
+                        Best Score
+                      </div>
                       <div
                         style={{
                           fontSize: scaled(28),
@@ -246,4 +238,3 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
 };
 
 export default SongTrainingHistoryCard;
-
