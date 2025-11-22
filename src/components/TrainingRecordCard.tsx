@@ -6,11 +6,13 @@ import { flexColumn, scaled } from '../styles/mixins';
 interface TrainingRecordCardProps {
   record: TrainingRecord;
   index: number;
+  onClick?: () => void;
 }
 
-const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record, index }) => {
+const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record, index, onClick }) => {
   return (
     <div
+      onClick={onClick}
       style={{
         width: '100%',
         height: scaled(224),
@@ -23,6 +25,20 @@ const TrainingRecordCard: FunctionComponent<TrainingRecordCardProps> = ({ record
         display: 'flex',
         alignItems: 'center',
         gap: scaled(36),
+        cursor: onClick ? 'pointer' : 'default',
+        transition: 'transform 0.2s, box-shadow 0.2s',
+      }}
+      onMouseEnter={e => {
+        if (onClick) {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = SHADOWS.card;
+        }
+      }}
+      onMouseLeave={e => {
+        if (onClick) {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = index > 0 ? SHADOWS.card : 'none';
+        }
       }}
     >
       {record.imageUrl && (
