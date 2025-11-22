@@ -29,6 +29,8 @@ interface VowelFeedbackProps {
   mouthScoreRef?: React.MutableRefObject<number | null>;
   /* 전체 모음 갯수를 외부로 전달할 ref */
   totalVowelCountRef?: React.MutableRefObject<number>;
+  /* 현재 활성 음절의 실시간 유사도를 외부로 전달할 ref */
+  currentSegmentSimilarityRef?: React.MutableRefObject<number | null>;
   /* 점수 계산을 시작할지 여부 */
   isActive?: boolean;
 }
@@ -58,6 +60,7 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   flagAccumulatorRef: externalFlagAccumulatorRef,
   mouthScoreRef: externalMouthScoreRef,
   totalVowelCountRef: externalTotalVowelCountRef,
+  currentSegmentSimilarityRef: externalCurrentSegmentSimilarityRef,
   isActive = true,
 }) => {
   // 세그먼트 추적
@@ -78,8 +81,11 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
   // 내부 ref 생성 (외부 ref가 없으면)
   const internalMouthScoreRef = useRef<number | null>(null);
   const internalTotalVowelCountRef = useRef<number>(0);
+  const internalCurrentSegmentSimilarityRef = useRef<number | null>(null);
   const mouthScoreRef = externalMouthScoreRef || internalMouthScoreRef;
   const totalVowelCountRef = externalTotalVowelCountRef || internalTotalVowelCountRef;
+  const currentSegmentSimilarityRef =
+    externalCurrentSegmentSimilarityRef || internalCurrentSegmentSimilarityRef;
 
   // 목표 모음을 한 번만 로드
   const targetVowels = useMemo(() => {
@@ -112,7 +118,15 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
     vowelCountPrevVowelRef.current = null;
     mouthScoreRef.current = null;
     totalVowelCountRef.current = 0;
-  }, [onReset, resetKey, mouthScoreRef, totalVowelCountRef, flagAccumulatorRef]);
+    currentSegmentSimilarityRef.current = null;
+  }, [
+    onReset,
+    resetKey,
+    mouthScoreRef,
+    totalVowelCountRef,
+    flagAccumulatorRef,
+    currentSegmentSimilarityRef,
+  ]);
 
   const finalizeSegment = useCallback(
     (nextVowel: string | null) => {
@@ -211,7 +225,12 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
         segmentSamplesRef.current.push(filtered);
         const sim = calculateBlendshapeSimilarity(filtered, target);
         segmentSimilaritiesRef.current.push(sim);
+        // 현재 활성 음절의 실시간 유사도를 ref에 저장
+        currentSegmentSimilarityRef.current = sim;
       }
+    } else {
+      // 활성 음절이 없으면 null로 설정
+      currentSegmentSimilarityRef.current = null;
     }
 
     if (typeof currentIndex === 'number') {
@@ -224,7 +243,14 @@ export const VowelFeedback: React.FC<VowelFeedbackProps> = ({
 
     prevVowelRef.current = activeVowel;
     prevIndexRef.current = typeof currentIndex === 'number' ? currentIndex : null;
-  }, [activeVowel, currentBlendshapes, currentIndex, finalizeSegment, getTargetBlendshapes]);
+  }, [
+    activeVowel,
+    currentBlendshapes,
+    currentIndex,
+    finalizeSegment,
+    getTargetBlendshapes,
+    currentSegmentSimilarityRef,
+  ]);
 
   // 모음 변경 감지 (세그먼트 추적을 위한 previous 갱신)
   useEffect(() => {
