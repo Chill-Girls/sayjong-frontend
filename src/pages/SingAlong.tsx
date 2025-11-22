@@ -6,6 +6,7 @@ import FooterCopyright from '../components/FooterCopyright';
 import CameraComponent from '../components/CameraComponent';
 import KaraokeLine from '../components/KaraokeLine';
 import VowelFeedback from '../components/VowelFeedback';
+import CandyCrush from '../components/CandyCrush';
 import { useKaraoke } from '../hooks/useKaraoke';
 import { useScoreRecords } from '../hooks/useScoreRecords';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
@@ -42,6 +43,8 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const flagAccumulatorRef = useRef<number>(0);
   const mouthScoreRef = useRef<number | null>(null);
   const totalVowelCountRef = useRef<number>(0);
+  const currentSegmentSimilarityRef = useRef<number | null>(null);
+
 
   // currentBlendshapes 상태
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
@@ -63,6 +66,25 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   // 최종 점수 표시 상태
   const [finalScore, setFinalScore] = useState<number | null>(null);
   const scoreSavedRef = useRef<boolean>(false); // 점수 저장 여부 추적
+  // 현재 활성 음절의 실시간 유사도 state (CandyCrush 표시용)
+  const [currentSegmentScore, setCurrentSegmentScore] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!isOverlayActive) {
+      setCurrentSegmentScore(null);
+      return;
+    }
+
+    const intervalId = setInterval(() => {
+      if (currentSegmentSimilarityRef.current !== null) {
+        setCurrentSegmentScore(currentSegmentSimilarityRef.current);
+      } else {
+        setCurrentSegmentScore(null);
+      }
+    }, 100); // 100ms마다 체크
+
+    return () => clearInterval(intervalId);
+  }, [isOverlayActive]);
 
   // 노래가 끝났을 때 점수 계산 및 표시
   const prevIsPlayingRef = useRef<boolean>(false);
@@ -321,9 +343,14 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
               flagAccumulatorRef={flagAccumulatorRef}
               mouthScoreRef={mouthScoreRef}
               totalVowelCountRef={totalVowelCountRef}
+              currentSegmentSimilarityRef={currentSegmentSimilarityRef}
               isActive={isOverlayActive}
             />
           </div>
+          <CandyCrush
+            score={currentSegmentScore !== null ? Math.round(currentSegmentScore * 100) : null}
+            show={isOverlayActive && currentSegmentScore !== null}
+          />
           <div // 가사 오버레이 위치
             style={{
               position: 'absolute',
