@@ -132,4 +132,3 @@ const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
 };
 
 export default CandyCrush;
-

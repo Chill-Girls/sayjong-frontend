@@ -45,7 +45,6 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
   const totalVowelCountRef = useRef<number>(0);
   const currentSegmentSimilarityRef = useRef<number | null>(null);
 
-
   // currentBlendshapes 상태
   const [currentBlendshapes, setCurrentBlendshapes] = useState<Record<string, number> | null>(null);
   // lyricChars (가사 글자 배열)
