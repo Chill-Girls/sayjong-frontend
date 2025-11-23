@@ -7,7 +7,7 @@ import {
   type TrainingSession,
   type ScoreRecord,
   type CreateScoreRequest,
-  type ScoreHistory
+  type ScoreHistory,
 } from './types';
 
 // 학습 세션 목록 조회
