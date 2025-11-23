@@ -7,7 +7,7 @@ interface CandyCrushProps {
   show?: boolean;
 }
 
-type ScoreGrade = 'bad' | 'good' | 'great' | 'divine' | null;
+type ScoreGrade = 'bad' | 'good' | 'great' | 'perfect' | null;
 
 const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
   const [grade, setGrade] = useState<ScoreGrade>(null);
@@ -23,7 +23,7 @@ const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
 
     let newGrade: ScoreGrade = null;
     if (score >= 90) {
-      newGrade = 'divine';
+      newGrade = 'perfect';
     } else if (score >= 75) {
       newGrade = 'great';
     } else if (score >= 50) {
@@ -50,25 +50,29 @@ const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
       text: 'BAD',
       color: '#F44336', // 빨강
       shadowColor: 'rgba(244, 67, 54, 0.5)',
+      borderColor: '#B71C1C', // 어두운 빨강 테두리
     },
     good: {
       text: 'GOOD',
       color: '#FF9800', // 주황
       shadowColor: 'rgba(255, 152, 0, 0.5)',
+      borderColor: '#E65100', 
     },
     great: {
       text: 'GREAT',
       color: '#4CAF50', // 초록
       shadowColor: 'rgba(76, 175, 80, 0.5)',
+      borderColor: '#1B5E20', 
     },
-    divine: {
-      text: 'DIVINE',
+    perfect: {
+      text: 'PERFECT',
       color: '#FFD700', // 황금
       shadowColor: 'rgba(255, 215, 0, 0.5)',
+      borderColor: '#FF8F00', 
     },
   };
 
-  const config = gradeConfig[grade];
+  const config = gradeConfig[grade as keyof typeof gradeConfig];
 
   return (
     <div
@@ -88,6 +92,7 @@ const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
           fontWeight: FONT_WEIGHTS.extrabold,
           fontFamily: FONTS.primary,
           color: config.color,
+          WebkitTextStroke: `${scaled(3)} ${config.borderColor}`,
           textShadow: `
             0 0 ${scaled(20)} ${config.shadowColor},
             0 0 ${scaled(40)} ${config.shadowColor},
