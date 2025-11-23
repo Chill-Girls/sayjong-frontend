@@ -26,9 +26,20 @@ export const trainingSessionSchema = z.object({
   coverUrl: z.string(),
 }); // 학습 기록 조회
 
+export const scoreHistorySchema = z.object({
+  id: z.number().int().describe('scoreHistoryID'),
+  score: z.number().int().describe('점수'),
+  scoredAt: z.string().describe('학습 날짜 및 시간'),
+  userId: z.number().int(),
+  songId: z.number().int(),
+  sessionId: z.number().int().describe('trainingSessionID'),
+}); // 노래별 점수 기록 조회
+
 export type TrainingSession = z.infer<typeof trainingSessionSchema>;
 export type ScoreRecord = z.infer<typeof scoreRecordSchema>; // 점수 기록 타입
 export type ScoreRecordList = z.infer<typeof scoreRecordListSchema>; // 점수 기록 목록 타입
 export type CreateScoreRequest = z.infer<typeof createScoreRequestSchema>; // 점수 기록 생성 요청 타입
 export const trainingSessionListSchema = z.array(trainingSessionSchema);
 export type TrainingSessionList = z.infer<typeof trainingSessionListSchema>;
+export type ScoreHistory = z.infer<typeof scoreHistorySchema>;
+export const scoreHistoryListSchema = z.array(scoreHistorySchema);
