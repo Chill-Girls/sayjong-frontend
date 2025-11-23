@@ -231,7 +231,13 @@ export function drawTargetMouthContours(
   toCanvas: (p: LandmarkPoint) => { x: number; y: number },
   color = '#00FF00',
 ) {
-  ctx.strokeStyle = color;
+  // 투명색일 때는 globalAlpha를 0으로 설정하여 투명하게 그림
+  if (color === 'transparent') {
+    ctx.save();
+    ctx.globalAlpha = 0;
+  }
+
+  ctx.strokeStyle = color === 'transparent' ? 'rgba(0,0,0,0)' : color;
   ctx.lineWidth = 3;
   ctx.setLineDash([]);
   ctx.lineCap = 'round';
@@ -254,7 +260,7 @@ export function drawTargetMouthContours(
   ctx.closePath();
   ctx.stroke();
 
-  ctx.strokeStyle = color;
+  ctx.strokeStyle = color === 'transparent' ? 'rgba(0,0,0,0)' : color;
   ctx.lineWidth = 2;
   ctx.beginPath();
   for (let i = 0; i < INNER_LIP_LANDMARKS.length; i++) {
@@ -271,6 +277,11 @@ export function drawTargetMouthContours(
   }
   ctx.closePath();
   ctx.stroke();
+
+  // 투명색이었으면 globalAlpha 복원
+  if (color === 'transparent') {
+    ctx.restore();
+  }
 }
 
 /**

@@ -139,13 +139,13 @@ export function useVowelOverlay({
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
       const currentTargetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
 
-      // currentVowel이 null이면 오버레이를 그리지 않음
-      if (!currentTargetVowel) {
-        return;
-      }
-
-      // 블렌드쉐이프 유사도 계산 및 실시간 입술 윤곽선 그리기
-      if (currentBlendshapes && getTargetBlendshapes && currentTargetVowel) {
+      // 블렌드쉐이프 유사도 계산 및 실시간 입술 윤곽선 그리기 && 영어일 때는 블렌드 쉐이프 계산 x
+      if (
+        currentBlendshapes &&
+        getTargetBlendshapes &&
+        currentTargetVowel &&
+        currentTargetVowel !== '1'
+      ) {
         let similarity: number | null = null;
 
         // throttling: 33ms마다 계산 (약 30fps)
@@ -174,43 +174,47 @@ export function useVowelOverlay({
           // 이전 계산 결과 재사용 (throttling 중)
           similarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
         }
-
-        // 유사도에 따라 입술 윤곽선 색상 결정 및 그리기
       }
 
-      if (currentTargetVowel) {
-        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
-      }
-
-      // 목표 모음 오버레이 그리기
-
-      // targetLandmarksComputer가 없으면 초기화
-      if (!targetLandmarksComputer.current) {
-        targetLandmarksComputer.current = new TargetLandmarksComputer(currentTargetVowel);
-      }
+      // 실시간 입술 윤곽선은 항상 그림
+      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
 
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
-      // (TTS 재생 중 모음이 실시간으로 업데이트되도록)
       const targetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
-      if (targetVowel && targetLandmarksComputer.current) {
+      // targetLandmarksComputer가 없으면 초기화
+      if (!targetLandmarksComputer.current && targetVowel) {
+        targetLandmarksComputer.current = new TargetLandmarksComputer(targetVowel);
+      }
+      // targetVowel이 없으면 목표 모음 오버레이를 그리지 않음
+      if (!targetVowel) {
+        return;
+      }
+      // targetLandmarksComputer 업데이트
+      if (targetLandmarksComputer.current) {
         targetLandmarksComputer.current.setTargetVowel(targetVowel);
       }
-
       let targetLandmarks = cachedResultsRef.current?.lastTargetLandmarks;
       if (timeSinceLastDetection >= 8 || !targetLandmarks) {
         // 마지막 감지 이후 8ms 이상이거나 목표 랜드마크가 없으면 계산
-        targetLandmarks = targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
-        if (!cachedResultsRef.current) cachedResultsRef.current = {}; // 캐시된 결과가 없으면 초기화
-        cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
+        if (targetLandmarksComputer.current) {
+          targetLandmarks = targetLandmarksComputer.current.computeTargetLandmarks(allLandmarks);
+          if (!cachedResultsRef.current) cachedResultsRef.current = {}; // 캐시된 결과가 없으면 초기화
+          cachedResultsRef.current.lastTargetLandmarks = targetLandmarks; // 캐시된 결과에 목표 랜드마크 저장
+        }
       }
       if (targetLandmarks) {
-        const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
-        if (displaySimilarity && displaySimilarity >= 0.75) {
-          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
-        } else if (displaySimilarity && displaySimilarity >= 0.6) {
-          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
+        // 영어일 때 ('1')는 투명색으로 그려서 이전 오버레이를 덮어씀
+        if (targetVowel === '1') {
+          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, 'transparent');
         } else {
-          drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
+          const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
+          if (displaySimilarity && displaySimilarity >= 0.75) {
+            drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
+          } else if (displaySimilarity && displaySimilarity >= 0.6) {
+            drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF8800'); // 주황
+          } else {
+            drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
+          }
         }
       }
     },
