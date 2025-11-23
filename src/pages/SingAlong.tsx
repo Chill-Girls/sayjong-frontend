@@ -248,7 +248,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             position: 'relative',
             fontSize: FONT_SIZES.xxl,
             fontWeight: FONT_WEIGHTS.bold,
-            color: COLORS.primary,
+            color: COLORS.textSecondary,
             textAlign: 'left',
             margin: 0,
           }}

@@ -56,19 +56,19 @@ const CandyCrush: React.FC<CandyCrushProps> = ({ score, show = true }) => {
       text: 'GOOD',
       color: '#FF9800', // 주황
       shadowColor: 'rgba(255, 152, 0, 0.5)',
-      borderColor: '#E65100', 
+      borderColor: '#E65100',
     },
     great: {
       text: 'GREAT',
       color: '#4CAF50', // 초록
       shadowColor: 'rgba(76, 175, 80, 0.5)',
-      borderColor: '#1B5E20', 
+      borderColor: '#1B5E20',
     },
     perfect: {
       text: 'PERFECT',
       color: '#FFD700', // 황금
       shadowColor: 'rgba(255, 215, 0, 0.5)',
-      borderColor: '#FF8F00', 
+      borderColor: '#FF8F00',
     },
   };
 
