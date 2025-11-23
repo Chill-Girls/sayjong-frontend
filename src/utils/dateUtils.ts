@@ -10,7 +10,7 @@ export function formatDate(dateString: string, format?: string): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
 
-  let hour24 = date.getHours(); // 0-23
+  const hour24 = date.getHours(); // 0-23
   let hour12 = hour24 % 12;
   if (hour12 === 0) hour12 = 12; // 0시(자정/정오)는 12로 표시
 

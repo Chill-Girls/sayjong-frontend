@@ -3,8 +3,8 @@ import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS, SHADOWS, Z_INDEX } from '..
 import { flexColumn, scaled } from '../styles/mixins';
 import type { SongTrainingHistoryCardProps } from '../hooks/useSongTrainingHistory';
 import { formatDate } from '../utils/dateUtils';
-import { getScoreHistoryBySessionId } from '../api/scores';
-import type { ScoreHistory } from '../api/scores/types';
+import { getScoreHistoryBySessionId } from '../api/scores'; 
+import type { ScoreHistory } from '../api/scores/types'; 
 
 const DATE_ONLY_FORMAT = 'YYYY.MM.DD';
 
@@ -15,7 +15,6 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
   songArtist,
   sessions,
 }) => {
-  if (!isClick) return null;
 
   const [detailsMap, setDetailsMap] = useState<Record<number, ScoreHistory[]>>({});
   const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
@@ -31,17 +30,16 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
     const uniqueIds = Array.from(
       new Set(
         sessions.map(s => {
-          if (typeof (s as any).sessionId === 'number' && (s as any).sessionId > 0)
-            return (s as any).sessionId;
+          if (typeof (s as any).sessionId === 'number' && (s as any).sessionId > 0) return (s as any).sessionId;
           const anyS = s as any;
           if (typeof anyS.id === 'number' && anyS.id > 0) return anyS.id;
           if (typeof anyS.sessionNo === 'number' && anyS.sessionNo > 0) return anyS.sessionNo;
           return null;
-        }),
-      ),
+        })
+      )
     ).filter((v): v is number => v !== null && v !== undefined);
 
-    const requests = uniqueIds.map(async sessionId => {
+    const requests = uniqueIds.map(async (sessionId) => {
       if (typeof sessionId !== 'number' || sessionId <= 0) {
         console.warn('Skipping invalid sessionId:', sessionId);
         return;
@@ -56,13 +54,14 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
       } finally {
         newLoading[sessionId] = false;
       }
-    });
+     });
 
-    await Promise.all(requests);
-
-    setDetailsMap(newDetails);
-    setLoadingMap(newLoading);
-  }, [sessions, isDataLoaded]);
+     await Promise.all(requests);
+     
+     setDetailsMap(newDetails);
+     setLoadingMap(newLoading);
+     
+   }, [sessions, isDataLoaded]);
 
   // sessions가 있을 때 상세 기록 로드 시작
   React.useEffect(() => {
@@ -70,30 +69,30 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
       loadAllSessionDetails();
     }
   }, [sessions, isClick, loadAllSessionDetails]);
-
+  
   const isAnyLoading = Object.values(loadingMap).some(loading => loading);
 
   let allScoreDetails: ScoreHistory[] = [];
 
-  allScoreDetails = Object.values(detailsMap).flatMap(details => {
-    return details && Array.isArray(details) ? details : [];
-  });
-
+  allScoreDetails = Object.values(detailsMap)
+    .flatMap(details => {
+      return (details && Array.isArray(details)) ? details : [];
+    });
+  
   // 통합된 상세 기록을 날짜 기준(DATE_ONLY_FORMAT)으로 그룹화
-  const finalGroupedRecords: Record<string, ScoreHistory[]> = allScoreDetails.reduce(
-    (acc, record) => {
-      const dateKey = formatDate(record.scoredAt, DATE_ONLY_FORMAT);
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(record);
-      return acc;
-    },
-    {} as Record<string, ScoreHistory[]>,
-  );
+  const finalGroupedRecords: Record<string, ScoreHistory[]> = allScoreDetails.reduce((acc, record) => {
+    const dateKey = formatDate(record.scoredAt, DATE_ONLY_FORMAT);
+    if (!acc[dateKey]) acc[dateKey] = [];
+    acc[dateKey].push(record);
+    return acc;
+  }, {} as Record<string, ScoreHistory[]>);
 
   // 날짜를 내림차순으로 정렬
   const finalSortedDates = Object.keys(finalGroupedRecords).sort((a, b) => {
     return new Date(b).getTime() - new Date(a).getTime();
   });
+
+  if (!isClick) return null;
 
   return (
     <>
@@ -206,76 +205,45 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
             }}
           >
             {sessions.length === 0 && !isAnyLoading ? (
-              <div
-                style={
-                  {
-                    /* ... */
-                  }
-                }
-              >
-                No training records found.
-              </div>
+              <div style={{ /* ... */ }}>No training records found.</div>
             ) : isAnyLoading && sessions.length === 0 ? (
-              <div
-                style={{
-                  padding: scaled(40),
-                  textAlign: 'center',
-                  fontSize: scaled(20),
-                  color: COLORS.dark,
-                }}
-              >
-                <span role="img" aria-label="loading">
-                  ⏳
-                </span>{' '}
-                Loading session data...
+              <div style={{ padding: scaled(40), textAlign: 'center', fontSize: scaled(20), color: COLORS.dark }}>
+                <span role="img" aria-label="loading">⏳</span> Loading session data...
               </div>
             ) : (
               finalSortedDates.map(dateKey => {
-                const combinedDetails = finalGroupedRecords[dateKey];
-                const isDateGroupLoading = isAnyLoading;
+                const combinedDetails = finalGroupedRecords[dateKey]; 
+                const isDateGroupLoading = isAnyLoading; 
 
-                combinedDetails.sort(
-                  (a, b) => new Date(b.scoredAt).getTime() - new Date(a.scoredAt).getTime(),
-                );
+                combinedDetails.sort((a, b) => new Date(b.scoredAt).getTime() - new Date(a.scoredAt).getTime());
+
 
                 return (
                   // 날짜별 그룹 컨테이너
                   <div key={dateKey} style={{ ...flexColumn, gap: scaled(1) }}>
+                    
                     {/* 날짜 헤더 (YYYY.MM.DD) */}
                     <div
                       style={{
                         padding: `${scaled(16)} ${scaled(24)}`,
-                        backgroundColor: COLORS.background,
+                        backgroundColor: COLORS.background, 
                         borderRadius: BORDER_RADIUS.md,
                         marginBottom: scaled(8),
                         display: 'flex',
                         justifyContent: 'space-between',
                         alignItems: 'center',
                         border: `1px solid ${COLORS.gray}`,
-                        boxShadow: SHADOWS.card,
+                        boxShadow: SHADOWS.card, 
                       }}
                     >
-                      <div
-                        style={{
-                          fontSize: scaled(22),
-                          fontWeight: FONT_WEIGHTS.bold,
-                          color: COLORS.dark,
-                          fontFamily: FONTS.primary,
-                        }}
-                      >
+                      <div style={{ fontSize: scaled(22), fontWeight: FONT_WEIGHTS.bold, color: COLORS.dark, fontFamily: FONTS.primary }}>
                         {dateKey}
                       </div>
-                      <div
-                        style={{
-                          fontSize: scaled(18),
-                          fontWeight: FONT_WEIGHTS.semibold,
-                          color: COLORS.textSecondary,
-                        }}
-                      >
-                        Records: {combinedDetails.length}
+                       <div style={{ fontSize: scaled(18), fontWeight: FONT_WEIGHTS.semibold, color: COLORS.textSecondary }}>
+                         Records: {combinedDetails.length}
                       </div>
                     </div>
-
+                    
                     {/* 상세 점수 목록 영역 */}
                     <div
                       style={{
@@ -295,23 +263,17 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                         }}
                       >
                         {isDateGroupLoading ? (
-                          <div
-                            style={{
-                              color: COLORS.textSecondary,
-                              textAlign: 'center',
-                              padding: scaled(10),
-                            }}
-                          >
+                          <div style={{ color: COLORS.textSecondary, textAlign: 'center', padding: scaled(10) }}>
                             Loading records...
                           </div>
                         ) : combinedDetails.length > 0 ? (
-                          combinedDetails.map(d => (
+                          combinedDetails.map((d) => (
                             // 상세 점수 항목 - 개별 박스 스타일 적용
-                            <div
-                              key={d.id}
-                              style={{
-                                display: 'flex',
-                                justifyContent: 'space-between',
+                            <div 
+                              key={d.id} 
+                              style={{ 
+                                display: 'flex', 
+                                justifyContent: 'space-between', 
                                 alignItems: 'center',
                                 padding: `${scaled(8)} ${scaled(10)}`,
                                 backgroundColor: COLORS.white,
@@ -322,33 +284,20 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                             >
                               {/* Training Time: HH:mm 형식 */}
                               <div style={{ color: COLORS.textSecondary, fontSize: scaled(16) }}>
-                                Training Time: {formatDate(d.scoredAt, 'HH:mm')}
+                                Training Time: {formatDate(d.scoredAt, 'HH:mm')} 
                               </div>
                               {/* 점수 */}
-                              <div
-                                style={{
-                                  fontWeight: FONT_WEIGHTS.bold,
-                                  color: COLORS.primary,
-                                  fontSize: scaled(20),
-                                }}
-                              >
+                              <div style={{ fontWeight: FONT_WEIGHTS.bold, color: COLORS.primary, fontSize: scaled(20) }}>
                                 {Number(d.score).toFixed(0)}%
                               </div>
                             </div>
                           ))
                         ) : (
-                          <div
-                            style={{
-                              color: COLORS.textSecondary,
-                              textAlign: 'center',
-                              padding: scaled(10),
-                            }}
-                          >
-                            No detailed records found for {dateKey}.
-                          </div>
+                          <div style={{ color: COLORS.textSecondary, textAlign: 'center', padding: scaled(10) }}>No detailed records found for {dateKey}.</div>
                         )}
                       </div>
                     </div>
+
                   </div>
                 );
               })
