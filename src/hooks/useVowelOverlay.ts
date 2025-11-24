@@ -11,7 +11,7 @@ import {
 } from '../utils/blendshapeProcessor';
 
 import type { LandmarkPoint } from '../constants/landmarks';
-
+/*import { COLORS } from '../styles/theme.ts';*/
 interface UseVowelOverlayProps {
   currentVowel: string | null;
   getTargetBlendshapes?: (vowel: string | null) => Record<string, number> | null;
@@ -176,9 +176,14 @@ export function useVowelOverlay({
         }
       }
 
-      // 실시간 입술 윤곽선은 항상 그림
-      drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
-
+      // 실시간 입술 윤곽선
+      if(showAROverlay) {
+        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
+      }
+      /*
+      else{
+        drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas ,COLORS.karaokePink);
+      }*/
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
       const targetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
       // targetLandmarksComputer가 없으면 초기화
