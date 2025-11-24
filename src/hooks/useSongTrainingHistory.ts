@@ -104,19 +104,19 @@ export function useSongTrainingHistory({
   );
 
   const groupedRecords = useMemo(() => {
-    return allScoreDetails.reduce((acc, record) => {
-      const dateKey = formatDate(record.scoredAt, DATE_ONLY_FORMAT);
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(record);
-      return acc;
-    }, {} as Record<string, ScoreHistory[]>);
+    return allScoreDetails.reduce(
+      (acc, record) => {
+        const dateKey = formatDate(record.scoredAt, DATE_ONLY_FORMAT);
+        if (!acc[dateKey]) acc[dateKey] = [];
+        acc[dateKey].push(record);
+        return acc;
+      },
+      {} as Record<string, ScoreHistory[]>,
+    );
   }, [allScoreDetails]);
 
   const sortedDates = useMemo(
-    () =>
-      Object.keys(groupedRecords).sort(
-        (a, b) => new Date(b).getTime() - new Date(a).getTime(),
-      ),
+    () => Object.keys(groupedRecords).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()),
     [groupedRecords],
   );
 

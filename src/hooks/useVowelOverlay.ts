@@ -17,6 +17,7 @@ interface UseVowelOverlayProps {
   getTargetBlendshapes?: (vowel: string | null) => Record<string, number> | null;
   currentBlendshapes?: Record<string, number> | null;
   skipCountdown?: boolean;
+  onSimilarityChange?: (value: number | null) => void;
 }
 
 export function useVowelOverlay({
@@ -24,6 +25,7 @@ export function useVowelOverlay({
   getTargetBlendshapes,
   currentBlendshapes,
   skipCountdown = false,
+  onSimilarityChange,
 }: UseVowelOverlayProps) {
   const targetVowelRef = useRef<(string | null)[]>([]);
   const targetLandmarksComputer = useRef<TargetLandmarksComputer | null>(null);
@@ -138,6 +140,7 @@ export function useVowelOverlay({
       const now = performance.now();
       // AR 오버레이가 활성화되어 있어도, TTS 재생 중이면 currentVowel을 우선 사용
       const currentTargetVowel = showAROverlay && arVowel ? arVowel : currentVowel;
+      let latestDisplaySimilarity: number | null = null;
 
       // 블렌드쉐이프 유사도 계산 및 실시간 입술 윤곽선 그리기 && 영어일 때는 블렌드 쉐이프 계산 x
       if (
@@ -177,7 +180,7 @@ export function useVowelOverlay({
       }
 
       // 실시간 입술 윤곽선
-      if(showAROverlay) {
+      if (showAROverlay) {
         drawLiveMouthContours(canvasCtx, allLandmarks, toCanvas);
       }
       /*
@@ -192,6 +195,7 @@ export function useVowelOverlay({
       }
       // targetVowel이 없으면 목표 모음 오버레이를 그리지 않음
       if (!targetVowel) {
+        if (onSimilarityChange) onSimilarityChange(null);
         return;
       }
       // targetLandmarksComputer 업데이트
@@ -210,9 +214,12 @@ export function useVowelOverlay({
       if (targetLandmarks) {
         // 영어일 때 ('1')는 투명색으로 그려서 이전 오버레이를 덮어씀
         if (targetVowel === '1') {
+          const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
+          latestDisplaySimilarity = displaySimilarity ?? null;
           drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, 'transparent');
         } else {
           const displaySimilarity = smoothedSimilarityRef.current ?? similarityScoreRef.current;
+          latestDisplaySimilarity = displaySimilarity ?? null;
           if (displaySimilarity && displaySimilarity >= 0.75) {
             drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#00FF00'); // 초록
           } else if (displaySimilarity && displaySimilarity >= 0.6) {
@@ -221,9 +228,21 @@ export function useVowelOverlay({
             drawTargetMouthContours(canvasCtx, targetLandmarks, toCanvas, '#FF0000'); // 빨강
           }
         }
+      } else {
+        latestDisplaySimilarity = null;
+      }
+      if (onSimilarityChange) {
+        onSimilarityChange(latestDisplaySimilarity);
       }
     },
-    [showAROverlay, arVowel, currentVowel, currentBlendshapes, getTargetBlendshapes],
+    [
+      showAROverlay,
+      arVowel,
+      currentVowel,
+      currentBlendshapes,
+      getTargetBlendshapes,
+      onSimilarityChange,
+    ],
   );
   return {
     renderOverlay,

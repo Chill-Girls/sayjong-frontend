@@ -44,6 +44,8 @@ interface CameraComponentProps {
   skipCountdown?: boolean;
   /** 랜드마크 좌표 표시 여부 */
   showLandmarkCoordinates?: boolean;
+  /** 오버레이 유사도 업데이트 콜백 */
+  onOverlaySimilarityChange?: (value: number | null) => void;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
@@ -55,6 +57,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
   onCountdownComplete,
   skipCountdown = false,
   showLandmarkCoordinates = false,
+  onOverlaySimilarityChange,
 }) => {
   // 카메라 비율 563:357 (가로:세로) 고정
   const widthValue = parseFloat(width.replace('px', ''));
@@ -131,6 +134,7 @@ const CameraComponent: React.FC<CameraComponentProps> = ({
       getTargetBlendshapes,
       currentBlendshapes,
       skipCountdown,
+      onSimilarityChange: onOverlaySimilarityChange,
     },
   );
 
