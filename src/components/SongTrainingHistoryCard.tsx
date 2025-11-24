@@ -1,12 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React from 'react';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS, SHADOWS, Z_INDEX } from '../styles/theme';
 import { flexColumn, scaled } from '../styles/mixins';
-import type { SongTrainingHistoryCardProps } from '../hooks/useSongTrainingHistory';
+import {
+  useSongTrainingHistory,
+  type SongTrainingHistoryCardProps,
+} from '../hooks/useSongTrainingHistory';
 import { formatDate } from '../utils/dateUtils';
-import { getScoreHistoryBySessionId } from '../api/scores';
-import type { ScoreHistory } from '../api/scores/types';
-
-const DATE_ONLY_FORMAT = 'YYYY.MM.DD';
 
 const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
   isClick,
@@ -15,82 +14,9 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
   songArtist,
   sessions,
 }) => {
-  const [detailsMap, setDetailsMap] = useState<Record<number, ScoreHistory[]>>({});
-  const [loadingMap, setLoadingMap] = useState<Record<number, boolean>>({});
-  const [isDataLoaded, setIsDataLoaded] = useState<boolean>(false);
-
-  // 모든 세션의 상세 기록을 로드하는 함수
-  const loadAllSessionDetails = useCallback(async () => {
-    if (isDataLoaded) return;
-    setIsDataLoaded(true);
-
-    const newDetails: Record<number, ScoreHistory[]> = {};
-    const newLoading: Record<number, boolean> = {};
-    const uniqueIds = Array.from(
-      new Set(
-        sessions.map(s => {
-          if (typeof (s as any).sessionId === 'number' && (s as any).sessionId > 0)
-            return (s as any).sessionId;
-          const anyS = s as any;
-          if (typeof anyS.id === 'number' && anyS.id > 0) return anyS.id;
-          if (typeof anyS.sessionNo === 'number' && anyS.sessionNo > 0) return anyS.sessionNo;
-          return null;
-        }),
-      ),
-    ).filter((v): v is number => v !== null && v !== undefined);
-
-    const requests = uniqueIds.map(async sessionId => {
-      if (typeof sessionId !== 'number' || sessionId <= 0) {
-        console.warn('Skipping invalid sessionId:', sessionId);
-        return;
-      }
-      newLoading[sessionId] = true;
-      try {
-        const details = await getScoreHistoryBySessionId(sessionId);
-        newDetails[sessionId] = details || [];
-      } catch (err) {
-        console.error(`🚨 Failed to load score history for session ${sessionId}:`, err);
-        newDetails[sessionId] = [];
-      } finally {
-        newLoading[sessionId] = false;
-      }
-    });
-
-    await Promise.all(requests);
-
-    setDetailsMap(newDetails);
-    setLoadingMap(newLoading);
-  }, [sessions, isDataLoaded]);
-
-  // sessions가 있을 때 상세 기록 로드 시작
-  React.useEffect(() => {
-    if (sessions.length > 0 && isClick) {
-      loadAllSessionDetails();
-    }
-  }, [sessions, isClick, loadAllSessionDetails]);
-
-  const isAnyLoading = Object.values(loadingMap).some(loading => loading);
-
-  let allScoreDetails: ScoreHistory[] = [];
-
-  allScoreDetails = Object.values(detailsMap).flatMap(details => {
-    return details && Array.isArray(details) ? details : [];
-  });
-
-  // 통합된 상세 기록을 날짜 기준(DATE_ONLY_FORMAT)으로 그룹화
-  const finalGroupedRecords: Record<string, ScoreHistory[]> = allScoreDetails.reduce(
-    (acc, record) => {
-      const dateKey = formatDate(record.scoredAt, DATE_ONLY_FORMAT);
-      if (!acc[dateKey]) acc[dateKey] = [];
-      acc[dateKey].push(record);
-      return acc;
-    },
-    {} as Record<string, ScoreHistory[]>,
-  );
-
-  // 날짜를 내림차순으로 정렬
-  const finalSortedDates = Object.keys(finalGroupedRecords).sort((a, b) => {
-    return new Date(b).getTime() - new Date(a).getTime();
+  const { groupedRecords, sortedDates, isAnyLoading } = useSongTrainingHistory({
+    sessions,
+    isEnabled: isClick,
   });
 
   if (!isClick) return null;
@@ -230,8 +156,8 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                 Loading session data...
               </div>
             ) : (
-              finalSortedDates.map(dateKey => {
-                const combinedDetails = finalGroupedRecords[dateKey];
+              sortedDates.map(dateKey => {
+                const combinedDetails = groupedRecords[dateKey];
                 const isDateGroupLoading = isAnyLoading;
 
                 combinedDetails.sort(
