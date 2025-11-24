@@ -6,16 +6,26 @@ interface CoordsButtonProps {
   isActive: boolean;
   onClick: () => void;
   top?: number;
+  right?: number;
+  label?: string;
+  ariaLabel?: string;
 }
 
-const CoordsButton: React.FC<CoordsButtonProps> = ({ isActive, onClick, top = 30 }) => {
+const CoordsButton: React.FC<CoordsButtonProps> = ({
+  isActive,
+  onClick,
+  top = 30,
+  right = 10,
+  label = 'COORDS',
+  ariaLabel = 'Toggle landmark coordinates',
+}) => {
   return (
     <button
       onClick={onClick}
       style={{
         position: 'absolute',
         top: scaled(top),
-        right: scaled(10),
+        right: scaled(right),
         zIndex: 1000,
         padding: `${scaled(8)} ${scaled(12)}`,
         backgroundColor: isActive ? COLORS.primary : COLORS.background,
@@ -29,9 +39,9 @@ const CoordsButton: React.FC<CoordsButtonProps> = ({ isActive, onClick, top = 30
         outline: 'none',
         transition: 'all 0.2s ease',
       }}
-      aria-label="Toggle landmark coordinates"
+      aria-label={ariaLabel}
     >
-      COORDS
+      {label.toUpperCase()}
     </button>
   );
 };

@@ -6,11 +6,13 @@ import BtnPrev from '../components/Btn_prev';
 import BtnNext from '../components/Btn_next';
 import LyricsCard from '../components/LyricsCard';
 import CoordsButton from '../components/Btn_Coords';
+import MouthDebugPanel from '../components/MouthDebugPanel';
 import { COLORS, FONTS, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
 import { containerFullscreen, flexColumn, scaled } from '../styles/mixins';
 import { useMode } from '../constants/ModeContext';
 import { useRecording } from '../constants/RecordingContext';
 import { extractVowel } from '../utils/hangul';
+import { filterTargetBlendshapes } from '../utils/blendshapeProcessor';
 import { useSong, useSongLyricLines } from '../hooks/useSongs';
 import { useSyllablePractice, type PracticeSyllable } from '../hooks/useSyllablePractice';
 
@@ -68,6 +70,9 @@ const SyllablePractice: React.FC = () => {
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(700));
   const [showLandmarkCoordinates, setShowLandmarkCoordinates] = useState<boolean>(false);
+  const [showMouthOverlayPanel, setShowMouthOverlayPanel] = useState<boolean>(false);
+  const [displayBlendshapes, setDisplayBlendshapes] = useState<Record<string, number>>({});
+  const [overlaySimilarity, setOverlaySimilarity] = useState<number | null>(null);
 
   useEffect(() => {
     setMode('syllable');
@@ -219,9 +224,13 @@ const SyllablePractice: React.FC = () => {
 
   const handleCameraResults = useCallback((results: { blendshapes?: Record<string, number> }) => {
     if (!results?.blendshapes) return;
+
     const now = performance.now();
     if (now - lastUpdateTimeRef.current < 33) return;
     lastUpdateTimeRef.current = now;
+
+    const filteredBlendshapes = filterTargetBlendshapes(results.blendshapes);
+    setDisplayBlendshapes(filteredBlendshapes);
   }, []);
 
   // 소절 내의 음절을 클릭했을 때 호출
@@ -496,6 +505,14 @@ const SyllablePractice: React.FC = () => {
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
               top={60}
             />
+            <CoordsButton
+              isActive={showMouthOverlayPanel}
+              onClick={() => setShowMouthOverlayPanel(prev => !prev)}
+              top={60}
+              right={95}
+              label="Similarity"
+              ariaLabel="Toggle mouth debug overlay"
+            />
             <div
               ref={cameraContainerRef}
               style={{
@@ -514,7 +531,15 @@ const SyllablePractice: React.FC = () => {
                 activeSyllable={shouldShowAR ? currentDisplaySyllable : null}
                 activeVowel={displayVowel}
                 shouldStartOverlay={isRecording}
+                onOverlaySimilarityChange={setOverlaySimilarity}
                 showLandmarkCoordinates={showLandmarkCoordinates}
+              />
+              <MouthDebugPanel
+                isVisible={showMouthOverlayPanel}
+                displayVowel={displayVowel}
+                displaySimilarity={overlaySimilarity}
+                displayBlendshapes={displayBlendshapes}
+                topOffset={70}
               />
             </div>
           </div>

@@ -22,6 +22,7 @@ import VowelFeedback, { type SegmentFeedbackItem } from '../components/VowelFeed
 import ScoreBar from '../components/ScoreBar';
 import LyricsCard from '../components/LyricsCard';
 import CoordsButton from '../components/Btn_Coords';
+import MouthDebugPanel from '../components/MouthDebugPanel';
 import { mapCharsWithMask } from '../utils/highlight';
 
 const HIGHLIGHT_COLOR = '#F04455';
@@ -69,6 +70,7 @@ const LinePractice: React.FC = () => {
   const cameraContainerRef = useRef<HTMLDivElement>(null);
   const [cameraWidth, setCameraWidth] = useState<string>(scaled(700));
   const [showLandmarkCoordinates, setShowLandmarkCoordinates] = useState<boolean>(false);
+  const [showMouthOverlayPanel, setShowMouthOverlayPanel] = useState<boolean>(false);
 
   // 카메라 컨테이너 크기에 맞춰 CameraComponent 너비 업데이트
   useEffect(() => {
@@ -452,6 +454,15 @@ const LinePractice: React.FC = () => {
               isActive={showLandmarkCoordinates}
               onClick={() => setShowLandmarkCoordinates(!showLandmarkCoordinates)}
               top={30}
+              right={10}
+            />
+            <CoordsButton
+              isActive={showMouthOverlayPanel}
+              onClick={() => setShowMouthOverlayPanel(prev => !prev)}
+              top={30}
+              right={95}
+              label="Similarity"
+              ariaLabel="Toggle mouth debug overlay"
             />
             <div
               ref={cameraContainerRef}
@@ -475,51 +486,13 @@ const LinePractice: React.FC = () => {
                 onCountdownComplete={handleCountdownComplete}
                 showLandmarkCoordinates={showLandmarkCoordinates}
               />
-              {/* {isRecording && isTtsPlaying && displaySimilarity !== null && displayVowel && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    top: scaled(10),
-                    right: scaled(10),
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    color: COLORS.white,
-                    padding: `${scaled(12)} ${scaled(16)}`,
-                    borderRadius: scaled(8),
-                    fontSize: scaled(16),
-                    fontFamily: FONTS.primary,
-                    zIndex: 10,
-                    minWidth: scaled(200),
-                  }}
-                >
-                  <div style={{ fontWeight: FONT_WEIGHTS.semibold, marginBottom: scaled(4) }}>
-                    Similarity Score (임시)
-                  </div>
-                  <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>
-                    모음: {displayVowel}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: scaled(24),
-                      fontWeight: FONT_WEIGHTS.bold,
-                      color:
-                        displaySimilarity > 0.7
-                          ? '#4CAF50'
-                          : displaySimilarity > 0.5
-                            ? '#FFC107'
-                            : '#F44336',
-                    }}
-                  >
-                    {(displaySimilarity * 100).toFixed(1)}%
-                  </div>
-                  <div style={{ fontSize: scaled(12), marginTop: scaled(8), opacity: 0.8 }}>
-                    {TARGET_BLENDSHAPES.map(name => (
-                      <div key={name} style={{ marginTop: scaled(2) }}>
-                        {name}: {displayBlendshapes[name]?.toFixed(3) ?? 'N/A'}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )} */}
+              <MouthDebugPanel
+                isVisible={showMouthOverlayPanel && isRecording && isTtsPlaying && !!displayVowel}
+                displayVowel={displayVowel}
+                displaySimilarity={mouthScoreRef.current}
+                displayBlendshapes={displayBlendshapes}
+                topOffset={70}
+              />
             </div>
           </div>
 
