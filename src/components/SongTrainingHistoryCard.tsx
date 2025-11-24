@@ -129,7 +129,10 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
               overflowY: 'auto',
               paddingRight: scaled(10),
               maxHeight: '60vh',
+              scrollbarWidth: 'thin',
+              scrollbarColor: `${COLORS.textSecondary}40 transparent`,
             }}
+            className="transparent-scrollbar"
           >
             {sessions.length === 0 && !isAnyLoading ? (
               <div
@@ -218,7 +221,10 @@ const SongTrainingHistoryCard: React.FC<SongTrainingHistoryCardProps> = ({
                           ...flexColumn,
                           gap: scaled(8),
                           fontFamily: FONTS.primary,
+                          scrollbarWidth: 'thin',
+                          scrollbarColor: `${COLORS.textSecondary}40 transparent`,
                         }}
+                        className="transparent-scrollbar"
                       >
                         {isDateGroupLoading ? (
                           <div
