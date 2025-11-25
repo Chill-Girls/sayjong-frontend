@@ -537,6 +537,7 @@ const SyllablePractice: React.FC = () => {
               <MouthDebugPanel
                 isVisible={showMouthOverlayPanel}
                 displayVowel={displayVowel}
+                displaySyllable={currentDisplaySyllable}
                 displaySimilarity={overlaySimilarity}
                 displayBlendshapes={displayBlendshapes}
                 topOffset={70}
