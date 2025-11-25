@@ -38,15 +38,18 @@ const FinalScore: React.FC<FinalScoreProps> = ({ score, show = true }) => {
   if (score >= 80) {
     sejongImage = SejongGreat;
     scoreColor = '#4CAF50'; // 초록
-    gradientColors = 'radial-gradient(circle at center, rgba(255, 192, 203, 0.9), rgba(138, 43, 226, 0.8), rgba(30, 144, 255, 0.9))';
+    gradientColors =
+      'radial-gradient(circle at center, rgba(255, 192, 203, 0.9), rgba(138, 43, 226, 0.8), rgba(30, 144, 255, 0.9))';
   } else if (score >= 60) {
     sejongImage = SejongSoso;
     scoreColor = '#FFC107'; // 노란
-    gradientColors = 'radial-gradient(circle at center, rgba(255, 192, 203, 0.7), rgba(255, 165, 0, 0.7), rgba(138, 43, 226, 0.7))';
+    gradientColors =
+      'radial-gradient(circle at center, rgba(255, 192, 203, 0.7), rgba(255, 165, 0, 0.7), rgba(138, 43, 226, 0.7))';
   } else {
     sejongImage = SejongBad;
     scoreColor = '#F44336'; // 빨강
-    gradientColors = 'radial-gradient(circle at center, rgba(255, 0, 0, 0.6), rgba(139, 0, 0, 0.7), rgba(75, 0, 0, 0.8))';
+    gradientColors =
+      'radial-gradient(circle at center, rgba(255, 0, 0, 0.6), rgba(139, 0, 0, 0.7), rgba(75, 0, 0, 0.8))';
   }
 
   // 별 위치 생성 (랜덤하게 배치)
@@ -263,4 +266,3 @@ const FinalScore: React.FC<FinalScoreProps> = ({ score, show = true }) => {
 };
 
 export default FinalScore;
-

@@ -6,7 +6,7 @@ import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 interface MouthDebugPanelProps {
   isVisible: boolean;
   displayVowel: string | null;
-  displaySyllable?: string | null; 
+  displaySyllable?: string | null;
   displaySimilarity: number | null;
   displayBlendshapes: Record<string, number | undefined>;
   topOffset?: number;
@@ -25,8 +25,7 @@ const MouthDebugPanel: React.FC<MouthDebugPanelProps> = ({
   }
 
   // 원본 텍스트가 있으면 각 글자를 분리해서 표시, 없으면 기존 displayVowel 표시
-  const displayText = displaySyllable
-
+  const displayText = displaySyllable;
 
   const formattedSimilarity =
     displaySimilarity !== null ? `${(displaySimilarity * 100).toFixed(1)}%` : null;

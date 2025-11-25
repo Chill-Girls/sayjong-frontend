@@ -408,4 +408,3 @@ export function drawActiveSyllable(
   ctx.fillText(syllable, 0, 0);
   ctx.restore();
 }
-
