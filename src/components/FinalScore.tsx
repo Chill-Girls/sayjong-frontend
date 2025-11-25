@@ -177,12 +177,14 @@ const FinalScore: React.FC<FinalScoreProps> = ({ score, show = true }) => {
               src={sejongImage}
               alt="Sejong"
               style={{
-                width: scaled(350),
+                width: scaled(380), //배경 크기
                 height: 'auto',
                 objectFit: 'contain',
                 flexShrink: 0,
                 filter: 'drop-shadow(0 0 20px rgba(255, 255, 255, 0.5))',
                 animation: 'glow 2s ease-in-out infinite',
+                transform: 'scale(1.25) translate(0, 10%)', // 세종대왕 크기 배수로 키울 수 있음
+                transformOrigin: 'bottom center',
               }}
             />
           </div>
@@ -192,11 +194,13 @@ const FinalScore: React.FC<FinalScoreProps> = ({ score, show = true }) => {
             style={{
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'flex-start',
+              alignItems: 'center',
               justifyContent: 'center',
               gap: scaled(15),
               position: 'relative',
               zIndex: 2,
+              textAlign: 'center',
+              minWidth: scaled(280),
             }}
           >
             {/* SCORE 라벨 */}
