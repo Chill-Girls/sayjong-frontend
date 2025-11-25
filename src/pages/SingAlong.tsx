@@ -7,6 +7,7 @@ import CameraComponent from '../components/CameraComponent';
 import KaraokeLine from '../components/KaraokeLine';
 import VowelFeedback from '../components/VowelFeedback';
 import CandyCrush from '../components/CandyCrush';
+import FinalScore from '../components/FinalScore';
 import { useKaraoke } from '../hooks/useKaraoke';
 import { useScoreRecords } from '../hooks/useScoreRecords';
 import { COLORS, FONTS, FONT_SIZES, FONT_WEIGHTS, BORDER_RADIUS } from '../styles/theme';
@@ -284,51 +285,7 @@ const SingAlong: FunctionComponent<SingAlongProps> = () => {
             skipCountdown={true}
             onResults={handleCameraResults}
           />
-          {/* 최종 점수 표시 UI */}
-          {finalScore !== null && (
-            <div
-              style={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)',
-                zIndex: 10,
-                pointerEvents: 'none',
-                textAlign: 'center',
-              }}
-            >
-              <div
-                style={{
-                  backgroundColor: 'transparent',
-                  padding: `${scaled(40)} ${scaled(60)}`,
-                  borderRadius: scaled(20),
-                  minWidth: scaled(300),
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: scaled(96),
-                    fontWeight: FONT_WEIGHTS.bold,
-                    color: finalScore >= 80 ? '#4CAF50' : finalScore >= 60 ? '#FFC107' : '#F44336',
-                    textShadow: '0 0 20px rgba(0, 0, 0, 0.5)',
-                    marginBottom: scaled(10),
-                  }}
-                >
-                  {finalScore} Points
-                </div>
-                <div
-                  style={{
-                    fontSize: scaled(32),
-                    fontWeight: FONT_WEIGHTS.bold,
-                    color: COLORS.primary,
-                    textShadow: '0 0 10px rgba(0, 0, 0, 0.5)',
-                  }}
-                >
-                  Final Score
-                </div>
-              </div>
-            </div>
-          )}
+          <FinalScore score={finalScore} show={finalScore !== null} />
           {/* VowelFeedback (숨김 처리) */}
           <div style={{ display: 'none' }}>
             <VowelFeedback

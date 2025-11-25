@@ -6,6 +6,7 @@ import { TARGET_BLENDSHAPES } from '../utils/blendshapeProcessor';
 interface MouthDebugPanelProps {
   isVisible: boolean;
   displayVowel: string | null;
+  displaySyllable?: string | null;
   displaySimilarity: number | null;
   displayBlendshapes: Record<string, number | undefined>;
   topOffset?: number;
@@ -14,6 +15,7 @@ interface MouthDebugPanelProps {
 const MouthDebugPanel: React.FC<MouthDebugPanelProps> = ({
   isVisible,
   displayVowel,
+  displaySyllable,
   displaySimilarity,
   displayBlendshapes,
   topOffset = 10,
@@ -21,6 +23,9 @@ const MouthDebugPanel: React.FC<MouthDebugPanelProps> = ({
   if (!isVisible || !displayVowel) {
     return null;
   }
+
+  // 원본 텍스트가 있으면 각 글자를 분리해서 표시, 없으면 기존 displayVowel 표시
+  const displayText = displaySyllable;
 
   const formattedSimilarity =
     displaySimilarity !== null ? `${(displaySimilarity * 100).toFixed(1)}%` : null;
@@ -52,7 +57,7 @@ const MouthDebugPanel: React.FC<MouthDebugPanelProps> = ({
       <div style={{ fontWeight: FONT_WEIGHTS.semibold, marginBottom: scaled(4) }}>
         Similarity Score (mouth shape)
       </div>
-      <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>모음: {displayVowel}</div>
+      <div style={{ fontSize: scaled(14), marginBottom: scaled(8) }}>syllable: {displayText}</div>
       <div
         style={{
           fontSize: scaled(24),

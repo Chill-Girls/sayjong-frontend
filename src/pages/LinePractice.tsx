@@ -489,6 +489,7 @@ const LinePractice: React.FC = () => {
               <MouthDebugPanel
                 isVisible={showMouthOverlayPanel && isRecording && isTtsPlaying && !!displayVowel}
                 displayVowel={displayVowel}
+                displaySyllable={isRecording && isTtsPlaying ? currentTtsSyllable : null}
                 displaySimilarity={mouthScoreRef.current}
                 displayBlendshapes={displayBlendshapes}
                 topOffset={70}
