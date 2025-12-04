@@ -35,12 +35,12 @@ const FinalScore: React.FC<FinalScoreProps> = ({ score, show = true }) => {
   let sejongImage: string;
   let scoreColor: string;
   let gradientColors: string;
-  if (score >= 80) {
+  if (score >= 70) {
     sejongImage = SejongGreat;
     scoreColor = '#4CAF50'; // 초록
     gradientColors =
       'radial-gradient(circle at center, rgba(255, 192, 203, 0.9), rgba(138, 43, 226, 0.8), rgba(30, 144, 255, 0.9))';
-  } else if (score >= 60) {
+  } else if (score >= 50) {
     sejongImage = SejongSoso;
     scoreColor = '#FFC107'; // 노란
     gradientColors =
